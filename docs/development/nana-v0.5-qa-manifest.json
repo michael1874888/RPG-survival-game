@@ -1,0 +1,22 @@
+{
+  "qa_root": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/qa/v0.5",
+  "description": "Godot native rendered title, play scene and ultimate; programmatic GUI input",
+  "files": [
+    {
+      "name": "01-title.png",
+      "bytes": 110094,
+      "sha256": "7e6e4448075c3634f4fee1aabce6f377f9405f7a680c035ada8bf44d84b0c587"
+    },
+    {
+      "name": "02-playing.png",
+      "bytes": 75055,
+      "sha256": "633449d00a4481066065477805d2a871ba0787a809d973c40f802a7905c6618f"
+    },
+    {
+      "name": "03-ultimate.png",
+      "bytes": 82515,
+      "sha256": "425fae097d71a7f85db0c776123b2b10d94638ed931250c68713d5bd90b87ee1"
+    }
+  ],
+  "apk_receipt": "tools/android-build.json"
+}

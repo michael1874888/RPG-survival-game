@@ -12,11 +12,15 @@ var touch = Touch.new()
 var font: Font
 var bold_font: Font
 var screen: String = "title"
-var selected_character: String = "hedgehog"
-var selected_mode: String = "bloom"
-var selected_scenario: String = "surround"
+var selected_character: String = "nana"
+var selected_mode: String = "standard"
+var selected_scenario: String = "normal"
+var selected_nana_preset: String = "base"
+var selected_pressure_preset: String = "sweep"
 var overlay: Control
 var pause_button: Button
+var ultimate_button: Button
+var ultimate_touches: Dictionary = {}
 var mouse_held: bool = false
 var mouse_position := Vector2.ZERO
 var effects: Array[Dictionary] = []
@@ -58,6 +62,16 @@ func _ready() -> void:
 	pause_button.add_theme_stylebox_override("hover", panel_style(Color("3d6552"), 14))
 	pause_button.pressed.connect(_pause_run)
 	add_child(pause_button)
+	ultimate_button = Button.new()
+	ultimate_button.text = "夜影解放\n準備完成"
+	ultimate_button.focus_mode = Control.FOCUS_NONE
+	ultimate_button.add_theme_font_override("font", bold_font)
+	ultimate_button.add_theme_font_size_override("font_size", 18)
+	ultimate_button.add_theme_stylebox_override("normal", panel_style(Color("564478"), 18))
+	ultimate_button.add_theme_stylebox_override("hover", panel_style(Color("725c9a"), 18))
+	ultimate_button.add_theme_stylebox_override("pressed", panel_style(Color("46365e"), 18))
+	ultimate_button.button_down.connect(_activate_ultimate)
+	add_child(ultimate_button)
 	resized.connect(_layout_hud)
 	_layout_hud()
 	_setup_audio()
@@ -80,6 +94,9 @@ func _layout_hud() -> void:
 	if is_instance_valid(pause_button):
 		pause_button.position = Vector2(size.x - 126.0, 27.0)
 		pause_button.size = Vector2(96, 44)
+	if is_instance_valid(ultimate_button):
+		ultimate_button.position = Vector2(size.x - 350.0, size.y - 260.0)
+		ultimate_button.size = Vector2(150.0, 72.0)
 
 
 func _setup_audio() -> void:
@@ -140,6 +157,13 @@ func _process(delta: float) -> void:
 		if float(effects[i]["life"]) <= 0.0:
 			effects.remove_at(i)
 	_audio_tick(delta)
+	if is_instance_valid(ultimate_button) and ultimate_button.visible:
+		if run.nana.ultimate_remaining > 0.0:
+			ultimate_button.text = "夜影解放\n影化 %.1f 秒" % run.nana.ultimate_remaining
+		elif run.nana.cooldown > 0.0:
+			ultimate_button.text = "夜影解放\n冷卻 %d 秒" % int(ceilf(run.nana.cooldown))
+		else:
+			ultimate_button.text = "夜影解放\n準備完成"
 	queue_redraw()
 
 
@@ -166,7 +190,38 @@ func _consume_events() -> void:
 			effects.append(swipe)
 			tone_frequency = 235.0
 			tone_remaining = 0.055
+		elif kind == "nana_bite" or kind == "nana_bite_windup" or kind == "nana_ultimate":
+			var effect: Dictionary = event.duplicate()
+			effect["life"] = 0.45 if kind == "nana_ultimate" else (0.1 if kind == "nana_bite_windup" else 0.22)
+			effect["max_life"] = effect["life"]
+			effects.append(effect)
+			tone_frequency = 140.0 if kind == "nana_ultimate" else 330.0
+			tone_remaining = 0.11 if kind == "nana_ultimate" else 0.05
 	run.events.clear()
+
+
+func _input(event: InputEvent) -> void:
+	if screen != "playing" or run.character_id != "nana":
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
+		_activate_ultimate()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventScreenTouch:
+		if ultimate_touches.has(event.index):
+			if not event.pressed or event.canceled:
+				ultimate_touches.erase(event.index)
+			get_viewport().set_input_as_handled()
+		elif event.pressed and not event.canceled and event.index != touch.move_id and event.index != touch.aim_id and ultimate_button.visible and ultimate_button.get_global_rect().has_point(event.position):
+			ultimate_touches[event.index] = true
+			_activate_ultimate()
+			get_viewport().set_input_as_handled()
+	elif event is InputEventScreenDrag and ultimate_touches.has(event.index):
+		get_viewport().set_input_as_handled()
+
+
+func _activate_ultimate() -> void:
+	if screen == "playing" and run.nana.activate_ultimate(run):
+		_consume_events()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -200,6 +255,7 @@ func _notification(what: int) -> void:
 
 func _on_focus_lost() -> void:
 	touch.clear()
+	ultimate_touches.clear()
 	mouse_held = false
 	if screen == "playing":
 		_pause_run()
@@ -216,7 +272,15 @@ func _resume_run() -> void:
 
 
 func _start_run() -> void:
-	run.reset(0, selected_character, selected_mode, selected_scenario)
+	run.reset(30301 if selected_scenario.begins_with("nana_pressure_") else 0, selected_character, selected_mode, selected_scenario)
+	if selected_character == "nana" and selected_scenario.begins_with("nana_pressure_"):
+		if selected_pressure_preset == "sweep":
+			run.upgrades["sweep"] = 1
+		else:
+			run.upgrades["hunt"] = 1
+			run.hunt_variant = selected_pressure_preset
+	if selected_character == "nana" and selected_scenario.begins_with("nana_compare_") and selected_nana_preset in ["sweep", "hunt"]:
+		run.upgrades[selected_nana_preset] = 1
 	effects.clear()
 	screen = ""
 	_sync_screen()
@@ -225,7 +289,7 @@ func _start_run() -> void:
 func _select_character(id: String) -> void:
 	if Run.CHARACTERS.has(id):
 		selected_character = id
-		if id == "bear":
+		if id != "hedgehog":
 			selected_mode = "standard"
 			selected_scenario = "normal"
 		_show_title()
@@ -240,9 +304,104 @@ func _select_mode(id: String) -> void:
 
 
 func _select_scenario(id: String) -> void:
-	if selected_character == "hedgehog" and selected_mode != "standard" and Run.SCENARIOS.has(id):
+	if Run.SCENARIOS.has(id) and ((selected_character == "hedgehog" and selected_mode != "standard" and id in ["normal", "surround", "queue"]) or (selected_character == "nana" and (id == "normal" or id.begins_with("nana_")))):
 		selected_scenario = id
 		_show_title()
+
+
+func _select_nana_preset(id: String) -> void:
+	selected_nana_preset = id
+	_show_nana_comparison()
+
+
+func _select_nana_compare_scenario(id: String) -> void:
+	selected_scenario = id
+	_show_nana_comparison()
+
+
+func _show_nana_comparison() -> void:
+	screen = "title"
+	selected_character = "nana"
+	if not selected_scenario.begins_with("nana_compare_"):
+		selected_scenario = "nana_compare_group"
+	touch.clear()
+	mouse_held = false
+	pause_button.hide()
+	ultimate_button.hide()
+	var column: VBoxContainer = _make_overlay(960)
+	column.add_theme_constant_override("separation", 10)
+	column.add_child(_label("奈奈 · 專精快速比較", 32))
+	column.add_child(_label("選打法，再選相同敵群；能力固定，三分鐘內清除敵人。", 16, MUTED))
+	var builds := HBoxContainer.new()
+	builds.add_theme_constant_override("separation", 10)
+	column.add_child(builds)
+	for entry: Array in [["base", "基礎連抓"], ["sweep", "掃群・環掃"], ["hunt", "狩獵・點殺"]]:
+		var id: String = entry[0]
+		var button: Button = _button(("✓ " if id == selected_nana_preset else "") + entry[1], _select_nana_preset.bind(id), id == selected_nana_preset)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 18)
+		builds.add_child(button)
+	column.add_child(_label("敵群", 18, GOLD))
+	for ids: Array in [["nana_compare_group", "nana_compare_thrower"], ["nana_compare_guard", "nana_compare_elite"]]:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		column.add_child(row)
+		for id: String in ids:
+			var info: Dictionary = Run.SCENARIOS[id]
+			var button: Button = _button(("✓ " if id == selected_scenario else "") + info.name + " · " + info.hint, _select_nana_compare_scenario.bind(id), id == selected_scenario)
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			button.add_theme_font_size_override("font_size", 17)
+			row.add_child(button)
+	column.add_child(_button("開始比較", _start_run, true))
+	column.add_child(_button("回到角色選單", _return_from_nana_comparison))
+
+
+func _select_pressure_preset(id: String) -> void:
+	selected_pressure_preset = id
+	_show_pressure_comparison()
+
+func _select_pressure_scenario(id: String) -> void:
+	selected_scenario = id
+	_show_pressure_comparison()
+
+func _show_pressure_comparison() -> void:
+	screen = "title"
+	selected_character = "nana"
+	if not selected_scenario.begins_with("nana_pressure_"):
+		selected_scenario = "nana_pressure_dense"
+	touch.clear()
+	mouse_held = false
+	pause_button.hide()
+	ultimate_button.hide()
+	var column: VBoxContainer = _make_overlay(960)
+	column.add_theme_constant_override("separation", 8)
+	column.add_child(_label("奈奈 · 怪潮與狩獵比較", 30))
+	column.add_child(_label("固定能力，生存 90 秒；同種子與出怪規則，走位會影響實際遭遇。", 15, MUTED))
+	for entries: Array in [[ ["sweep", "掃群・環掃"], ["current", "狩獵・原版"] ], [ ["fast", "狩獵・快攻"], ["heavy", "狩獵・重擊"] ]]:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		column.add_child(row)
+		for entry: Array in entries:
+			var id: String = entry[0]
+			var button: Button = _button(("✓ " if id == selected_pressure_preset else "") + entry[1], _select_pressure_preset.bind(id), id == selected_pressure_preset)
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			button.add_theme_font_size_override("font_size", 17)
+			row.add_child(button)
+	var densities := HBoxContainer.new()
+	densities.add_theme_constant_override("separation", 10)
+	column.add_child(densities)
+	for id: String in ["nana_pressure_standard", "nana_pressure_dense"]:
+		var button: Button = _button(("✓ " if id == selected_scenario else "") + Run.SCENARIOS[id].name, _select_pressure_scenario.bind(id), id == selected_scenario)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 17)
+		densities.add_child(button)
+	column.add_child(_button("開始比較", _start_run, true))
+	column.add_child(_button("回到角色選單", _return_from_nana_comparison))
+
+
+func _return_from_nana_comparison() -> void:
+	selected_scenario = "normal"
+	_show_title()
 
 
 func _choose_upgrade(id: String) -> void:
@@ -259,9 +418,11 @@ func _sync_screen() -> void:
 		return
 	screen = run.state
 	touch.clear()
+	ultimate_touches.clear()
 	mouse_held = false
 	_clear_overlay()
 	pause_button.visible = screen == "playing"
+	ultimate_button.visible = screen == "playing" and run.character_id == "nana"
 	match screen:
 		"upgrade": _show_upgrades()
 		"paused": _show_pause()
@@ -338,22 +499,31 @@ func _button(text: String, callback: Callable, primary: bool = false) -> Button:
 
 func _show_title() -> void:
 	screen = "title"
-	run.reset(0, selected_character, selected_mode, selected_scenario)
+	run.reset(30301 if selected_scenario.begins_with("nana_pressure_") else 0, selected_character, selected_mode, selected_scenario)
+	if selected_character == "nana" and selected_scenario.begins_with("nana_pressure_"):
+		if selected_pressure_preset == "sweep":
+			run.upgrades["sweep"] = 1
+		else:
+			run.upgrades["hunt"] = 1
+			run.hunt_variant = selected_pressure_preset
 	touch.clear()
 	mouse_held = false
 	effects.clear()
 	pause_button.hide()
+	ultimate_button.hide()
+	ultimate_touches.clear()
 	var column: VBoxContainer = _make_overlay(960)
 	column.add_theme_constant_override("separation", 6)
 	column.add_child(_label("BRAMBLE", 34))
-	column.add_child(_label("換個陣形，試試不同本領", 18, MUTED))
+	column.add_child(_label("選擇角色，開始練習", 18, MUTED))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 16)
 	column.add_child(row)
-	for id: String in ["hedgehog", "bear"]:
+	for id: String in ["nana", "hedgehog", "bear"]:
 		var info: Dictionary = Run.CHARACTERS[id]
 		var mark: String = "✓ " if id == selected_character else ""
-		var button: Button = _button(mark + info["name"] + "｜" + info["style"] + "\n" + info["hint"], _select_character.bind(id), id == selected_character)
+		var name_text: String = info["name"] if id == "nana" else info["name"] + "（歷史）"
+		var button: Button = _button(mark + name_text + "｜" + info["style"] + "\n" + info["hint"], _select_character.bind(id), id == selected_character)
 		button.custom_minimum_size.y = 76
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.add_theme_font_size_override("font_size", 18)
@@ -386,11 +556,48 @@ func _show_title() -> void:
 				scenarios.add_child(button)
 			var hint: String = "短情境能力固定、不升級；橘圈預告 1 秒後出怪，可自由移動。" if selected_scenario != "normal" else "原本生存保留隨機升級；短情境可固定能力比較陣形。"
 			column.add_child(_label(hint, 14, MUTED))
-	else:
+	elif selected_character == "bear":
 		column.add_child(_label("小熊 · 近距揮擊 · 自由遊玩", 18, GOLD))
-	column.add_child(_label("手機：左側拖曳移動，右側拖曳瞄準並攻擊\n電腦：WASD／方向鍵移動，按住滑鼠左鍵瞄準攻擊", 15, MUTED))
-	column.add_child(_button("開始 45 秒情境比較" if selected_scenario != "normal" else "出發，守住這片小森林", _start_run, true))
-	column.add_child(_label("陣形比較 PoC v0.4  ·  M 靜音 / P 暫停", 14, MUTED))
+	else:
+		column.add_child(_label("奈奈 · 連抓蓄力重咬 · 主動釋放夜影解放", 18, GOLD))
+		var modes := HBoxContainer.new()
+		modes.add_theme_constant_override("separation", 8)
+		column.add_child(modes)
+		var growth_mark: String = "✓ " if selected_scenario == "nana_growth" else ""
+		var growth_button: Button = _button(growth_mark + "成長挑戰 · 升級、專精與精英", _select_scenario.bind("nana_growth"), selected_scenario == "nana_growth")
+		growth_button.custom_minimum_size.y = 44
+		growth_button.add_theme_font_size_override("font_size", 16)
+		growth_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		modes.add_child(growth_button)
+		var compare_button: Button = _button("專精快速比較", _show_nana_comparison)
+		compare_button.add_theme_font_size_override("font_size", 16)
+		compare_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		modes.add_child(compare_button)
+		var pressure_button: Button = _button("怪潮／狩獵比較", _show_pressure_comparison)
+		pressure_button.add_theme_font_size_override("font_size", 16)
+		pressure_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		modes.add_child(pressure_button)
+		for group: Array in [["normal", "nana_chasers", "nana_charger"], ["nana_thrower", "nana_guard", "nana_mixed"]]:
+			var scenarios := HBoxContainer.new()
+			scenarios.add_theme_constant_override("separation", 8)
+			column.add_child(scenarios)
+			for id: String in group:
+				var info: Dictionary = Run.SCENARIOS[id]
+				var mark: String = "✓ " if id == selected_scenario else ""
+				var label_text: String = "自由練習\n存活 3 分鐘" if id == "normal" else info.name + "\n" + info.hint
+				var button: Button = _button(mark + label_text, _select_scenario.bind(id), id == selected_scenario)
+				button.add_theme_font_size_override("font_size", 15)
+				button.custom_minimum_size.y = 52
+				button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				scenarios.add_child(button)
+		column.add_child(_label("短情境：3 分鐘內擊敗所有敵人 · 固定能力", 15, MUTED))
+	var controls: String = "手機：左側拖曳移動，右側拖曳瞄準並攻擊\n電腦：WASD／方向鍵移動，按住滑鼠左鍵瞄準攻擊"
+	if selected_character == "nana":
+		controls += "，空白鍵釋放大絕"
+	column.add_child(_label(controls, 15, MUTED))
+	var start_text: String = "開始奈奈手感練習" if selected_character == "nana" else ("開始 45 秒情境比較" if selected_scenario != "normal" else "出發，守住這片小森林")
+	column.add_child(_button(start_text, _start_run, true))
+	column.add_child(_label("奈奈戰鬥練習  ·  M 靜音 / P 暫停", 14, MUTED))
 
 
 func _show_pause() -> void:
@@ -417,7 +624,7 @@ func _show_upgrades() -> void:
 		card.custom_minimum_size = Vector2(290, 0)
 		card.add_theme_constant_override("separation", 15)
 		row.add_child(card)
-		var symbol: String = {"scatter": "⋮", "pierce": "→", "bounce": "↗", "wide": "⌒", "reach": "→", "push": "»", "damage": "+", "haste": "»", "speed": "≋"}[id]
+		var symbol: String = {"scatter": "⋮", "pierce": "→", "bounce": "↗", "wide": "⌒", "reach": "→", "push": "»", "damage": "+", "haste": "»", "speed": "≋", "bite": "◆", "vitality": "♥", "heal": "+", "sweep": "⌒", "hunt": "◆"}.get(id, "+")
 		card.add_child(_label(symbol, 48, GOLD))
 		card.add_child(_label(run.upgrade_info(id)["name"], 25))
 		card.add_child(_label("已選 %d 次" % int(run.upgrades[id]), 15, MUTED))
@@ -432,10 +639,17 @@ func _show_result() -> void:
 	var success_text: String = "情境完成！" if run.scenario_id != "normal" else "森林守住了！"
 	column.add_child(_label(success_text if won else "先休息，再出發", 40))
 	column.add_child(_label("%s · %s" % [Run.CHARACTERS[run.character_id]["name"], Run.CHARACTERS[run.character_id]["style"]], 20, MUTED))
-	column.add_child(_label("存活 %s    ·    擊敗 %d    ·    等級 %d" % [_format_time(run.elapsed), run.kills, run.level], 23, GOLD))
+	var stats: String = "存活 %s    ·    擊敗 %d" % [_format_time(run.elapsed), run.kills]
+	if run.character_id != "nana" or run.scenario_id == "nana_growth":
+		stats += "    ·    等級 %d" % run.level
+	column.add_child(_label(stats, 23, GOLD))
 	_add_build_recap(column)
 	column.add_child(_button("帶著新點子，再玩一次", _start_run, true))
-	if run.scenario_id != "normal":
+	if run.scenario_id.begins_with("nana_compare_"):
+		column.add_child(_button("更換打法或敵群", _show_nana_comparison))
+	if run.scenario_id.begins_with("nana_pressure_"):
+		column.add_child(_button("更換打法或密度", _show_pressure_comparison))
+	if run.scenario_id != "normal" and run.character_id != "nana":
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 16)
 		column.add_child(row)
@@ -465,6 +679,9 @@ func _switch_scenario() -> void:
 
 
 func _build_text(with_source: bool = false) -> String:
+	if run.character_id == "nana":
+		var style: String = "掃群" if int(run.upgrades["sweep"]) > 0 else (("狩獵・" + {"current": "原版", "fast": "快攻", "heavy": "重擊"}.get(run.hunt_variant, "快攻")) if int(run.upgrades["hunt"]) > 0 else "尚未選擇")
+		return "連抓命中 3 次後追加重咬 · 專精：" + style
 	var entries: Array[String] = []
 	for id: String in run.upgrade_ids():
 		var total: int = int(run.upgrades[id])
@@ -485,6 +702,10 @@ func _build_text(with_source: bool = false) -> String:
 
 
 func _add_build_recap(column: VBoxContainer) -> void:
+	if run.character_id == "nana":
+		column.add_child(_label("奈奈成長挑戰" if run.scenario_id == "nana_growth" else "奈奈手感練習 · 固定能力", 18, GOLD))
+		column.add_child(_label(_build_text(), 16, MUTED))
+		return
 	if run.scenario_id != "normal":
 		column.add_child(_label("%s · 45 秒 · 固定能力，不升級" % Run.SCENARIOS[run.scenario_id]["name"], 18, GOLD))
 	column.add_child(_label("%s · 本局新選 %d 次" % [Run.RUN_MODES[run.mode_id]["name"], run.chosen_upgrades.size()], 18, GOLD))
@@ -509,6 +730,10 @@ func _draw() -> void:
 		draw_circle(pos, 24.0, Color(1.0, 0.62, 0.3, 0.12))
 		draw_arc(pos, 32.0, -PI * 0.5, -PI * 0.5 + maxf(0.02, progress) * TAU, 24, Color("ffbd76"), 3.0, true)
 		draw_string(bold_font, pos + Vector2(-4, 7), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 19, GOLD)
+	for spawn: Dictionary in run.encounters.pending_spawns:
+		var pos: Vector2 = Vector2(spawn.pos) - camera
+		draw_arc(pos, 34.0, 0.0, TAU, 32, GOLD, 3.0, true)
+		draw_string(bold_font, pos + Vector2(-5, 7), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 19, GOLD)
 	for pickup: Dictionary in run.pickups:
 		var pos: Vector2 = Vector2(pickup["pos"]) - camera
 		draw_circle(pos, 10.0 + sin(clock * 4.0) * 1.5, Color(0.95, 0.85, 0.4, 0.13))
@@ -521,7 +746,13 @@ func _draw() -> void:
 		draw_line(tail, pos, Color(1.0, 0.85, 0.4, 0.16), 10, true)
 		draw_line(tail, pos, GOLD, 3.2, true)
 		draw_circle(pos, 2.5, CREAM)
-	if run.character_id == "bear":
+	for projectile: Dictionary in run.encounters.enemy_projectiles:
+		var pos: Vector2 = Vector2(projectile["pos"]) - camera
+		draw_circle(pos, 8.0, Color("f07870"))
+		draw_arc(pos, 11.0, 0.0, TAU, 20, CREAM, 2.0, true)
+	if run.character_id == "nana":
+		_draw_nana(run.player - camera)
+	elif run.character_id == "bear":
 		_draw_bear(run.player - camera)
 	else:
 		_draw_hedgehog(run.player - camera)
@@ -531,9 +762,19 @@ func _draw() -> void:
 		if effect["kind"] == "swipe":
 			var angle: float = Vector2(effect["dir"]).angle()
 			var half_angle: float = effect["half_angle"]
+			var nana_swipe: bool = effect.get("style", "") == "nana"
 			for fraction: float in [0.66, 0.83, 1.0]:
 				draw_arc(pos, float(effect["reach"]) * fraction, angle - half_angle, angle + half_angle, 28,
-					Color(1.0, 0.82, 0.57, (1.0 - progress) * 0.7), 5.0 * (1.0 - progress) + 1.0, true)
+					Color(0.83, 0.72, 1.0, (1.0 - progress) * 0.7) if nana_swipe else Color(1.0, 0.82, 0.57, (1.0 - progress) * 0.7), 5.0 * (1.0 - progress) + 1.0, true)
+			continue
+		if effect["kind"] == "nana_ultimate":
+			draw_arc(pos, float(effect["radius"]) * progress, 0, TAU, 48, Color(0.80, 0.68, 1.0, (1.0 - progress) * 0.9), 7.0, true)
+			continue
+		if effect["kind"] == "nana_bite" or effect["kind"] == "nana_bite_windup":
+			var angle: float = Vector2(effect["dir"]).angle()
+			var opacity: float = 0.45 if effect["kind"] == "nana_bite_windup" else 1.0 - progress
+			var bite_half: float = float(effect.get("half_angle", 0.48))
+			draw_arc(pos, float(effect["reach"]), angle - bite_half, angle + bite_half, 24, Color(0.95, 0.84, 1.0, opacity), 4.0, true)
 			continue
 		var color := Color(1.0, 0.83, 0.47, 1.0 - progress)
 		draw_arc(pos, 8.0 + progress * 27.0, 0, TAU, 18, color, 2.0, true)
@@ -597,6 +838,42 @@ func _draw_hedgehog(pos: Vector2) -> void:
 		draw_line(pos + run.aim * 40.0, pos + run.aim * 64.0, Color(1.0, 0.9, 0.65, 0.45), 2.0, true)
 
 
+func _draw_nana(pos: Vector2) -> void:
+	draw_set_transform(pos)
+	draw_circle(Vector2(0, 17), 27.0, Color(0.02, 0.09, 0.055, 0.4))
+	if run.nana.ultimate_remaining > 0.0:
+		draw_circle(Vector2.ZERO, 40.0, Color(0.59, 0.42, 0.82, 0.17))
+		draw_arc(Vector2.ZERO, 37.0, 0, TAU, 32, Color(0.82, 0.70, 1.0, 0.8), 2.0, true)
+	var blink: bool = run.invulnerability > 0.0 and int(clock * 16.0) % 2 == 0
+	var fur: Color = Color("807a94") if blink else Color("25232d")
+	draw_arc(Vector2(-27, 7), 16.0, -PI * 0.55, PI * 0.6, 20, fur, 8.0, true)
+	draw_colored_polygon(PackedVector2Array([Vector2(-21, -12), Vector2(-20, -34), Vector2(-5, -23)]), fur)
+	draw_colored_polygon(PackedVector2Array([Vector2(21, -12), Vector2(20, -34), Vector2(5, -23)]), fur)
+	draw_circle(Vector2.ZERO, 26.0, Color("b3a7c2"))
+	draw_circle(Vector2.ZERO, 23.5, fur)
+	var face: Vector2 = run.aim * 7.0
+	var eyes: Vector2 = run.aim.orthogonal() * 8.0
+	for side: float in [-1.0, 1.0]:
+		var eye: Vector2 = face + run.aim * 4.0 + eyes * side
+		draw_circle(eye, 3.5, Color("eddb8f"))
+		draw_circle(eye + run.aim, 1.5, Color("201d28"))
+	draw_circle(face + run.aim * 13.0, 2.5, Color("efb0b4"))
+	draw_set_transform(Vector2.ZERO)
+	if screen == "playing":
+		for i in 3:
+			var marker: Vector2 = pos + Vector2(-14.0 + i * 14.0, -44.0)
+			draw_circle(marker, 4.5, Color("d9b7ff") if i < run.nana.bite_charge else Color("4a4656"))
+		draw_line(pos + run.aim * 36.0, pos + run.aim * 59.0, Color(0.9, 0.8, 1.0, 0.5), 2.0, true)
+		if int(run.upgrades.get("sweep", 0)) > 0 or int(run.upgrades.get("hunt", 0)) > 0:
+			var hunting: bool = int(run.upgrades.get("hunt", 0)) > 0
+			var reach: float = (175.0 if hunting else 145.0) * (1.4 if run.nana.ultimate_remaining > 0.0 else 1.0) * (1.0 + 0.1 * int(run.upgrades["reach"]))
+			var half: float = (deg_to_rad(27.5) if hunting else deg_to_rad(70.0)) + deg_to_rad(7.5 * int(run.upgrades["wide"]))
+			if not hunting and run.nana.sweep_count == 2:
+				half = PI
+			var angle: float = run.aim.angle()
+			draw_arc(pos, reach, angle - half, angle + half, 48, Color(0.84, 0.72, 1.0, 0.35), 2.0, true)
+
+
 func _draw_bear(pos: Vector2) -> void:
 	draw_set_transform(pos)
 	draw_circle(Vector2(0, 17), 29.0, Color(0.02, 0.09, 0.055, 0.35))
@@ -632,16 +909,30 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 		return
 	var radius: float = enemy["radius"]
 	var charger: bool = enemy["kind"] == "charger"
-	var body := Color("edac64") if charger else Color("ac9acc")
+	var body := Color("edac64") if charger else (Color("70b6bc") if enemy["kind"] == "thrower" else (Color("bc827c") if enemy["kind"] in ["guard", "elite"] else Color("ac9acc")))
 	if float(enemy["flash"]) > 0.0:
 		body = CREAM
 	if enemy["phase"] == "windup":
-		var end: Vector2 = pos + Vector2(enemy["dir"]) * 285.0
-		draw_line(pos, end, Color(1.0, 0.63, 0.29, 0.18), 24.0, true)
-		draw_line(pos, end, Color(1.0, 0.77, 0.46, 0.8), 2.0, true)
+		var end: Vector2 = pos + Vector2(enemy["dir"]) * (650.0 if enemy["kind"] == "thrower" else 236.5)
+		if enemy["kind"] in ["guard", "elite"]:
+			var a: float = Vector2(enemy["dir"]).angle()
+			draw_arc(pos, 170.0, a - deg_to_rad(55.0), a + deg_to_rad(55.0), 32, GOLD, 3.0, true)
+			draw_line(pos, pos + Vector2.RIGHT.rotated(a - deg_to_rad(55.0)) * 170.0, GOLD, 2.0, true)
+			draw_line(pos, pos + Vector2.RIGHT.rotated(a + deg_to_rad(55.0)) * 170.0, GOLD, 2.0, true)
+		else:
+			draw_line(pos, end, Color(1.0, 0.63, 0.29, 0.18), 24.0, true)
+			draw_line(pos, end, Color(1.0, 0.77, 0.46, 0.8), 2.0, true)
 		draw_arc(pos, radius + 8.0, 0, TAU, 24, GOLD, 2.5, true)
 	draw_circle(pos + Vector2(0, 10), radius, Color(0.05, 0.1, 0.07, 0.25))
 	draw_circle(pos, radius + sin(clock * 4.0 + int(enemy["id"])) * 1.2, body)
+	if int(enemy["id"]) == run.nana.marked_target_id:
+		draw_arc(pos, radius + 10.0, 0.0, TAU, 24, Color("bdefff"), 2.0, true)
+	if float(enemy.get("vulnerable", 0.0)) > 0.0:
+		draw_arc(pos, radius + 14.0, -PI * 0.5, -PI * 0.5 + TAU * minf(1.0, float(enemy["vulnerable"]) / 2.0), 28, Color("ffb58e"), 3.0, true)
+	if enemy["kind"] == "elite":
+		draw_arc(pos, radius + 6.0, 0.0, TAU, 32, GOLD, 3.0, true)
+		if enemy["phase"] == "second_wait":
+			draw_string(bold_font, pos + Vector2(-12, -radius - 15), "Ⅱ", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, GOLD)
 	draw_circle(pos + Vector2(-6, -2), 2.2, INK)
 	draw_circle(pos + Vector2(6, -2), 2.2, INK)
 	if charger:
@@ -656,16 +947,29 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 func _draw_hud() -> void:
 	draw_style_box(panel_style(Color(0.06, 0.16, 0.12, 0.9), 18), Rect2(22, 20, 295, 76))
 	draw_string(bold_font, Vector2(40, 48), Run.CHARACTERS[run.character_id]["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, CREAM)
-	draw_string(font, Vector2(205, 48), "%d / 100" % int(run.hp), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, MUTED)
+	draw_string(font, Vector2(205, 48), "%d / %d" % [int(run.hp), int(run.max_hp)], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, MUTED)
 	draw_style_box(panel_style(Color("18382c"), 5), Rect2(40, 63, 254, 10))
 	if run.hp > 0.0:
-		draw_style_box(panel_style(Color("e9a47c"), 5), Rect2(40, 63, 254 * run.hp / 100.0, 10))
+		draw_style_box(panel_style(Color("e9a47c"), 5), Rect2(40, 63, 254 * run.hp / run.max_hp, 10))
 	draw_string(font, Vector2(40, 89), Run.CHARACTERS[run.character_id]["style"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, MUTED)
 	var trial: bool = run.scenario_id != "normal"
 	var timer: float = ceilf(maxf(0.0, run.duration() - run.elapsed)) if trial else run.elapsed
 	draw_string(bold_font, Vector2(size.x * 0.5 - 42, 49), _format_time(timer), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, CREAM)
-	draw_string(font, Vector2(size.x * 0.5 - 47, 72), "情境剩餘時間" if trial else "存活目標 03:00", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, MUTED)
-	draw_string(font, Vector2(size.x - 302, 53), "擊敗 %d  ·  Lv.%d" % [run.kills, run.level], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, CREAM)
+	draw_string(font, Vector2(size.x * 0.5 - 65, 72), "存活並擊敗精英" if run.scenario_id == "nana_growth" else (("生存挑戰 · 剩餘時間" if run.scenario_id.begins_with("nana_pressure_") else "清除敵人 · 剩餘時間") if trial and run.character_id == "nana" else ("情境剩餘時間" if trial else "存活目標 03:00")), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, MUTED)
+	var score: String = "擊敗 %d" % run.kills if run.character_id == "nana" else "擊敗 %d  ·  Lv.%d" % [run.kills, run.level]
+	draw_string(font, Vector2(size.x - 302, 53), score, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, CREAM)
+	if run.character_id == "nana":
+		draw_string(font, Vector2(40, 118), "重咬準備 %d / 3" % run.nana.bite_charge, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, GOLD)
+		draw_string(font, Vector2(40, 142), "Lv.%d  經驗 %d / %d" % [run.level, run.xp, run.required_xp()] if run.scenario_id == "nana_growth" else "連抓命中累積 · 朝目標重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, CREAM)
+		if int(run.upgrades.get("sweep", 0)) > 0:
+			draw_string(font, Vector2(40, 165), "環掃：下一擊！" if run.nana.sweep_count == 2 else "環掃準備 %d / 3" % run.nana.sweep_count, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
+		elif int(run.upgrades.get("hunt", 0)) > 0:
+			draw_string(font, Vector2(40, 165), "點殺：每次只攻擊一隻", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
+		var hint: String = "奈奈手感練習 · 固定能力"
+		if run.scenario_id == "nana_growth":
+			hint = "精英已擊敗 · 堅持到時間結束" if run.encounters.elite_defeated else ("精英已登場" if run.encounters.elite_scheduled else "精英將在後段登場")
+		draw_string(font, Vector2(size.x * 0.5 - 105, size.y - 35), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, MUTED)
+		return
 	var mode_name: String = Run.RUN_MODES[run.mode_id]["name"]
 	var build_heading: String = "%s · %s · 能力固定" % [Run.SCENARIOS[run.scenario_id]["name"], mode_name] if trial else "%s · 本局能力（暫停可看起始／新選）" % mode_name
 	draw_string(font, Vector2(40, 118), build_heading, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)

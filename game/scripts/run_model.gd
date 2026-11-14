@@ -1,10 +1,14 @@
 extends RefCounted
 ## Deterministic run rules. Rendering, UI and device input live outside this model.
 
+const NanaCombat := preload("res://scripts/nana_combat.gd")
+const NanaEncounters := preload("res://scripts/nana_encounters.gd")
+
 const DURATION: float = 180.0
 const WORLD := Vector2(2600, 1900)
 const PLAYER_RADIUS: float = 20.0
 const CHARACTERS := {
+	"nana": {"name": "奈奈", "style": "連抓與重咬", "hint": "連抓累積重咬，夜影解放突破包圍"},
 	"hedgehog": {"name": "小刺蝟", "style": "遠距尖刺", "hint": "保持距離，讓尖刺穿過敵群"},
 	"bear": {"name": "小熊", "style": "近距揮擊", "hint": "抓好距離，用熊掌掃開前方敵人"},
 }
@@ -26,6 +30,21 @@ const BEAR_UPGRADE_DATA := {
 	"haste": {"name": "連拍節奏", "desc": "基礎揮擊頻率加成 +15%。\n縮短下一次出掌的空檔。", "cap": 0},
 	"speed": {"name": "小腳快跑", "desc": "基礎移速加成 +10%。\n最高 490，方便進退與拾取。", "cap": 0},
 }
+const NANA_UPGRADE_DATA := {
+	"wide": {"name": "展爪", "desc": "爪擊角度增加 15°。", "cap": 2},
+	"reach": {"name": "長爪", "desc": "爪擊距離增加 10%。", "cap": 2},
+	"bite": {"name": "狠咬", "desc": "追加咬擊傷害增加 25%。", "cap": 3},
+	"damage": {"name": "強健", "desc": "直接攻擊傷害增加 15%。", "cap": 3},
+	"haste": {"name": "輕快", "desc": "攻擊頻率增加 10%。", "cap": 3},
+	"speed": {"name": "貓步", "desc": "移動速度增加 8%。", "cap": 2},
+	"vitality": {"name": "結實", "desc": "最大生命增加 15，並恢復 15。", "cap": 2},
+	"heal": {"name": "喘口氣", "desc": "恢復 20 生命。", "cap": 0},
+	"sweep": {"name": "掃群・環掃", "desc": "寬爪擊；每第三次出手環掃周圍。", "cap": 1},
+	"hunt": {"name": "狩獵・點殺", "desc": "遠距單體爪擊；重咬留下破綻。", "cap": 1},
+	"micro_damage": {"name": "持續磨練", "desc": "所有直接攻擊傷害增加 3%。", "cap": 0},
+	"micro_bite": {"name": "磨利牙齒", "desc": "咬擊傷害增加 3%。", "cap": 0},
+	"micro_health": {"name": "堅韌體魄", "desc": "最大生命增加 5，並恢復 5。", "cap": 0},
+}
 const COMPARISON_SEED: int = 30301
 const RUN_MODES := {
 	"standard": {"name": "自由遊玩", "hint": "從基礎攻擊開始，升級三選一", "starter": {}},
@@ -36,6 +55,18 @@ const SCENARIOS := {
 	"normal": {"name": "原本生存", "duration": DURATION, "hint": "3 分鐘 · 自由升級"},
 	"surround": {"name": "四面包圍", "duration": 45.0, "hint": "45 秒 · 固定構築"},
 	"queue": {"name": "單向隊列", "duration": 45.0, "hint": "45 秒 · 固定構築"},
+	"nana_chasers": {"name": "追逐者", "duration": 180.0, "hint": "清除敵群"},
+	"nana_charger": {"name": "衝撞者", "duration": 180.0, "hint": "閃避與反擊"},
+	"nana_thrower": {"name": "投擲者", "duration": 180.0, "hint": "接近遠距敵人"},
+	"nana_guard": {"name": "守衛者", "duration": 180.0, "hint": "誘招與繞側"},
+	"nana_mixed": {"name": "混合敵人", "duration": 180.0, "hint": "選擇攻擊目標"},
+	"nana_pressure_standard": {"name": "原本密度", "duration": 90.0, "hint": "固定能力 · 90 秒"},
+	"nana_pressure_dense": {"name": "新版怪潮", "duration": 90.0, "hint": "固定能力 · 90 秒"},
+	"nana_growth": {"name": "成長挑戰", "duration": 240.0, "hint": "升級 · 專精 · 精英"},
+	"nana_compare_group": {"name": "追逐者群", "duration": 180.0, "hint": "環掃與包圍"},
+	"nana_compare_thrower": {"name": "投擲者混合", "duration": 180.0, "hint": "接近遠距威脅"},
+	"nana_compare_guard": {"name": "守衛者", "duration": 180.0, "hint": "收招與反擊"},
+	"nana_compare_elite": {"name": "精英守衛", "duration": 180.0, "hint": "雙段攻擊"},
 }
 const WAVE_INTERVAL: float = 6.0
 const WAVE_WARNING: float = 1.0
@@ -54,6 +85,7 @@ var state: String = "playing"
 var player := WORLD * 0.5
 var aim := Vector2.RIGHT
 var hp: float = 100.0
+var max_hp: float = 100.0
 var elapsed: float = 0.0
 var invulnerability: float = 0.0
 var shot_timer: float = 0.0
@@ -68,7 +100,14 @@ var enemies: Array[Dictionary] = []
 var projectiles: Array[Dictionary] = []
 var pickups: Array[Dictionary] = []
 var events: Array[Dictionary] = []
+var combat_metrics: Dictionary = {}
 var view_size := Vector2(1280, 720)
+var nana = NanaCombat.new()
+var encounters = NanaEncounters.new()
+var fixed_abilities: bool = false
+var drop_xp: bool = true
+var enemy_profile: String = "legacy"
+var hunt_variant: String = "fast"
 
 
 func _init(seed_value: int = 0, animal: String = "hedgehog", mode: String = "standard", scenario: String = "normal") -> void:
@@ -76,9 +115,13 @@ func _init(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 
 
 func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "standard", scenario: String = "normal") -> void:
+	hunt_variant = "fast"
 	character_id = animal if CHARACTERS.has(animal) else "hedgehog"
 	mode_id = mode if character_id == "hedgehog" and RUN_MODES.has(mode) else "standard"
-	scenario_id = scenario if mode_id != "standard" and SCENARIOS.has(scenario) else "normal"
+	scenario_id = scenario if SCENARIOS.has(scenario) and ((character_id == "nana" and (scenario == "normal" or scenario == "nana_growth" or scenario.begins_with("nana_pressure_") or NanaEncounters.ENCOUNTERS.has(scenario))) or (mode_id != "standard" and scenario in ["normal", "surround", "queue"])) else "normal"
+	fixed_abilities = (character_id == "nana" and scenario_id != "nana_growth") or (character_id != "nana" and scenario_id != "normal")
+	drop_xp = not fixed_abilities
+	enemy_profile = "practice" if character_id == "nana" else "legacy"
 	warning_positions.clear()
 	warning_remaining = 0.0
 	wave_count = 0
@@ -94,6 +137,7 @@ func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 	player = WORLD * 0.5
 	aim = Vector2.RIGHT
 	hp = 100.0
+	max_hp = 100.0
 	elapsed = 0.0
 	invulnerability = 0.0
 	shot_timer = 0.0
@@ -107,6 +151,8 @@ func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 		upgrades[id] = 0
 	for id: String in BEAR_UPGRADE_IDS:
 		upgrades[id] = 0
+	for id: String in NANA_UPGRADE_DATA:
+		upgrades[id] = 0
 	starting_upgrades = RUN_MODES[mode_id]["starter"].duplicate()
 	chosen_upgrades.clear()
 	for id: String in starting_upgrades:
@@ -116,6 +162,9 @@ func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 	projectiles.clear()
 	pickups.clear()
 	events.clear()
+	combat_metrics = {"attacks": [], "damage": {}, "damage_taken": {}, "defeats": []}
+	nana.reset()
+	encounters.reset(self, scenario_id)
 
 
 func camera_origin() -> Vector2:
@@ -127,6 +176,8 @@ func required_xp() -> int:
 
 
 func move_speed() -> float:
+	if character_id == "nana":
+		return 260.0 * (1.0 + 0.08 * int(upgrades["speed"]))
 	return minf(490.0, 245.0 * (1.0 + 0.10 * int(upgrades["speed"])))
 
 
@@ -140,10 +191,16 @@ func duration() -> float:
 
 
 func upgrade_ids() -> Array:
+	if character_id == "nana":
+		return ["wide", "reach", "bite", "damage", "haste", "speed", "vitality", "heal"]
 	return BEAR_UPGRADE_IDS if character_id == "bear" else UPGRADE_IDS
 
 
 func upgrade_info(id: String) -> Dictionary:
+	if character_id == "nana":
+		if id == "wide" and int(upgrades.get("hunt", 0)) > 0:
+			return {"name": "穩準", "desc": "選敵角度增加 15°，仍只命中一隻。", "cap": 2}
+		return NANA_UPGRADE_DATA[id]
 	return BEAR_UPGRADE_DATA[id] if character_id == "bear" else UPGRADE_DATA[id]
 
 
@@ -162,34 +219,52 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	invulnerability = maxf(0.0, invulnerability - delta)
 	player = (player + movement.limit_length() * move_speed() * delta).clamp(
 		Vector2.ONE * 30.0, WORLD - Vector2.ONE * 30.0)
+	if character_id == "nana":
+		nana.advance(self, delta)
 	if direction.length_squared() > 0.01:
 		aim = direction.normalized()
 	shot_timer -= delta
 	if firing and shot_timer <= 0.0:
-		fire()
-		shot_timer = shot_interval()
+		if character_id == "nana":
+			shot_timer = nana.attack(self)
+		else:
+			fire()
+			shot_timer = shot_interval()
 	if scenario_id == "normal":
 		spawn_timer -= delta
 		if spawn_timer <= 0.0:
 			var breathing: bool = fmod(elapsed, 40.0) > 32.0
 			spawn_timer = maxf(0.18, 0.85 - elapsed * 0.0035) * (2.5 if breathing else 1.0)
-			if enemies.size() < 110:
+			if enemies.size() < (60 if fixed_abilities else 110):
 				spawn_enemy()
-	else:
+	elif scenario_id == "nana_growth" or scenario_id == "nana_pressure_dense":
+		encounters.update_growth(self, delta)
+	elif scenario_id == "nana_pressure_standard":
+		encounters.update_legacy_growth(self, delta)
+	elif not NanaEncounters.ENCOUNTERS.has(scenario_id):
 		_update_scenario(delta)
-	update_enemies(delta)
+	if NanaEncounters.ENCOUNTERS.has(scenario_id) or scenario_id == "nana_growth" or scenario_id.begins_with("nana_pressure_"):
+		encounters.update(self, delta)
+	else:
+		update_enemies(delta)
 	update_projectiles(delta)
 	collect_pickups(delta)
 	if hp <= 0.0:
 		state = "lost"
 		offers.clear()
+	elif NanaEncounters.ENCOUNTERS.has(scenario_id) and enemies.is_empty():
+		state = "won"
+		offers.clear()
 	elif elapsed >= duration():
 		elapsed = duration()
-		state = "won"
+		state = "lost" if NanaEncounters.ENCOUNTERS.has(scenario_id) or (scenario_id == "nana_growth" and not encounters.elite_defeated) else "won"
 		offers.clear()
 
 
 func fire() -> void:
+	if character_id == "nana":
+		nana.attack(self)
+		return
 	if character_id == "bear":
 		swing()
 		return
@@ -230,15 +305,26 @@ func swing() -> void:
 	events.append({"kind": "swipe", "pos": player, "dir": aim, "reach": reach, "half_angle": half_angle})
 
 
-func damage_enemy(enemy: Dictionary, amount: float) -> void:
+func damage_enemy(enemy: Dictionary, amount: float, source: String = "other") -> void:
 	if float(enemy["hp"]) <= 0.0:
 		return
-	enemy["hp"] = float(enemy["hp"]) - amount
+	var previous_hp: float = float(enemy["hp"])
+	enemy["hp"] = float(enemy["hp"]) - amount * (1.2 if float(enemy.get("vulnerable", 0.0)) > 0.0 else 1.0)
+	if character_id == "nana":
+		var damage: Dictionary = combat_metrics["damage"]
+		damage[source] = float(damage.get(source, 0.0)) + minf(previous_hp, previous_hp - float(enemy["hp"]))
 	enemy["flash"] = 0.10
 	events.append({"kind": "hit", "pos": enemy["pos"]})
 	if float(enemy["hp"]) <= 0.0:
 		kills += 1
-		pickups.append({"pos": enemy["pos"], "value": 2 if enemy["kind"] == "charger" else 1})
+		if character_id == "nana":
+			combat_metrics["defeats"].append({"kind": enemy["kind"], "time": elapsed})
+		if enemy["kind"] == "elite":
+			encounters.elite_defeated = true
+			hp = minf(max_hp, hp + 20.0)
+		if drop_xp:
+			var value: int = (8 if enemy["kind"] == "elite" else (2 if enemy["kind"] in ["charger", "thrower", "guard"] else 1)) if scenario_id == "nana_growth" else (2 if enemy["kind"] == "charger" else 1)
+			pickups.append({"pos": enemy["pos"], "value": value})
 		events.append({"kind": "defeat", "pos": enemy["pos"]})
 
 
@@ -253,6 +339,9 @@ func spawn_enemy() -> void:
 			break
 	if not found:
 		return
+	if enemy_profile == "practice":
+		encounters.add_enemy(self, "chaser", spawn_pos)
+		return
 	var charger: bool = elapsed > 45.0 and rng.randf() < 0.22
 	var health: float = (31.0 if charger else 19.0) * (1.0 + elapsed / 240.0)
 	_add_enemy(spawn_pos, charger, health, rng.randf_range(62.0, 86.0) + elapsed * 0.18)
@@ -262,7 +351,7 @@ func _add_enemy(pos: Vector2, charger: bool, health: float, speed: float) -> voi
 	enemies.append({"id": next_enemy_id, "pos": pos, "hp": health, "max_hp": health,
 		"kind": "charger" if charger else "chaser", "phase": "chase", "timer": 0.0,
 		"dir": Vector2.ZERO, "radius": 22.0 if charger else 17.0,
-		"speed": speed, "flash": 0.0})
+		"speed": speed, "flash": 0.0, "damage": 16.0 if charger else 10.0})
 	next_enemy_id += 1
 
 
@@ -326,14 +415,23 @@ func update_enemies(delta: float) -> void:
 			enemy["stagger"] = maxf(0.0, stagger - delta)
 		enemy["pos"] = (Vector2(enemy["pos"]) + velocity * delta).clamp(Vector2.ONE * 20.0, WORLD - Vector2.ONE * 20.0)
 		if Vector2(enemy["pos"]).distance_to(player) < float(enemy["radius"]) + PLAYER_RADIUS:
-			take_damage(16.0 if enemy["kind"] == "charger" else 10.0)
+			take_damage(float(enemy.get("damage", 10.0)))
 
 
-func take_damage(amount: float) -> void:
+func apply_heavy_hit(enemy: Dictionary) -> void:
+	if NanaEncounters.ENCOUNTERS.has(scenario_id) or scenario_id == "nana_growth" or scenario_id.begins_with("nana_pressure_"):
+		encounters.heavy_hit(enemy)
+
+
+func take_damage(amount: float, source: String = "unknown") -> void:
 	if state != "playing" or invulnerability > 0.0:
 		return
+	var previous_hp: float = hp
 	hp = maxf(0.0, hp - amount)
-	invulnerability = 0.9
+	if character_id == "nana":
+		var taken: Dictionary = combat_metrics["damage_taken"]
+		taken[source] = float(taken.get(source, 0.0)) + previous_hp - hp
+	invulnerability = 0.8 if character_id == "nana" else 0.9
 	events.append({"kind": "hurt", "pos": player})
 
 
@@ -407,7 +505,7 @@ func collect_pickups(delta: float) -> void:
 
 
 func maybe_level_up() -> void:
-	if scenario_id == "normal" and state == "playing" and hp > 0.0 and xp >= required_xp():
+	if not fixed_abilities and state == "playing" and hp > 0.0 and xp >= required_xp():
 		xp -= required_xp()
 		level += 1
 		state = "upgrade"
@@ -415,8 +513,15 @@ func maybe_level_up() -> void:
 
 
 func make_offers() -> void:
+	if character_id == "nana" and level >= 4 and int(upgrades["sweep"]) == 0 and int(upgrades["hunt"]) == 0:
+		offers.assign(["sweep", "hunt", "damage"])
+		if int(upgrades["damage"]) >= int(NANA_UPGRADE_DATA["damage"]["cap"]):
+			offers[2] = "heal" if hp < max_hp else "micro_damage"
+		return
 	var pool: Array[String] = []
 	for id: String in upgrade_ids():
+		if id == "heal" and hp >= max_hp:
+			continue
 		var cap: int = int(upgrade_info(id)["cap"])
 		if cap == 0 or int(upgrades[id]) < cap:
 			pool.append(id)
@@ -425,12 +530,26 @@ func make_offers() -> void:
 		var index: int = upgrade_rng.randi_range(0, pool.size() - 1)
 		offers.append(pool[index])
 		pool.remove_at(index)
+	if character_id == "nana":
+		for fallback: String in ["micro_damage", "micro_bite", "micro_health"]:
+			if offers.size() >= 3:
+				break
+			if fallback not in offers:
+				offers.append(fallback)
 
 
 func choose_upgrade(id: String) -> bool:
 	if state != "upgrade" or id not in offers:
 		return false
 	upgrades[id] = int(upgrades[id]) + 1
+	if character_id == "nana" and id == "vitality":
+		max_hp += 15.0
+		hp += 15.0
+	elif character_id == "nana" and id == "heal":
+		hp = minf(max_hp, hp + 20.0)
+	elif character_id == "nana" and id == "micro_health":
+		max_hp += 5.0
+		hp += 5.0
 	chosen_upgrades.append(id)
 	offers.clear()
 	state = "playing"

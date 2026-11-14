@@ -21,7 +21,7 @@ godot --path game
 BRAMBLE_GODOT_BIN=/path/to/godot ./scripts/test-game.sh
 ```
 
-Mac 若使用預設安裝路徑，可直接執行 `./scripts/test-game.sh`。腳本依序做專案匯入、規則檢查及真實場景流程檢查，目前共 132 項；整合流程的自動輸入與無敵僅存在於測試程式，不能用來判定人類勝率或平衡。
+Mac 若使用預設安裝路徑，可直接執行 `./scripts/test-game.sh`。腳本依序做專案匯入、規則檢查及真實場景流程檢查，v0.9 共 227 項；整合流程的自動輸入與無敵僅存在於測試程式，不能用來判定人類勝率或平衡。
 
 ## Android 匯出
 

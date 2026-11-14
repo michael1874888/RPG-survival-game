@@ -4,6 +4,10 @@
 
 | 主題 | 文件 |
 | --- | --- |
+| Balatro 式隨機構築是否適合奈奈 | [可行性、模式選擇與風險](random-driven-combat-mode-feasibility-2026-11-14.md)、[Balatro 作者與官方來源](balatro-randomness-primary-sources-2026-11-14.md) |
+| v0.9 設計重新盤點 | [設計結論與開發順序](../design/nana-v0.9-design-audit-2026-11-14.md)、[戰鬥架構官方來源](survivors-combat-architecture-audit-2026-11-14.md) |
+| 敵群密度、壓力與狩獵火力 | [官方節奏案例](enemy-density-pacing-sources-2026-11-14.md)、[奈奈本地量測與調整提案](../design/nana-pressure-and-hunt-review.md) |
+| 奈奈專精的行為差異與分層選擇 | [官方案例研究](nana-specialization-research-2026-11-14.md)、[本專案重整提案](../design/nana-specialization-rework-plan.md) |
 | 生存動作 RPG 的構築、操作與壓力比較 | [跨作品機制設計報告](popular-survival-rpg-mechanics-design-report.md) |
 | 競品選擇與 Google Play 資料 | [Action roguelite 調查](popular-action-roguelite-competitive-research.md) |
 | 多款 APK／XAPK 的靜態資料觀察 | [遊戲資料分析](competitive-apk-game-data-analysis.md)、[第一輪封裝觀察](competitive-apk-first-pass.md) |

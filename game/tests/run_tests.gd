@@ -12,6 +12,13 @@ func _initialize() -> void:
 	_test_upgrade_pool()
 	_test_projectile_combinations()
 	_test_bear_combat()
+	_test_nana_combat()
+	_test_nana_ultimate()
+	_test_nana_encounters()
+	_test_nana_growth()
+	_test_nana_pressure()
+	_test_nana_specialization_rework()
+	_test_nana_full_run()
 	_test_comparison_modes()
 	_test_scenarios()
 	_test_spawn_safety()
@@ -178,6 +185,340 @@ func _test_bear_combat() -> void:
 	model.reset(14, "hedgehog")
 	model.fire()
 	check(model.projectiles.size() == 1 and model.upgrades["reach"] == 0 and model.kills == 0, "Changing animals resets upgrades and restores ranged attack")
+
+
+func _test_nana_combat() -> void:
+	var model = Run.new(14, "nana")
+	model.player = Vector2(500, 500)
+	model.spawn_timer = 1000.0
+	var front: Dictionary = enemy(1, Vector2(590, 500), 1000.0)
+	var side: Dictionary = enemy(2, Vector2(575, 540), 1000.0)
+	var behind: Dictionary = enemy(3, Vector2(440, 500), 1000.0)
+	model.enemies.assign([front, side, behind])
+	model.nana.attack(model)
+	check(front["hp"] == 990.0 and side["hp"] == 990.0 and behind["hp"] == 1000.0, "Nana claws hit each target once within the aimed cone")
+	check(model.nana.bite_charge == 1 and model.projectiles.is_empty(), "A multi-target claw grants one charge without a projectile")
+	model.aim = Vector2.UP
+	model.nana.attack(model)
+	check(model.nana.bite_charge == 1, "A missed claw cannot gain a bite charge")
+	model.aim = Vector2.RIGHT
+	model.nana.attack(model)
+	model.nana.attack(model)
+	check(model.nana.bite_charge == 3, "Three successful claws prepare a bite")
+	var before_front: float = float(front["hp"])
+	var before_side: float = float(side["hp"])
+	var interval: float = model.nana.attack(model)
+	check(model.nana.bite_charge == 0 and not model.nana.pending_bite.is_empty() and interval == 0.42, "Prepared bite consumes the charge and keeps the claw interval")
+	model.nana.advance(model, 0.11)
+	check(front["hp"] == before_front - 24.0 and side["hp"] == before_side - 10.0, "Bite adds single-target damage while preserving the claw")
+	model.nana.bite_charge = 3
+	model.aim = Vector2.UP
+	model.nana.attack(model)
+	check(model.nana.bite_charge == 3 and model.nana.pending_bite.is_empty(), "Without a bite target, attacking preserves the prepared bite")
+	model.aim = Vector2.RIGHT
+	model.nana.attack(model)
+	front["pos"] = Vector2(1000, 1000)
+	var previous_hp: float = float(front["hp"])
+	model.nana.advance(model, 0.11)
+	check(front["hp"] == previous_hp and model.nana.pending_bite.is_empty(), "A locked bite can miss when its target leaves during windup")
+	model.nana.bite_charge = 3
+	model.reset(11, "nana")
+	check(model.nana.bite_charge == 0 and model.nana.pending_bite.is_empty(), "Restart clears bite charge and pending attack")
+	model.xp = 1000
+	model.maybe_level_up()
+	check(model.state == "playing" and model.level == 1, "Nana's first hand-feel build keeps abilities fixed")
+	model.elapsed = 90.0
+	for i in 12:
+		model.spawn_enemy()
+	var only_chasers: bool = model.enemies.size() == 12
+	for item: Dictionary in model.enemies:
+		only_chasers = only_chasers and item["kind"] == "chaser" and item["hp"] == 18.0
+	check(only_chasers, "Nana's hand-feel build spawns only the intended pursuit enemy")
+
+
+func _test_nana_ultimate() -> void:
+	var model = Run.new(22, "nana")
+	model.player = Vector2(500, 500)
+	model.spawn_timer = 1000.0
+	var near: Dictionary = enemy(1, Vector2(600, 500), 100.0)
+	var far: Dictionary = enemy(2, Vector2(900, 500), 100.0)
+	model.enemies.assign([near, far])
+	model.invulnerability = 0.75
+	check(model.nana.activate_ultimate(model), "Nana can activate a ready ultimate during gameplay")
+	check(near["hp"] == 85.0 and far["hp"] == 100.0 and Vector2(near["pos"]).x == 680.0, "Ultimate pulse damages and pushes nearby chasers only")
+	check(model.nana.cooldown == 40.0 and model.nana.ultimate_remaining == 6.0 and model.invulnerability == 0.75, "Ultimate starts cooldown and never shortens existing invulnerability")
+	check(not model.nana.activate_ultimate(model) and near["hp"] == 85.0, "Repeated activation cannot deal damage or restart the cooldown")
+	model.aim = Vector2.RIGHT
+	model.nana.attack(model)
+	check(near["hp"] == 70.0, "Shadow form extends claw reach and increases damage")
+	model.pause()
+	model.tick(5.0, Vector2.ZERO, Vector2.ZERO, false)
+	check(model.nana.cooldown == 40.0 and model.nana.ultimate_remaining == 6.0 and not model.nana.activate_ultimate(model), "Pause freezes and rejects ultimate input")
+	model.resume()
+	model.tick(6.01, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.nana.ultimate_remaining == 0.0 and model.nana.cooldown > 33.0 and model.nana.cooldown < 34.0, "Shadow ends while the cooldown continues")
+	model.tick(34.0, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.nana.cooldown == 0.0 and model.nana.activate_ultimate(model), "Ultimate becomes available again after 40 seconds")
+	model.hp = 0.0
+	model.nana.cooldown = 0.0
+	model.nana.ultimate_remaining = 0.0
+	check(not model.nana.activate_ultimate(model), "Ultimate cannot revive a zero-health character")
+	model.reset(22, "nana")
+	check(model.nana.cooldown == 0.0 and model.nana.ultimate_remaining == 0.0 and model.hp == 100.0, "Restart restores a ready ultimate without an active effect")
+	model.player = Vector2(500, 500)
+	model.aim = Vector2.RIGHT
+	var target: Dictionary = enemy(9, Vector2(600, 500), 100.0)
+	target["kind"] = "guard"
+	model.enemies.assign([target])
+	model.nana.bite_charge = 3
+	model.nana.attack(model)
+	model.nana.activate_ultimate(model)
+	model.nana.advance(model, 0.11)
+	check(target["hp"] == 61.0, "A bite started before shadow activation keeps its original damage snapshot")
+
+
+func _test_nana_encounters() -> void:
+	var model = Run.new(1, "nana", "standard", "nana_mixed")
+	check(model.enemies.size() == 6 and model.fixed_abilities, "Mixed encounter starts with its fixed enemies and abilities")
+	var kinds: Array = []
+	for e: Dictionary in model.enemies:
+		if e.kind not in kinds:
+			kinds.append(e.kind)
+	check(kinds.size() == 4, "Mixed encounter contains the four ordinary roles")
+	var corner := {"pos": model.player + Vector2.RIGHT.rotated(deg_to_rad(55.0)) * 160.0, "radius": 17.0}
+	check(not model.nana._in_cone(model.player, Vector2.RIGHT, corner, 145.0, deg_to_rad(50.0)), "Circle outside sector corner is not hit")
+	corner.pos = model.player + Vector2.RIGHT.rotated(deg_to_rad(55.0)) * 155.0
+	check(model.nana._in_cone(model.player, Vector2.RIGHT, corner, 145.0, deg_to_rad(50.0)), "Circle intersecting sector corner is hit")
+	model = Run.new(1, "nana", "standard", "nana_charger")
+	var charger: Dictionary = model.enemies[0]
+	charger.pos = model.player + Vector2(200, 0)
+	model.tick(0.51, Vector2.ZERO, Vector2.RIGHT, false)
+	check(charger.phase == "windup" and Vector2(charger.dir) == Vector2.LEFT, "Charger locks its direction after becoming visible")
+	model.apply_heavy_hit(charger)
+	check(charger.phase == "recover" and charger.timer > 1.0, "Heavy bite interrupts charger windup")
+	charger.phase = "dash"
+	charger.timer = 0.5
+	charger.pos = model.player + Vector2(120, 0)
+	charger.dir = Vector2.LEFT
+	model.hp = 100.0
+	model.invulnerability = 0.0
+	model.encounters.update(model, 0.4)
+	check(model.hp == 84.0, "Charger swept collision deals its own damage")
+	model = Run.new(1, "nana", "standard", "nana_thrower")
+	var thrower: Dictionary = model.enemies[0]
+	thrower.pos = model.player + Vector2(300, 0)
+	model.tick(0.51, Vector2.ZERO, Vector2.RIGHT, false)
+	model.tick(0.81, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.encounters.enemy_projectiles.size() == 1 and thrower.phase == "recover", "Thrower fires a locked projectile after its tell")
+	model.invulnerability = 0.0
+	model.encounters.update(model, 0.7)
+	check(model.hp == 88.0 and model.encounters.enemy_projectiles.is_empty(), "Enemy projectile swept collision damages the player once")
+	model = Run.new(1, "nana", "standard", "nana_guard")
+	var guard: Dictionary = model.enemies[0]
+	guard.pos = model.player + Vector2(150, 0)
+	model.tick(0.51, Vector2.ZERO, Vector2.RIGHT, false)
+	model.tick(1.11, Vector2.ZERO, Vector2.RIGHT, false)
+	check(guard.phase == "recover" and model.hp == 80.0, "Guard damages once when its aimed sector resolves")
+	model.enemies.clear()
+	model.tick(0.01, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.state == "won", "Encounter succeeds after all enemies are defeated")
+	model = Run.new(1, "nana", "standard", "nana_chasers")
+	model.elapsed = 179.99
+	model.tick(0.02, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.state == "lost", "Encounter times out if enemies remain")
+
+
+func _test_nana_growth() -> void:
+	var model = Run.new(17, "nana", "standard", "nana_growth")
+	check(not model.fixed_abilities and model.drop_xp and model.enemies.is_empty(), "Growth run starts with upgrades enabled")
+	model.tick(1.1, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.encounters.pending_spawns.size() == 3 and model.enemies.is_empty(), "Growth enemy is announced before spawning")
+	var spawn: Dictionary = model.encounters.pending_spawns[0]
+	check(Vector2(spawn.pos).distance_to(model.player) >= 320.0, "Spawn warning is at least 320 units from player")
+	model.tick(1.01, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.enemies.size() == 3, "Announced enemies appear after warning")
+	model.xp = model.required_xp()
+	model.maybe_level_up()
+	check(model.state == "upgrade" and model.level == 2 and model.offers.size() == 3, "Experience pauses growth run and provides three choices")
+	var elapsed: float = model.elapsed
+	model.tick(1.0, Vector2.RIGHT, Vector2.RIGHT, true)
+	check(model.elapsed == elapsed, "Upgrade choice freezes gameplay time")
+	model.choose_upgrade(model.offers[0])
+	model.level = 4
+	model.make_offers()
+	check("sweep" in model.offers and "hunt" in model.offers, "Level four offers both specializations")
+	model.state = "upgrade"
+	model.choose_upgrade("sweep")
+	model.level = 5
+	model.make_offers()
+	check(int(model.upgrades.sweep) == 1 and "hunt" not in model.offers, "Specialization selection is exclusive")
+	model.enemies.clear()
+	model.player = Vector2(500, 500)
+	model.aim = Vector2.RIGHT
+	var front: Dictionary = enemy(500, Vector2(590, 500), 1000.0)
+	var side: Dictionary = enemy(501, Vector2(580, 570), 1000.0)
+	model.enemies.assign([front, side])
+	model.nana.bite_charge = 3
+	model.nana.attack(model)
+	model.nana.advance(model, 0.11)
+	check(float(front.hp) < 982.1 and float(side.hp) < 982.1, "Sweep bite hits both targets in addition to claw")
+	model = Run.new(17, "nana", "standard", "nana_growth")
+	model.upgrades.hunt = 1
+	model.player = Vector2(500, 500)
+	var target: Dictionary = enemy(502, Vector2(590, 500), 1000.0)
+	model.enemies.assign([target])
+	model.nana.bite_charge = 3
+	model.nana.attack(model)
+	model.nana.advance(model, 0.11)
+	check(float(target.hp) == 964.0 and float(target.vulnerable) == 2.0, "Hunt bite deals single-target damage then applies vulnerability")
+	model.damage_enemy(target, 10.0)
+	check(float(target.hp) == 952.0, "Subsequent hit benefits from hunt vulnerability")
+	model.enemies.clear()
+	model.encounters.add_enemy(model, "elite", model.player + Vector2(150, 0))
+	var elite: Dictionary = model.enemies[0]
+	elite.phase = "windup"
+	elite.dir = Vector2.LEFT
+	elite.timer = 0.01
+	model.encounters.update(model, 0.02)
+	check(elite.phase == "second_wait", "Elite enters second-attack pause after its first sweep")
+	model.encounters.update(model, 0.51)
+	check(elite.phase == "windup" and bool(elite.second_strike), "Elite telegraphs its second sweep separately")
+	model.encounters.update(model, 0.91)
+	check(elite.phase == "recover", "Elite recovers after its second sweep")
+	model.damage_enemy(elite, 1000.0)
+	check(model.encounters.elite_defeated, "Defeating elite satisfies the growth run objective")
+
+
+func _test_nana_pressure() -> void:
+	for variant: String in ["current", "fast", "heavy"]:
+		var model = Run.new(123, "nana", "standard", "nana_pressure_dense")
+		model.upgrades.hunt = 1
+		model.hunt_variant = variant
+		model.player = Vector2(500, 500)
+		model.aim = Vector2.RIGHT
+		var target: Dictionary = enemy(500, Vector2(590, 500), 1000.0)
+		model.enemies.assign([target])
+		var interval: float = model.nana.attack(model)
+		check(is_equal_approx(interval, 0.28 if variant == "fast" else 0.42), "Hunt variant interval matches preset")
+		check(is_equal_approx(float(target.hp), 979.0 if variant == "heavy" else 986.0), "Hunt variant damage matches preset")
+		check(model.fixed_abilities and not model.drop_xp, "Pressure comparison keeps abilities fixed")
+	var model = Run.new(42, "nana", "standard", "nana_growth")
+	model.encounters.spawn_countdown = 100.0
+	model.encounters.special_countdown = 100.0
+	model.encounters.pending_spawns.append({"kind": "chaser", "pos": model.player, "timer": 0.1})
+	model.encounters.update_growth(model, 0.2)
+	check(model.enemies.is_empty() and model.encounters.spawn_stats.cancelled == 1, "Unsafe spawn is cancelled")
+	check(model.encounters.spawn_stats.retried == 1 and model.encounters.pending_spawns.size() == 1 and is_equal_approx(float(model.encounters.pending_spawns[0].timer), 1.0), "Cancelled spawn gets a new full warning")
+	check(model.encounters._occupied(model) <= 45, "Population cap includes pending and retry queue")
+	model = Run.new(42, "nana", "standard", "nana_pressure_standard")
+	model.tick(1.1, Vector2.ZERO, Vector2.RIGHT, false)
+	check(model.encounters.pending_spawns.size() == 1, "Standard density preserves original single spawn")
+
+
+func _test_nana_specialization_rework() -> void:
+	var model = Run.new(1, "nana", "standard", "nana_growth")
+	model.player = Vector2(500, 500)
+	model.aim = Vector2.RIGHT
+	model.upgrades.sweep = 1
+	var front: Dictionary = enemy(701, Vector2(590, 500), 1000.0)
+	var back: Dictionary = enemy(702, Vector2(410, 500), 1000.0)
+	front.kind = "guard"
+	back.kind = "guard"
+	model.enemies.assign([front, back])
+	model.nana.attack(model)
+	model.nana.attack(model)
+	check(float(back.hp) == 1000.0 and model.nana.sweep_count == 2, "First two sweep attacks leave rear target unharmed and prepare ring")
+	model.pause()
+	model.tick(1.0, Vector2.ZERO, Vector2.RIGHT, true)
+	check(model.nana.sweep_count == 2, "Pause freezes ring cycle")
+	model.resume()
+	model.nana.attack(model)
+	check(float(front.hp) == 970.0 and float(back.hp) == 990.0 and model.nana.sweep_count == 0, "Third sweep hits front and rear once each")
+	check(model.nana.bite_charge == 3, "Multi-target ring grants only one bite charge")
+	check(model.combat_metrics.attacks.size() == 3 and int(model.combat_metrics.attacks[2].targets) == 2 and float(model.combat_metrics.damage.ring) == 20.0, "Metrics record ring target count and applied damage")
+	model.nana.bite_charge = 3
+	var edge: Dictionary = enemy(703, model.player + Vector2.RIGHT.rotated(deg_to_rad(60.0)) * 175.0, 100.0)
+	edge.kind = "guard"
+	model.enemies.assign([edge])
+	model.nana.attack(model)
+	check(not model.nana.pending_bite.is_empty() and model.nana.bite_charge == 0, "Sweep bite can start on a target near the wide cone edge")
+	model.nana.advance(model, 0.11)
+	check(float(edge.hp) == 92.0, "Sweep bite resolves in the wider cone")
+	model = Run.new(1, "nana", "standard", "nana_growth")
+	model.player = Vector2(500, 500)
+	model.aim = Vector2.RIGHT
+	model.upgrades.hunt = 1
+	model.upgrades.wide = 2
+	front = enemy(710, Vector2(590, 500), 1000.0)
+	var other: Dictionary = enemy(711, Vector2(600, 515), 1000.0)
+	front.kind = "guard"
+	other.kind = "guard"
+	model.enemies.assign([front, other])
+	model.nana.attack(model)
+	check(float(front.hp) == 986.0 and float(other.hp) == 1000.0 and model.nana.marked_target_id == 710, "Hunt's widened aim still claws only one aligned target")
+	front.hp = 14.0
+	model.nana.bite_charge = 3
+	model.nana.attack(model)
+	check(float(front.hp) <= 0.0 and int(model.nana.pending_bite.get("target_id", -1)) == 711, "Hunt reselects living target after claw kills prior target")
+	model.nana.advance(model, 0.11)
+	check(float(other.hp) == 978.0, "Reselected target receives bite")
+	check(float(model.combat_metrics.damage.bite) == 22.0, "Metrics record actual bite damage")
+	model.nana.bite_charge = 3
+	model.enemies.assign([front])
+	front.hp = 14.0
+	model.nana.attack(model)
+	check(model.nana.bite_charge == 3 and model.nana.pending_bite.is_empty(), "Hunt preserves charge when claw leaves no living target")
+	model.reset(1, "nana", "standard", "nana_growth")
+	check(model.nana.sweep_count == 0 and model.nana.marked_target_id == -1, "Restart clears specialization feedback state")
+	model.upgrades.sweep = 1
+	model.upgrades.wide = 2
+	model.upgrades.reach = 2
+	model.nana.ultimate_remaining = 6.0
+	model.nana.attack(model)
+	model.nana.attack(model)
+	check(model.nana.sweep_count == 2 and model.nana.bite_charge == 0, "Missed attacks advance ring cycle without granting bite charge")
+	back = enemy(712, model.player + Vector2.LEFT * 180.0, 1000.0)
+	back.kind = "guard"
+	model.enemies.assign([back])
+	model.nana.attack(model)
+	check(float(back.hp) == 985.0 and model.nana.sweep_count == 0, "Upgraded shadow ring remains all-directional")
+	model.reset(1, "nana", "standard", "nana_growth")
+	model.upgrades.hunt = 1
+	model.upgrades.wide = 2
+	model.upgrades.reach = 2
+	model.nana.ultimate_remaining = 6.0
+	front = enemy(713, model.player + Vector2.RIGHT * 200.0, 1000.0)
+	other = enemy(714, model.player + Vector2.RIGHT * 210.0, 1000.0)
+	front.kind = "guard"
+	other.kind = "guard"
+	model.enemies.assign([front, other])
+	model.nana.attack(model)
+	check(float(front.hp) == 979.0 and float(other.hp) == 1000.0, "Upgraded shadow hunt still hits only one target")
+
+
+func _test_nana_full_run() -> void:
+	# Fixed automated inputs and invulnerability exercise the path, not player balance.
+	var model = Run.new(901, "nana")
+	var activations: int = 0
+	var max_enemies: int = 0
+	var only_chasers: bool = true
+	for frame in 60 * 181:
+		if model.state != "playing":
+			break
+		if model.nana.activate_ultimate(model):
+			activations += 1
+		var move := Vector2.RIGHT.rotated(model.elapsed * 0.7)
+		var target: Dictionary = model.nearest_target(model.player, [])
+		var direction: Vector2 = Vector2(target["pos"]) - model.player if not target.is_empty() else move
+		model.invulnerability = 1.0
+		model.tick(1.0 / 60.0, move, direction, true)
+		model.events.clear()
+		max_enemies = maxi(max_enemies, model.enemies.size())
+		for item: Dictionary in model.enemies:
+			only_chasers = only_chasers and item["kind"] == "chaser"
+	check(model.state == "won" and model.elapsed == 180.0 and model.kills > 0, "Nana's full practice reaches its result while exercising combat")
+	check(activations == 5 and only_chasers and max_enemies <= 60 and model.level == 1 and model.pickups.is_empty(), "Full practice repeats ultimate use and keeps the intended fixed enemy and ability scope")
+	print("NANA PRACTICE: kills=%d ultimates=%d max_enemies=%d (test-only invulnerability)" % [model.kills, activations, max_enemies])
 
 
 func _test_comparison_modes() -> void:

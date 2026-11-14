@@ -20,7 +20,34 @@ func exercise_scene() -> void:
 	root.add_child(scene)
 	await process_frame
 	check(scene.screen == "title" and scene.overlay != null, "Real scene opens at title")
-	check(scene.selected_mode == "bloom" and scene.selected_scenario == "surround", "Title defaults to the new short comparison")
+	check(scene.selected_character == "nana" and scene.selected_mode == "standard" and scene.selected_scenario == "normal", "Title defaults to Nana's fixed-ability practice")
+	scene._start_run()
+	await process_frame
+	check(scene.run.character_id == "nana" and scene.ultimate_button.visible, "Nana starts in the real scene with an ultimate button")
+	var nana_move := InputEventScreenTouch.new()
+	nana_move.index = 41
+	nana_move.position = Vector2(100, 500)
+	nana_move.pressed = true
+	root.push_input(nana_move, true)
+	var ultimate_touch := InputEventScreenTouch.new()
+	ultimate_touch.index = 42
+	ultimate_touch.position = scene.ultimate_button.get_global_rect().get_center()
+	ultimate_touch.pressed = true
+	root.push_input(ultimate_touch, true)
+	check(scene.run.nana.cooldown == 40.0 and scene.touch.move_id == 41 and scene.touch.aim_id == -1, "Ultimate touch activates on press without stealing movement or aim")
+	var ultimate_drag := InputEventScreenDrag.new()
+	ultimate_drag.index = 42
+	ultimate_drag.position = Vector2(1200, 600)
+	root.push_input(ultimate_drag, true)
+	check(scene.touch.aim_id == -1 and scene.touch.move_id == 41, "Dragging from the ultimate button cannot become an aim gesture")
+	ultimate_touch.pressed = false
+	root.push_input(ultimate_touch, true)
+	check(scene.touch.aim_id == -1 and scene.touch.move_id == 41 and scene.ultimate_touches.is_empty(), "Ultimate release stays owned by the button")
+	scene._pause_run()
+	await process_frame
+	check(not scene.ultimate_button.visible and scene.screen == "paused", "Nana's ultimate button is hidden in the pause overlay")
+	scene._show_title()
+	scene._select_character("hedgehog")
 	scene._select_mode("standard")
 	scene._start_run()
 	await process_frame
@@ -167,6 +194,42 @@ func exercise_scene() -> void:
 	scene._select_mode("standard")
 	scene._start_run()
 	check(model.scenario_id == "normal" and model.duration() == 180.0 and scene.selected_scenario == "normal", "Returning to ordinary play clears fixed encounter selection")
+	scene._show_title()
+	scene._select_character("nana")
+	scene._select_scenario("nana_growth")
+	scene._start_run()
+	check(model.scenario_id == "nana_growth" and not model.fixed_abilities, "Growth scenario can be selected in the real scene")
+	model.level = 4
+	model.make_offers()
+	model.state = "upgrade"
+	scene._sync_screen()
+	check(scene.screen == "upgrade" and contains_label(scene.overlay, "掃群・環掃") and contains_label(scene.overlay, "狩獵・點殺"), "Real upgrade screen presents both specializations")
+	scene._choose_upgrade("sweep")
+	check(model.state == "playing" and int(model.upgrades["sweep"]) == 1, "Choosing specialization returns to the real game")
+	scene._show_nana_comparison()
+	check(find_button(scene.overlay, "基礎連抓") != null and find_button(scene.overlay, "狩獵・點殺") != null, "Comparison screen presents equal-build presets")
+	scene._select_nana_preset("hunt")
+	scene._select_nana_compare_scenario("nana_compare_elite")
+	scene._start_run()
+	check(model.scenario_id == "nana_compare_elite" and int(model.upgrades["hunt"]) == 1 and model.enemies.size() == 3, "Selected hunt preset starts with the selected fixed enemy formation")
+	scene._start_run()
+	check(model.scenario_id == "nana_compare_elite" and int(model.upgrades["hunt"]) == 1, "Retry preserves comparison scenario and preset")
+	scene._show_nana_comparison()
+	scene._select_nana_preset("sweep")
+	scene._start_run()
+	check(model.scenario_id == "nana_compare_elite" and int(model.upgrades["sweep"]) == 1 and int(model.upgrades["hunt"]) == 0, "Switching preset retains formation and changes only specialization")
+	scene._show_pressure_comparison()
+	scene._select_pressure_preset("heavy")
+	scene._select_pressure_scenario("nana_pressure_dense")
+	scene._start_run()
+	check(model.scenario_id == "nana_pressure_dense" and model.fixed_abilities and model.hunt_variant == "heavy" and int(model.upgrades.hunt) == 1, "Pressure comparison starts chosen hunt variant")
+	scene._start_run()
+	check(model.hunt_variant == "heavy" and model.rng.seed == 30301, "Pressure retry preserves preset and comparison seed")
+	scene._show_pressure_comparison()
+	scene._select_pressure_preset("sweep")
+	scene._select_pressure_scenario("nana_pressure_standard")
+	scene._start_run()
+	check(model.scenario_id == "nana_pressure_standard" and int(model.upgrades.sweep) == 1 and int(model.upgrades.hunt) == 0, "Pressure comparison can switch density and build")
 	print("SCENE RESULT: %d checks, %d failures" % [checks, failures])
 	scene.queue_free()
 	await process_frame

@@ -14,8 +14,8 @@ import xml.etree.ElementTree as ET
 PROJECT = Path(__file__).resolve().parent.parent
 GODOT = Path('/Applications/Godot.app/Contents/MacOS/Godot')
 CONTROLLER = '/Users/junming/AI-Setup/storage/storagectl.py'
-VERSION = '0.4.0'
-VERSION_CODE = 4
+VERSION = '0.9.0'
+VERSION_CODE = 9
 
 
 def run(args, env=None):
@@ -39,6 +39,7 @@ def configure_editor(java, sdk, key):
     # Preserve other settings, and save just these non-secret prior paths once.
     settings = Path.home() / 'Library/Application Support/Godot/editor_settings-4.7.tres'
     content = settings.read_text()
+    original = content
     changes = {
         'export/android/java_sdk_path': java,
         'export/android/android_sdk_path': sdk,
@@ -57,7 +58,8 @@ def configure_editor(java, sdk, key):
     notice = PROJECT / 'tools/android-editor-settings-before.json'
     if not notice.exists():
         notice.write_text(json.dumps(previous, indent=2) + '\n')
-    settings.write_text(content)
+    if content != original:
+        settings.write_text(content)
 
 
 def main():
@@ -95,7 +97,7 @@ def main():
     configure_editor(java, sdk, key)
     destination = root / 'builds/android'
     destination.mkdir(parents=True, exist_ok=True)
-    apk = destination / 'bramble-v0.4-debug.apk'
+    apk = destination / 'bramble-v0.9-debug.apk'
 
     preset = '''[preset.0]
 name="Android"
