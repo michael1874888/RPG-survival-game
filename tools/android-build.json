@@ -1,0 +1,30 @@
+{
+  "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/builds/android/bramble-v0.4-debug.apk",
+  "bytes": 37295556,
+  "sha256": "9af22c8a3c0082d4e275d94aceb313ff66f24f282cdf95f1ffa36434e8bae571",
+  "package": "org.bramble.prototype",
+  "version": "0.4.0",
+  "build_type": "debug",
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "signature_verified": true,
+  "verification_output": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): true\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\nSigner #1 certificate DN: CN=Android Debug, O=Android, C=US\nSigner #1 certificate SHA-256 digest: 645d0a6735cf6f6bae1bc27da955817382f127803a6ec1ad5bd1e7d2a845b306\nSigner #1 certificate SHA-1 digest: 9a6aa23f8ab8e80cdc1fbc33f606e0cfea3dcede\nSigner #1 certificate MD5 digest: f515e722a980ac2cfa2190083264b722\nSigner #1 key algorithm: RSA\nSigner #1 key size (bits): 2048\nSigner #1 public key SHA-256 digest: cc76779bdb3c95c61ba5607fef1443b242143749f56729e98da89ee209f16236\nSigner #1 public key SHA-1 digest: ef26ce3a58e029b4badc85794e690b71ea971ad0\nSigner #1 public key MD5 digest: 7f85dc79ade850f2ec3ce6b90c08ae82",
+  "device_installed": false,
+  "device_tested": false,
+  "debug_keystore_path": "/Users/junming/Library/Application Support/Bramble/keys/android-debug.keystore",
+  "manifest": {
+    "package": "org.bramble.prototype",
+    "version_name": "0.4.0",
+    "version_code": "4",
+    "minimum_sdk": "24",
+    "target_sdk": "36",
+    "debuggable": "true",
+    "permissions": [],
+    "orientations": [
+      "0",
+      null
+    ]
+  },
+  "manifest_verified": true
+}

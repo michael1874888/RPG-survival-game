@@ -1,0 +1,49 @@
+{
+  "templates": {
+    "directory": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/android-tools/templates/4.7.2-stable",
+    "archive": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/tool-downloads/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz",
+    "source": "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz",
+    "checksum_source": "https://github.com/godotengine/godot/releases/download/4.7.2-stable/SHA512-SUMS.txt",
+    "sha512": "ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079",
+    "extracted_files": {
+      "android_debug.apk": {
+        "sha256": "59e0073f0fa59f552684a861d8f4266b0b34b488a140d6657eac7dd70d1a0a0d",
+        "bytes": 127260725
+      },
+      "android_release.apk": {
+        "sha256": "6d1bb2cfa126a1b1c87e064a35b3cbd181bef0ec784dec1efd1d64dffa8be6cb",
+        "bytes": 104803333
+      }
+    }
+  },
+  "jdk": {
+    "java_home": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/android-tools/java/jdk-17.0.21+9/Contents/Home",
+    "archive": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/tool-downloads/temurin17/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.21_9.tar.gz",
+    "source": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.21%2B9/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.21_9.tar.gz",
+    "checksum_source": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.21%2B9/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.21_9.tar.gz.sha256.txt",
+    "sha256": "78b08c7f5a0598242d5719c022e19479cb4a3aa45c37c19726a757a469ed1c15",
+    "version_output": "openjdk version \"17.0.21\" 2026-10-20\nOpenJDK Runtime Environment Temurin-17.0.21+9 (build 17.0.21+9)\nOpenJDK 64-Bit Server VM Temurin-17.0.21+9 (build 17.0.21+9, mixed mode, sharing)"
+  },
+  "android_sdk_installed": true,
+  "android_sdk_license_accepted": true,
+  "sdk_root": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/android-tools/sdk",
+  "command_line_tools": {
+    "archive": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/tool-downloads/android/commandlinetools-mac_arm64-15859902_latest.zip",
+    "source": "https://dl.google.com/android/repository/commandlinetools-mac_arm64-15859902_latest.zip",
+    "sha256": "835b62a26162b229b441d1f6d4680383815a270809eb33522c0d480fa5002c4e",
+    "installed_directory": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/android-tools/sdk/cmdline-tools/latest"
+  },
+  "sdk_license_user_authorized": true,
+  "sdk_license_authorization": "User explicitly agreed to the Android SDK License Agreement and installation of command-line tools, stable platform-tools and Build Tools 36.1.0 on 2026-11-13.",
+  "installed_packages": [
+    "cmdline-tools bootstrap ARM64 15859902",
+    "platform-tools",
+    "build-tools;36.1.0"
+  ],
+  "sdk_versions": {
+    "command_line_tools": "22.0",
+    "platform_tools": "37.0.1",
+    "build_tools": "36.1.0"
+  },
+  "accepted_sdk_license_id": "android-sdk-license"
+}

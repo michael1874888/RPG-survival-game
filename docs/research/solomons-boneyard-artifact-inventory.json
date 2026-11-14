@@ -1,0 +1,2864 @@
+{
+  "method": "Python standard-library ZIP/ELF inventory; not REA Evidence",
+  "source": "/Users/junming/Desktop/Solomon's+Boneyard_1.3.0_APKPure.xapk",
+  "source_size": 35092085,
+  "source_sha256": "c768af470d58676fb39484353b2e33570210867820effbb37c8ca7cd56fb86c3",
+  "artifact_directory": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049",
+  "packages": [
+    {
+      "name": "com.raptisoft.SB.apk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/packages/com.raptisoft.SB.apk",
+      "size": 29474746,
+      "sha256": "0b6bc1769f818025b37011f0a564cc883da6307addcccf71c88c731221f61db0",
+      "members": [
+        {
+          "path": "AndroidManifest.xml",
+          "bytes": 20480
+        },
+        {
+          "path": "META-INF/androidx.activity_activity.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.annotation_annotation-experimental.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.appcompat_appcompat.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.arch.core_core-runtime.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.asynclayoutinflater_asynclayoutinflater.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.browser_browser.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.coordinatorlayout_coordinatorlayout.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.core_core.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.cursoradapter_cursoradapter.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.customview_customview.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.documentfile_documentfile.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.drawerlayout_drawerlayout.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.fragment_fragment.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.interpolator_interpolator.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.legacy_legacy-support-core-ui.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.legacy_legacy-support-core-utils.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.lifecycle_lifecycle-livedata-core.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.lifecycle_lifecycle-livedata.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.lifecycle_lifecycle-runtime.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.lifecycle_lifecycle-service.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.lifecycle_lifecycle-viewmodel-savedstate.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.lifecycle_lifecycle-viewmodel.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.loader_loader.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.localbroadcastmanager_localbroadcastmanager.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.print_print.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.room_room-runtime.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.savedstate_savedstate.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.slidingpanelayout_slidingpanelayout.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.sqlite_sqlite-framework.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.sqlite_sqlite.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.startup_startup-runtime.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.swiperefreshlayout_swiperefreshlayout.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.tracing_tracing.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.vectordrawable_vectordrawable-animated.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.vectordrawable_vectordrawable.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.versionedparcelable_versionedparcelable.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.viewpager_viewpager.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/androidx.work_work-runtime.version",
+          "bytes": 6
+        },
+        {
+          "path": "META-INF/com/android/build/gradle/app-metadata.properties",
+          "bytes": 56
+        },
+        {
+          "path": "META-INF/version-control-info.textproto",
+          "bytes": 46
+        },
+        {
+          "path": "androidsupportmultidexversion.txt",
+          "bytes": 53
+        },
+        {
+          "path": "assets/ads/ad_chuzzle.jpg",
+          "bytes": 253026
+        },
+        {
+          "path": "assets/ads/ad_hamsterball.jpg",
+          "bytes": 301800
+        },
+        {
+          "path": "assets/ads/ad_haphazard.jpg",
+          "bytes": 221320
+        },
+        {
+          "path": "assets/ads/ad_hoggy2.jpg",
+          "bytes": 589354
+        },
+        {
+          "path": "assets/ads/ad_solomonskeep.jpg",
+          "bytes": 178990
+        },
+        {
+          "path": "assets/ads/close.png",
+          "bytes": 1148
+        },
+        {
+          "path": "assets/consentform.html",
+          "bytes": 28028
+        },
+        {
+          "path": "assets/data/acidcloud.txt",
+          "bytes": 397
+        },
+        {
+          "path": "assets/data/battlemage.txt",
+          "bytes": 271
+        },
+        {
+          "path": "assets/data/callcomet.txt",
+          "bytes": 410
+        },
+        {
+          "path": "assets/data/chaining.txt",
+          "bytes": 418
+        },
+        {
+          "path": "assets/data/channelmana.txt",
+          "bytes": 219
+        },
+        {
+          "path": "assets/data/chillwind.txt",
+          "bytes": 436
+        },
+        {
+          "path": "assets/data/coneofice.txt",
+          "bytes": 491
+        },
+        {
+          "path": "assets/data/creativity.txt",
+          "bytes": 103
+        },
+        {
+          "path": "assets/data/embers.txt",
+          "bytes": 669
+        },
+        {
+          "path": "assets/data/ethercharge.txt",
+          "bytes": 446
+        },
+        {
+          "path": "assets/data/explode.txt",
+          "bytes": 501
+        },
+        {
+          "path": "assets/data/explosiveshield.txt",
+          "bytes": 373
+        },
+        {
+          "path": "assets/data/fastercaster.txt",
+          "bytes": 238
+        },
+        {
+          "path": "assets/data/fireball.txt",
+          "bytes": 812
+        },
+        {
+          "path": "assets/data/frostwail.txt",
+          "bytes": 830
+        },
+        {
+          "path": "assets/data/harden.txt",
+          "bytes": 643
+        },
+        {
+          "path": "assets/data/immolation.txt",
+          "bytes": 424
+        },
+        {
+          "path": "assets/data/items.txt",
+          "bytes": 6946
+        },
+        {
+          "path": "assets/data/lifeup.txt",
+          "bytes": 219
+        },
+        {
+          "path": "assets/data/lightning.txt",
+          "bytes": 986
+        },
+        {
+          "path": "assets/data/magiccircle.txt",
+          "bytes": 348
+        },
+        {
+          "path": "assets/data/magicmissile.txt",
+          "bytes": 1246
+        },
+        {
+          "path": "assets/data/magicshield.txt",
+          "bytes": 372
+        },
+        {
+          "path": "assets/data/magictrap.txt",
+          "bytes": 675
+        },
+        {
+          "path": "assets/data/manaup.txt",
+          "bytes": 215
+        },
+        {
+          "path": "assets/data/meditation.txt",
+          "bytes": 105
+        },
+        {
+          "path": "assets/data/mentalfocus.txt",
+          "bytes": 235
+        },
+        {
+          "path": "assets/data/missilespeed.txt",
+          "bytes": 477
+        },
+        {
+          "path": "assets/data/moremissiles.txt",
+          "bytes": 472
+        },
+        {
+          "path": "assets/data/resist.txt",
+          "bytes": 240
+        },
+        {
+          "path": "assets/data/ringoffire.txt",
+          "bytes": 358
+        },
+        {
+          "path": "assets/data/ringofice.txt",
+          "bytes": 362
+        },
+        {
+          "path": "assets/data/rush.txt",
+          "bytes": 195
+        },
+        {
+          "path": "assets/data/siegemage.txt",
+          "bytes": 266
+        },
+        {
+          "path": "assets/data/storm.txt",
+          "bytes": 450
+        },
+        {
+          "path": "assets/data/stun.txt",
+          "bytes": 469
+        },
+        {
+          "path": "assets/data/telekinesis.txt",
+          "bytes": 112
+        },
+        {
+          "path": "assets/data/teleport.txt",
+          "bytes": 121
+        },
+        {
+          "path": "assets/data/turnundead.txt",
+          "bytes": 495
+        },
+        {
+          "path": "assets/data/wave.txt",
+          "bytes": 18790
+        },
+        {
+          "path": "assets/images/Fonts.bundle",
+          "bytes": 27975
+        },
+        {
+          "path": "assets/images/Fonts.png",
+          "bytes": 79830
+        },
+        {
+          "path": "assets/images/FunDialog.bundle",
+          "bytes": 20142
+        },
+        {
+          "path": "assets/images/FunDialog.png",
+          "bytes": 121467
+        },
+        {
+          "path": "assets/images/GameOver.bundle",
+          "bytes": 135
+        },
+        {
+          "path": "assets/images/GameOver.png",
+          "bytes": 65880
+        },
+        {
+          "path": "assets/images/Helpscreen.bundle",
+          "bytes": 405
+        },
+        {
+          "path": "assets/images/Helpscreen.png",
+          "bytes": 229471
+        },
+        {
+          "path": "assets/images/Loader.bundle",
+          "bytes": 6065
+        },
+        {
+          "path": "assets/images/Loader.png",
+          "bytes": 92302
+        },
+        {
+          "path": "assets/images/Office.bundle",
+          "bytes": 3285
+        },
+        {
+          "path": "assets/images/Office.png",
+          "bytes": 985431
+        },
+        {
+          "path": "assets/images/UI.bundle",
+          "bytes": 49347
+        },
+        {
+          "path": "assets/images/UI.png",
+          "bytes": 1108669
+        },
+        {
+          "path": "assets/images/aliss.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/aliss.png",
+          "bytes": 221714
+        },
+        {
+          "path": "assets/images/andra.bundle",
+          "bytes": 2358
+        },
+        {
+          "path": "assets/images/andra.png",
+          "bytes": 195141
+        },
+        {
+          "path": "assets/images/athicus.bundle",
+          "bytes": 2358
+        },
+        {
+          "path": "assets/images/athicus.png",
+          "bytes": 217348
+        },
+        {
+          "path": "assets/images/bandywick.bundle",
+          "bytes": 4410
+        },
+        {
+          "path": "assets/images/bandywick.png",
+          "bytes": 1685984
+        },
+        {
+          "path": "assets/images/boss.bundle",
+          "bytes": 10206
+        },
+        {
+          "path": "assets/images/boss.png",
+          "bytes": 1184978
+        },
+        {
+          "path": "assets/images/dungeon.bundle",
+          "bytes": 29205
+        },
+        {
+          "path": "assets/images/dungeon.png",
+          "bytes": 2012796
+        },
+        {
+          "path": "assets/images/graveyard.bundle",
+          "bytes": 3960
+        },
+        {
+          "path": "assets/images/graveyard.png",
+          "bytes": 1322863
+        },
+        {
+          "path": "assets/images/griselda.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/griselda.png",
+          "bytes": 183480
+        },
+        {
+          "path": "assets/images/heckhollow.bundle",
+          "bytes": 4230
+        },
+        {
+          "path": "assets/images/heckhollow.png",
+          "bytes": 1373959
+        },
+        {
+          "path": "assets/images/lucritius.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/lucritius.png",
+          "bytes": 223915
+        },
+        {
+          "path": "assets/images/menu.bundle",
+          "bytes": 630
+        },
+        {
+          "path": "assets/images/menu.png",
+          "bytes": 423564
+        },
+        {
+          "path": "assets/images/morth.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/morth.png",
+          "bytes": 195211
+        },
+        {
+          "path": "assets/images/perks.bundle",
+          "bytes": 2430
+        },
+        {
+          "path": "assets/images/perks.png",
+          "bytes": 529518
+        },
+        {
+          "path": "assets/images/pummel.bundle",
+          "bytes": 4140
+        },
+        {
+          "path": "assets/images/pummel.png",
+          "bytes": 1229217
+        },
+        {
+          "path": "assets/images/setup.bundle",
+          "bytes": 810
+        },
+        {
+          "path": "assets/images/setup.png",
+          "bytes": 98824
+        },
+        {
+          "path": "assets/images/sirmin.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/sirmin.png",
+          "bytes": 227461
+        },
+        {
+          "path": "assets/images/vorpus.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/vorpus.png",
+          "bytes": 214020
+        },
+        {
+          "path": "assets/images/wazoo.bundle",
+          "bytes": 2358
+        },
+        {
+          "path": "assets/images/wazoo.png",
+          "bytes": 226311
+        },
+        {
+          "path": "assets/images/wegnus.bundle",
+          "bytes": 2070
+        },
+        {
+          "path": "assets/images/wegnus.png",
+          "bytes": 223267
+        },
+        {
+          "path": "assets/images/worldmap.bundle",
+          "bytes": 315
+        },
+        {
+          "path": "assets/images/worldmap.png",
+          "bytes": 331883
+        },
+        {
+          "path": "assets/sounds/CriticalHit.ogg",
+          "bytes": 18774
+        },
+        {
+          "path": "assets/sounds/MessageDone__Stream.ogg",
+          "bytes": 12705
+        },
+        {
+          "path": "assets/sounds/acid.ogg",
+          "bytes": 10937
+        },
+        {
+          "path": "assets/sounds/acidfall__LOOP.ogg",
+          "bytes": 39213
+        },
+        {
+          "path": "assets/sounds/ahem.ogg",
+          "bytes": 7453
+        },
+        {
+          "path": "assets/sounds/ambient__loop.ogg",
+          "bytes": 40874
+        },
+        {
+          "path": "assets/sounds/backpack.ogg",
+          "bytes": 7231
+        },
+        {
+          "path": "assets/sounds/banshee.ogg",
+          "bytes": 8746
+        },
+        {
+          "path": "assets/sounds/bansheedie.ogg",
+          "bytes": 10495
+        },
+        {
+          "path": "assets/sounds/bigfire.ogg",
+          "bytes": 15865
+        },
+        {
+          "path": "assets/sounds/bolt.ogg",
+          "bytes": 11923
+        },
+        {
+          "path": "assets/sounds/boneattack.ogg",
+          "bytes": 8387
+        },
+        {
+          "path": "assets/sounds/bonecrack.ogg",
+          "bytes": 10744
+        },
+        {
+          "path": "assets/sounds/buysell.ogg",
+          "bytes": 6313
+        },
+        {
+          "path": "assets/sounds/cheaty.ogg",
+          "bytes": 7428
+        },
+        {
+          "path": "assets/sounds/clack/clack1.ogg",
+          "bytes": 5910
+        },
+        {
+          "path": "assets/sounds/clack/clack2.ogg",
+          "bytes": 6023
+        },
+        {
+          "path": "assets/sounds/click.ogg",
+          "bytes": 15423
+        },
+        {
+          "path": "assets/sounds/comet__loop.ogg",
+          "bytes": 8838
+        },
+        {
+          "path": "assets/sounds/cometwhistle.ogg",
+          "bytes": 29217
+        },
+        {
+          "path": "assets/sounds/danger.ogg",
+          "bytes": 10137
+        },
+        {
+          "path": "assets/sounds/danger_female.ogg",
+          "bytes": 13014
+        },
+        {
+          "path": "assets/sounds/demonattack.ogg",
+          "bytes": 12000
+        },
+        {
+          "path": "assets/sounds/dig.ogg",
+          "bytes": 5823
+        },
+        {
+          "path": "assets/sounds/drink.ogg",
+          "bytes": 11109
+        },
+        {
+          "path": "assets/sounds/dropcoins.ogg",
+          "bytes": 11389
+        },
+        {
+          "path": "assets/sounds/droppotion.ogg",
+          "bytes": 9863
+        },
+        {
+          "path": "assets/sounds/explodesteam.ogg",
+          "bytes": 15196
+        },
+        {
+          "path": "assets/sounds/eyeblast.ogg",
+          "bytes": 18277
+        },
+        {
+          "path": "assets/sounds/fireloop__LOOP.ogg",
+          "bytes": 66257
+        },
+        {
+          "path": "assets/sounds/fireydeath.ogg",
+          "bytes": 17487
+        },
+        {
+          "path": "assets/sounds/fizzle.ogg",
+          "bytes": 8868
+        },
+        {
+          "path": "assets/sounds/flamelashstart.ogg",
+          "bytes": 9688
+        },
+        {
+          "path": "assets/sounds/flyblown__LOOP.ogg",
+          "bytes": 28091
+        },
+        {
+          "path": "assets/sounds/freeze.ogg",
+          "bytes": 17680
+        },
+        {
+          "path": "assets/sounds/gotorb.ogg",
+          "bytes": 6009
+        },
+        {
+          "path": "assets/sounds/gurgle.ogg",
+          "bytes": 18050
+        },
+        {
+          "path": "assets/sounds/gurgle_female.ogg",
+          "bytes": 12183
+        },
+        {
+          "path": "assets/sounds/harden.ogg",
+          "bytes": 7357
+        },
+        {
+          "path": "assets/sounds/hitshield.ogg",
+          "bytes": 5987
+        },
+        {
+          "path": "assets/sounds/icebeam__LOOP.ogg",
+          "bytes": 15405
+        },
+        {
+          "path": "assets/sounds/icebeamskull__LOOP.ogg",
+          "bytes": 13780
+        },
+        {
+          "path": "assets/sounds/icewind__LOOP.ogg",
+          "bytes": 29846
+        },
+        {
+          "path": "assets/sounds/ihunger.ogg",
+          "bytes": 44562
+        },
+        {
+          "path": "assets/sounds/imp/imp1.ogg",
+          "bytes": 5158
+        },
+        {
+          "path": "assets/sounds/imp/imp2.ogg",
+          "bytes": 5425
+        },
+        {
+          "path": "assets/sounds/imp/imp3.ogg",
+          "bytes": 6342
+        },
+        {
+          "path": "assets/sounds/imp/imp4.ogg",
+          "bytes": 6264
+        },
+        {
+          "path": "assets/sounds/imp/imp5.ogg",
+          "bytes": 6265
+        },
+        {
+          "path": "assets/sounds/imp/imp6.ogg",
+          "bytes": 5856
+        },
+        {
+          "path": "assets/sounds/imp/imp7.ogg",
+          "bytes": 6597
+        },
+        {
+          "path": "assets/sounds/imp/imp8.ogg",
+          "bytes": 6830
+        },
+        {
+          "path": "assets/sounds/impsplit.ogg",
+          "bytes": 10624
+        },
+        {
+          "path": "assets/sounds/levelup.ogg",
+          "bytes": 35825
+        },
+        {
+          "path": "assets/sounds/lightningblast.ogg",
+          "bytes": 36290
+        },
+        {
+          "path": "assets/sounds/lightningloop__LOOP.ogg",
+          "bytes": 33713
+        },
+        {
+          "path": "assets/sounds/magicbook.ogg",
+          "bytes": 18132
+        },
+        {
+          "path": "assets/sounds/magiccircle.ogg",
+          "bytes": 15931
+        },
+        {
+          "path": "assets/sounds/magicgo.ogg",
+          "bytes": 11743
+        },
+        {
+          "path": "assets/sounds/magicshieldexplode.ogg",
+          "bytes": 8837
+        },
+        {
+          "path": "assets/sounds/magicshieldup.ogg",
+          "bytes": 9966
+        },
+        {
+          "path": "assets/sounds/magicup.ogg",
+          "bytes": 12002
+        },
+        {
+          "path": "assets/sounds/mm.ogg",
+          "bytes": 20105
+        },
+        {
+          "path": "assets/sounds/mm_hit.ogg",
+          "bytes": 13496
+        },
+        {
+          "path": "assets/sounds/music_game__STREAM.ogg",
+          "bytes": 2250680
+        },
+        {
+          "path": "assets/sounds/music_menu__STREAM.ogg",
+          "bytes": 201922
+        },
+        {
+          "path": "assets/sounds/music_office__STREAM.ogg",
+          "bytes": 387629
+        },
+        {
+          "path": "assets/sounds/nuke.ogg",
+          "bytes": 13286
+        },
+        {
+          "path": "assets/sounds/ouch/ouch1.ogg",
+          "bytes": 6601
+        },
+        {
+          "path": "assets/sounds/ouch/ouch2.ogg",
+          "bytes": 6506
+        },
+        {
+          "path": "assets/sounds/ouch_female/ouch1_female.ogg",
+          "bytes": 6276
+        },
+        {
+          "path": "assets/sounds/ouch_female/ouch2_female.ogg",
+          "bytes": 9443
+        },
+        {
+          "path": "assets/sounds/outofmana.ogg",
+          "bytes": 10665
+        },
+        {
+          "path": "assets/sounds/outofmana_female.ogg",
+          "bytes": 16731
+        },
+        {
+          "path": "assets/sounds/overlay.ogg",
+          "bytes": 11342
+        },
+        {
+          "path": "assets/sounds/pickskill.ogg",
+          "bytes": 28645
+        },
+        {
+          "path": "assets/sounds/pickupcoin.ogg",
+          "bytes": 14398
+        },
+        {
+          "path": "assets/sounds/poisoned.ogg",
+          "bytes": 15380
+        },
+        {
+          "path": "assets/sounds/poof.ogg",
+          "bytes": 9605
+        },
+        {
+          "path": "assets/sounds/popshield.ogg",
+          "bytes": 5556
+        },
+        {
+          "path": "assets/sounds/rainfall__LOOP.ogg",
+          "bytes": 33611
+        },
+        {
+          "path": "assets/sounds/ringofice.ogg",
+          "bytes": 17520
+        },
+        {
+          "path": "assets/sounds/runcoward.ogg",
+          "bytes": 41822
+        },
+        {
+          "path": "assets/sounds/select.ogg",
+          "bytes": 6410
+        },
+        {
+          "path": "assets/sounds/settrap__Stream.ogg",
+          "bytes": 9479
+        },
+        {
+          "path": "assets/sounds/shootarrow.ogg",
+          "bytes": 10891
+        },
+        {
+          "path": "assets/sounds/skeleton_die.ogg",
+          "bytes": 10875
+        },
+        {
+          "path": "assets/sounds/skullbite.ogg",
+          "bytes": 16236
+        },
+        {
+          "path": "assets/sounds/slide.ogg",
+          "bytes": 9373
+        },
+        {
+          "path": "assets/sounds/spooky.ogg",
+          "bytes": 52834
+        },
+        {
+          "path": "assets/sounds/startice.ogg",
+          "bytes": 19946
+        },
+        {
+          "path": "assets/sounds/steam__LOOP.ogg",
+          "bytes": 15254
+        },
+        {
+          "path": "assets/sounds/step/step1.ogg",
+          "bytes": 13590
+        },
+        {
+          "path": "assets/sounds/step/step2.ogg",
+          "bytes": 12287
+        },
+        {
+          "path": "assets/sounds/stormwind__LOOP.ogg",
+          "bytes": 29846
+        },
+        {
+          "path": "assets/sounds/swipe.ogg",
+          "bytes": 4529
+        },
+        {
+          "path": "assets/sounds/teeth__LOOP.ogg",
+          "bytes": 17829
+        },
+        {
+          "path": "assets/sounds/teleport.ogg",
+          "bytes": 33152
+        },
+        {
+          "path": "assets/sounds/throwfire.ogg",
+          "bytes": 15216
+        },
+        {
+          "path": "assets/sounds/thunder/thunder.ogg",
+          "bytes": 35295
+        },
+        {
+          "path": "assets/sounds/thunder/thunder2.ogg",
+          "bytes": 41351
+        },
+        {
+          "path": "assets/sounds/thunder/thunder3.ogg",
+          "bytes": 37799
+        },
+        {
+          "path": "assets/sounds/ting.ogg",
+          "bytes": 9166
+        },
+        {
+          "path": "assets/sounds/trap__stream.wav",
+          "bytes": 239980
+        },
+        {
+          "path": "assets/sounds/unforge.ogg",
+          "bytes": 24072
+        },
+        {
+          "path": "assets/sounds/write.ogg",
+          "bytes": 6104
+        },
+        {
+          "path": "assets/sounds/yougotamessage__stream.ogg",
+          "bytes": 45617
+        },
+        {
+          "path": "assets/sounds/zombie_die_groan.ogg",
+          "bytes": 27478
+        },
+        {
+          "path": "assets/sounds/zombiedie.ogg",
+          "bytes": 23231
+        },
+        {
+          "path": "assets/sounds/zombiemoan.ogg",
+          "bytes": 30032
+        },
+        {
+          "path": "assets/sounds/zombieouch.ogg",
+          "bytes": 7723
+        },
+        {
+          "path": "assets/sounds/zombiepunch.ogg",
+          "bytes": 14088
+        },
+        {
+          "path": "assets/sounds/zombiewalk/zombiewalk1.ogg",
+          "bytes": 9875
+        },
+        {
+          "path": "assets/sounds/zombiewalk/zombiewalk2.ogg",
+          "bytes": 8449
+        },
+        {
+          "path": "assets/voice/anothercorpsefortheboneyard.ogg",
+          "bytes": 108873
+        },
+        {
+          "path": "assets/voice/archersho.ogg",
+          "bytes": 55251
+        },
+        {
+          "path": "assets/voice/getherboys.ogg",
+          "bytes": 55779
+        },
+        {
+          "path": "assets/voice/gethim.ogg",
+          "bytes": 42672
+        },
+        {
+          "path": "assets/voice/gethimboys.ogg",
+          "bytes": 68775
+        },
+        {
+          "path": "assets/voice/givemyregards.ogg",
+          "bytes": 63227
+        },
+        {
+          "path": "assets/voice/heretheycome.ogg",
+          "bytes": 34370
+        },
+        {
+          "path": "assets/voice/impsgogethim.ogg",
+          "bytes": 57736
+        },
+        {
+          "path": "assets/voice/interruptionsinterruptions.ogg",
+          "bytes": 67381
+        },
+        {
+          "path": "assets/voice/laugh.ogg",
+          "bytes": 58027
+        },
+        {
+          "path": "assets/voice/laugh2.ogg",
+          "bytes": 40032
+        },
+        {
+          "path": "assets/voice/laugh3.ogg",
+          "bytes": 45539
+        },
+        {
+          "path": "assets/voice/levellingupisnotgoingtosaveyou.ogg",
+          "bytes": 109049
+        },
+        {
+          "path": "assets/voice/magesblasthim.ogg",
+          "bytes": 57017
+        },
+        {
+          "path": "assets/voice/perfecttiming.ogg",
+          "bytes": 87764
+        },
+        {
+          "path": "assets/voice/rainpain.ogg",
+          "bytes": 51616
+        },
+        {
+          "path": "assets/voice/skeletonsattack.ogg",
+          "bytes": 38294
+        },
+        {
+          "path": "assets/voice/thatwasareallygoodtry.ogg",
+          "bytes": 84321
+        },
+        {
+          "path": "assets/voice/themaincourseishere.ogg",
+          "bytes": 63011
+        },
+        {
+          "path": "assets/voice/theyrecoming.ogg",
+          "bytes": 47646
+        },
+        {
+          "path": "assets/voice/theysentachicktostopme.ogg",
+          "bytes": 101400
+        },
+        {
+          "path": "assets/voice/theysentyoutostopme.ogg",
+          "bytes": 101981
+        },
+        {
+          "path": "assets/voice/welcometotheboneyard.ogg",
+          "bytes": 84706
+        },
+        {
+          "path": "assets/voice/youdidntreallythinkyoucouldstopme.ogg",
+          "bytes": 78562
+        },
+        {
+          "path": "assets/voice/youfail.ogg",
+          "bytes": 40189
+        },
+        {
+          "path": "assets/voice/youfoundme.ogg",
+          "bytes": 85576
+        },
+        {
+          "path": "assets/voice/youredead.ogg",
+          "bytes": 110650
+        },
+        {
+          "path": "assets/voice/youwantfrieswiththatpain.ogg",
+          "bytes": 56143
+        },
+        {
+          "path": "assets/voice/youwontlivetotellthistale.ogg",
+          "bytes": 73407
+        },
+        {
+          "path": "assets/voice/zombiesgo.ogg",
+          "bytes": 54641
+        },
+        {
+          "path": "billing.properties",
+          "bytes": 50
+        },
+        {
+          "path": "classes.dex",
+          "bytes": 5433632
+        },
+        {
+          "path": "com/fasterxml/jackson/core/json/VERSION.txt",
+          "bytes": 46
+        },
+        {
+          "path": "com/google/api/client/googleapis/google.jks",
+          "bytes": 71764
+        },
+        {
+          "path": "firebase-encoders-json.properties",
+          "bytes": 82
+        },
+        {
+          "path": "firebase-encoders-proto.properties",
+          "bytes": 84
+        },
+        {
+          "path": "firebase-encoders.properties",
+          "bytes": 72
+        },
+        {
+          "path": "javax/annotation/CheckForNull.java",
+          "bytes": 375
+        },
+        {
+          "path": "javax/annotation/CheckForSigned.java",
+          "bytes": 698
+        },
+        {
+          "path": "javax/annotation/CheckReturnValue.java",
+          "bytes": 494
+        },
+        {
+          "path": "javax/annotation/Detainted.java",
+          "bytes": 375
+        },
+        {
+          "path": "javax/annotation/MatchesPattern.java",
+          "bytes": 883
+        },
+        {
+          "path": "javax/annotation/Nonnegative.java",
+          "bytes": 1303
+        },
+        {
+          "path": "javax/annotation/Nonnull.java",
+          "bytes": 706
+        },
+        {
+          "path": "javax/annotation/Nullable.java",
+          "bytes": 373
+        },
+        {
+          "path": "javax/annotation/OverridingMethodsMustInvokeSuper.java",
+          "bytes": 580
+        },
+        {
+          "path": "javax/annotation/ParametersAreNonnullByDefault.java",
+          "bytes": 866
+        },
+        {
+          "path": "javax/annotation/ParametersAreNullableByDefault.java",
+          "bytes": 1096
+        },
+        {
+          "path": "javax/annotation/PropertyKey.java",
+          "bytes": 366
+        },
+        {
+          "path": "javax/annotation/RegEx.java",
+          "bytes": 1064
+        },
+        {
+          "path": "javax/annotation/Signed.java",
+          "bytes": 424
+        },
+        {
+          "path": "javax/annotation/Syntax.java",
+          "bytes": 1406
+        },
+        {
+          "path": "javax/annotation/Tainted.java",
+          "bytes": 372
+        },
+        {
+          "path": "javax/annotation/Untainted.java",
+          "bytes": 364
+        },
+        {
+          "path": "javax/annotation/WillClose.java",
+          "bytes": 337
+        },
+        {
+          "path": "javax/annotation/WillCloseWhenClosed.java",
+          "bytes": 385
+        },
+        {
+          "path": "javax/annotation/WillNotClose.java",
+          "bytes": 344
+        },
+        {
+          "path": "javax/annotation/concurrent/GuardedBy.java",
+          "bytes": 1611
+        },
+        {
+          "path": "javax/annotation/concurrent/Immutable.java",
+          "bytes": 1333
+        },
+        {
+          "path": "javax/annotation/concurrent/NotThreadSafe.java",
+          "bytes": 892
+        },
+        {
+          "path": "javax/annotation/concurrent/ThreadSafe.java",
+          "bytes": 752
+        },
+        {
+          "path": "javax/annotation/meta/Exclusive.java",
+          "bytes": 650
+        },
+        {
+          "path": "javax/annotation/meta/Exhaustive.java",
+          "bytes": 1097
+        },
+        {
+          "path": "javax/annotation/meta/TypeQualifier.java",
+          "bytes": 796
+        },
+        {
+          "path": "javax/annotation/meta/TypeQualifierDefault.java",
+          "bytes": 590
+        },
+        {
+          "path": "javax/annotation/meta/TypeQualifierNickname.java",
+          "bytes": 822
+        },
+        {
+          "path": "javax/annotation/meta/TypeQualifierValidator.java",
+          "bytes": 687
+        },
+        {
+          "path": "javax/annotation/meta/When.java",
+          "bytes": 639
+        },
+        {
+          "path": "javax/servlet/LocalStrings.properties",
+          "bytes": 228
+        },
+        {
+          "path": "javax/servlet/http/LocalStrings.properties",
+          "bytes": 640
+        },
+        {
+          "path": "javax/servlet/jsp/resources/jsp_2_0.xsd",
+          "bytes": 9670
+        },
+        {
+          "path": "javax/servlet/jsp/resources/jsp_2_1.xsd",
+          "bytes": 10780
+        },
+        {
+          "path": "javax/servlet/jsp/resources/jspxml.dtd",
+          "bytes": 5156
+        },
+        {
+          "path": "javax/servlet/jsp/resources/jspxml.xsd",
+          "bytes": 16644
+        },
+        {
+          "path": "javax/servlet/jsp/resources/web-jsptaglibrary_1_1.dtd",
+          "bytes": 8125
+        },
+        {
+          "path": "javax/servlet/jsp/resources/web-jsptaglibrary_1_2.dtd",
+          "bytes": 11578
+        },
+        {
+          "path": "javax/servlet/jsp/resources/web-jsptaglibrary_2_0.xsd",
+          "bytes": 27743
+        },
+        {
+          "path": "javax/servlet/jsp/resources/web-jsptaglibrary_2_1.xsd",
+          "bytes": 10378
+        },
+        {
+          "path": "javax/servlet/resources/XMLSchema.dtd",
+          "bytes": 16088
+        },
+        {
+          "path": "javax/servlet/resources/datatypes.dtd",
+          "bytes": 6960
+        },
+        {
+          "path": "javax/servlet/resources/j2ee_1_4.xsd",
+          "bytes": 46494
+        },
+        {
+          "path": "javax/servlet/resources/j2ee_web_services_1_1.xsd",
+          "bytes": 15284
+        },
+        {
+          "path": "javax/servlet/resources/j2ee_web_services_client_1_1.xsd",
+          "bytes": 11000
+        },
+        {
+          "path": "javax/servlet/resources/javaee_5.xsd",
+          "bytes": 63026
+        },
+        {
+          "path": "javax/servlet/resources/javaee_web_services_client_1_2.xsd",
+          "bytes": 10463
+        },
+        {
+          "path": "javax/servlet/resources/jsp_2_0.xsd",
+          "bytes": 9670
+        },
+        {
+          "path": "javax/servlet/resources/jsp_2_1.xsd",
+          "bytes": 10780
+        },
+        {
+          "path": "javax/servlet/resources/web-app_2_2.dtd",
+          "bytes": 16029
+        },
+        {
+          "path": "javax/servlet/resources/web-app_2_3.dtd",
+          "bytes": 33160
+        },
+        {
+          "path": "javax/servlet/resources/web-app_2_4.xsd",
+          "bytes": 37032
+        },
+        {
+          "path": "javax/servlet/resources/web-app_2_5.xsd",
+          "bytes": 45172
+        },
+        {
+          "path": "javax/servlet/resources/xml.xsd",
+          "bytes": 3521
+        },
+        {
+          "path": "kotlin/annotation/annotation.kotlin_builtins",
+          "bytes": 926
+        },
+        {
+          "path": "kotlin/collections/collections.kotlin_builtins",
+          "bytes": 3685
+        },
+        {
+          "path": "kotlin/coroutines/coroutines.kotlin_builtins",
+          "bytes": 200
+        },
+        {
+          "path": "kotlin/internal/internal.kotlin_builtins",
+          "bytes": 939
+        },
+        {
+          "path": "kotlin/kotlin.kotlin_builtins",
+          "bytes": 14256
+        },
+        {
+          "path": "kotlin/ranges/ranges.kotlin_builtins",
+          "bytes": 2301
+        },
+        {
+          "path": "kotlin/reflect/reflect.kotlin_builtins",
+          "bytes": 2338
+        },
+        {
+          "path": "org/mortbay/jetty/encoding.properties",
+          "bytes": 62
+        },
+        {
+          "path": "org/mortbay/jetty/favicon.ico",
+          "bytes": 1150
+        },
+        {
+          "path": "org/mortbay/jetty/mime.properties",
+          "bytes": 5145
+        },
+        {
+          "path": "org/mortbay/jetty/useragents",
+          "bytes": 5087
+        },
+        {
+          "path": "org/mortbay/jetty/webapp/webdefault.xml",
+          "bytes": 24404
+        },
+        {
+          "path": "org/mortbay/xml/configure_6_0.dtd",
+          "bytes": 8433
+        },
+        {
+          "path": "play-services-ads-base.properties",
+          "bytes": 82
+        },
+        {
+          "path": "play-services-ads-identifier.properties",
+          "bytes": 94
+        },
+        {
+          "path": "play-services-ads-lite.properties",
+          "bytes": 82
+        },
+        {
+          "path": "play-services-ads.properties",
+          "bytes": 72
+        },
+        {
+          "path": "play-services-appset.properties",
+          "bytes": 78
+        },
+        {
+          "path": "play-services-auth-api-phone.properties",
+          "bytes": 94
+        },
+        {
+          "path": "play-services-auth-base.properties",
+          "bytes": 84
+        },
+        {
+          "path": "play-services-auth.properties",
+          "bytes": 74
+        },
+        {
+          "path": "play-services-base.properties",
+          "bytes": 74
+        },
+        {
+          "path": "play-services-basement.properties",
+          "bytes": 82
+        },
+        {
+          "path": "play-services-drive.properties",
+          "bytes": 76
+        },
+        {
+          "path": "play-services-games.properties",
+          "bytes": 76
+        },
+        {
+          "path": "play-services-gcm.properties",
+          "bytes": 72
+        },
+        {
+          "path": "play-services-iid.properties",
+          "bytes": 72
+        },
+        {
+          "path": "play-services-location.properties",
+          "bytes": 82
+        },
+        {
+          "path": "play-services-measurement-base.properties",
+          "bytes": 98
+        },
+        {
+          "path": "play-services-measurement-sdk-api.properties",
+          "bytes": 104
+        },
+        {
+          "path": "play-services-places-placereport.properties",
+          "bytes": 102
+        },
+        {
+          "path": "play-services-stats.properties",
+          "bytes": 76
+        },
+        {
+          "path": "play-services-tasks.properties",
+          "bytes": 76
+        },
+        {
+          "path": "res/anim/abc_fade_in.xml",
+          "bytes": 388
+        },
+        {
+          "path": "res/anim/abc_fade_out.xml",
+          "bytes": 388
+        },
+        {
+          "path": "res/anim/abc_grow_fade_in_from_bottom.xml",
+          "bytes": 852
+        },
+        {
+          "path": "res/anim/abc_popup_enter.xml",
+          "bytes": 508
+        },
+        {
+          "path": "res/anim/abc_popup_exit.xml",
+          "bytes": 508
+        },
+        {
+          "path": "res/anim/abc_shrink_fade_out_from_bottom.xml",
+          "bytes": 852
+        },
+        {
+          "path": "res/anim/abc_slide_in_bottom.xml",
+          "bytes": 396
+        },
+        {
+          "path": "res/anim/abc_slide_in_top.xml",
+          "bytes": 396
+        },
+        {
+          "path": "res/anim/abc_slide_out_bottom.xml",
+          "bytes": 396
+        },
+        {
+          "path": "res/anim/abc_slide_out_top.xml",
+          "bytes": 396
+        },
+        {
+          "path": "res/anim/abc_tooltip_enter.xml",
+          "bytes": 388
+        },
+        {
+          "path": "res/anim/abc_tooltip_exit.xml",
+          "bytes": 388
+        },
+        {
+          "path": "res/color/abc_background_cache_hint_selector_material_dark.xml",
+          "bytes": 468
+        },
+        {
+          "path": "res/color/abc_background_cache_hint_selector_material_light.xml",
+          "bytes": 468
+        },
+        {
+          "path": "res/color/abc_hint_foreground_material_dark.xml",
+          "bytes": 564
+        },
+        {
+          "path": "res/color/abc_hint_foreground_material_light.xml",
+          "bytes": 564
+        },
+        {
+          "path": "res/color/abc_primary_text_disable_only_material_dark.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/abc_primary_text_disable_only_material_light.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/abc_primary_text_material_dark.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/abc_primary_text_material_light.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/abc_search_url_text.xml",
+          "bytes": 588
+        },
+        {
+          "path": "res/color/abc_secondary_text_material_dark.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/abc_secondary_text_material_light.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/common_google_signin_btn_text_dark.xml",
+          "bytes": 712
+        },
+        {
+          "path": "res/color/common_google_signin_btn_text_light.xml",
+          "bytes": 712
+        },
+        {
+          "path": "res/color/common_google_signin_btn_tint.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/switch_thumb_material_dark.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color/switch_thumb_material_light.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/color-v23/abc_btn_colored_borderless_text_material.xml",
+          "bytes": 500
+        },
+        {
+          "path": "res/color-v23/abc_btn_colored_text_material.xml",
+          "bytes": 500
+        },
+        {
+          "path": "res/color-v23/abc_color_highlight_material.xml",
+          "bytes": 544
+        },
+        {
+          "path": "res/color-v23/abc_tint_btn_checkable.xml",
+          "bytes": 624
+        },
+        {
+          "path": "res/color-v23/abc_tint_default.xml",
+          "bytes": 1120
+        },
+        {
+          "path": "res/color-v23/abc_tint_edittext.xml",
+          "bytes": 668
+        },
+        {
+          "path": "res/color-v23/abc_tint_seek_thumb.xml",
+          "bytes": 500
+        },
+        {
+          "path": "res/color-v23/abc_tint_spinner.xml",
+          "bytes": 668
+        },
+        {
+          "path": "res/color-v23/abc_tint_switch_track.xml",
+          "bytes": 664
+        },
+        {
+          "path": "res/drawable/abc_btn_borderless_material.xml",
+          "bytes": 588
+        },
+        {
+          "path": "res/drawable/abc_btn_check_material.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/drawable/abc_btn_default_mtrl_shape.xml",
+          "bytes": 932
+        },
+        {
+          "path": "res/drawable/abc_btn_radio_material.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/drawable/abc_cab_background_internal_bg.xml",
+          "bytes": 372
+        },
+        {
+          "path": "res/drawable/abc_cab_background_top_material.xml",
+          "bytes": 336
+        },
+        {
+          "path": "res/drawable/abc_ic_ab_back_material.xml",
+          "bytes": 692
+        },
+        {
+          "path": "res/drawable/abc_ic_arrow_drop_right_black_24dp.xml",
+          "bytes": 1000
+        },
+        {
+          "path": "res/drawable/abc_ic_clear_material.xml",
+          "bytes": 684
+        },
+        {
+          "path": "res/drawable/abc_ic_go_search_api_material.xml",
+          "bytes": 640
+        },
+        {
+          "path": "res/drawable/abc_ic_menu_overflow_material.xml",
+          "bytes": 792
+        },
+        {
+          "path": "res/drawable/abc_ic_search_api_material.xml",
+          "bytes": 812
+        },
+        {
+          "path": "res/drawable/abc_ic_voice_search_api_material.xml",
+          "bytes": 828
+        },
+        {
+          "path": "res/drawable/abc_item_background_holo_dark.xml",
+          "bytes": 1012
+        },
+        {
+          "path": "res/drawable/abc_item_background_holo_light.xml",
+          "bytes": 1012
+        },
+        {
+          "path": "res/drawable/abc_list_selector_background_transition_holo_dark.xml",
+          "bytes": 424
+        },
+        {
+          "path": "res/drawable/abc_list_selector_background_transition_holo_light.xml",
+          "bytes": 424
+        },
+        {
+          "path": "res/drawable/abc_list_selector_holo_dark.xml",
+          "bytes": 1064
+        },
+        {
+          "path": "res/drawable/abc_list_selector_holo_light.xml",
+          "bytes": 1064
+        },
+        {
+          "path": "res/drawable/abc_ratingbar_indicator_material.xml",
+          "bytes": 704
+        },
+        {
+          "path": "res/drawable/abc_ratingbar_material.xml",
+          "bytes": 704
+        },
+        {
+          "path": "res/drawable/abc_ratingbar_small_material.xml",
+          "bytes": 704
+        },
+        {
+          "path": "res/drawable/abc_seekbar_thumb_material.xml",
+          "bytes": 1100
+        },
+        {
+          "path": "res/drawable/abc_seekbar_tick_mark_material.xml",
+          "bytes": 516
+        },
+        {
+          "path": "res/drawable/abc_seekbar_track_material.xml",
+          "bytes": 1408
+        },
+        {
+          "path": "res/drawable/abc_spinner_textfield_background_material.xml",
+          "bytes": 1160
+        },
+        {
+          "path": "res/drawable/abc_switch_thumb_material.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/drawable/abc_tab_indicator_material.xml",
+          "bytes": 468
+        },
+        {
+          "path": "res/drawable/abc_text_cursor_material.xml",
+          "bytes": 516
+        },
+        {
+          "path": "res/drawable/abc_textfield_search_material.xml",
+          "bytes": 756
+        },
+        {
+          "path": "res/drawable/abc_vector_test.xml",
+          "bytes": 612
+        },
+        {
+          "path": "res/drawable/ad_mob_outline_shape.xml",
+          "bytes": 500
+        },
+        {
+          "path": "res/drawable/ad_mob_rounded_corners_shape.xml",
+          "bytes": 940
+        },
+        {
+          "path": "res/drawable/admob_close_button_black_circle_white_cross.xml",
+          "bytes": 988
+        },
+        {
+          "path": "res/drawable/admob_close_button_white_circle_black_cross.xml",
+          "bytes": 988
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_dark.xml",
+          "bytes": 588
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_dark_focused.xml",
+          "bytes": 892
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_dark_normal.xml",
+          "bytes": 548
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_disabled.xml",
+          "bytes": 1132
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_light.xml",
+          "bytes": 588
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_light_focused.xml",
+          "bytes": 892
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_icon_light_normal.xml",
+          "bytes": 548
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_dark.xml",
+          "bytes": 588
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_dark_focused.xml",
+          "bytes": 892
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_dark_normal.xml",
+          "bytes": 584
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_disabled.xml",
+          "bytes": 1152
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_light.xml",
+          "bytes": 588
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_light_focused.xml",
+          "bytes": 892
+        },
+        {
+          "path": "res/drawable/common_google_signin_btn_text_light_normal.xml",
+          "bytes": 584
+        },
+        {
+          "path": "res/drawable/ic_launcher_background.png",
+          "bytes": 6269
+        },
+        {
+          "path": "res/drawable/notification_bg.xml",
+          "bytes": 532
+        },
+        {
+          "path": "res/drawable/notification_bg_low.xml",
+          "bytes": 532
+        },
+        {
+          "path": "res/drawable/notification_icon_background.xml",
+          "bytes": 372
+        },
+        {
+          "path": "res/drawable/notification_tile_bg.xml",
+          "bytes": 304
+        },
+        {
+          "path": "res/drawable/tooltip_frame_dark.xml",
+          "bytes": 484
+        },
+        {
+          "path": "res/drawable/tooltip_frame_light.xml",
+          "bytes": 484
+        },
+        {
+          "path": "res/drawable-v21/abc_action_bar_item_background_material.xml",
+          "bytes": 264
+        },
+        {
+          "path": "res/drawable-v21/abc_btn_colored_material.xml",
+          "bytes": 1716
+        },
+        {
+          "path": "res/drawable-v21/abc_dialog_material_background.xml",
+          "bytes": 716
+        },
+        {
+          "path": "res/drawable-v21/abc_edit_text_material.xml",
+          "bytes": 1172
+        },
+        {
+          "path": "res/drawable-v21/abc_list_divider_material.xml",
+          "bytes": 516
+        },
+        {
+          "path": "res/drawable-v21/notification_action_background.xml",
+          "bytes": 1180
+        },
+        {
+          "path": "res/drawable-v23/abc_control_background_material.xml",
+          "bytes": 304
+        },
+        {
+          "path": "res/drawable-v24/ic_launcher_foreground.png",
+          "bytes": 7171
+        },
+        {
+          "path": "res/drawable-watch-v20/abc_dialog_material_background.xml",
+          "bytes": 372
+        },
+        {
+          "path": "res/drawable-watch-v20/common_google_signin_btn_text_dark_normal.xml",
+          "bytes": 908
+        },
+        {
+          "path": "res/drawable-watch-v20/common_google_signin_btn_text_disabled.xml",
+          "bytes": 1040
+        },
+        {
+          "path": "res/drawable-watch-v20/common_google_signin_btn_text_light_normal.xml",
+          "bytes": 872
+        },
+        {
+          "path": "res/layout/abc_action_bar_title_item.xml",
+          "bytes": 872
+        },
+        {
+          "path": "res/layout/abc_action_bar_up_container.xml",
+          "bytes": 440
+        },
+        {
+          "path": "res/layout/abc_action_menu_item_layout.xml",
+          "bytes": 768
+        },
+        {
+          "path": "res/layout/abc_action_menu_layout.xml",
+          "bytes": 576
+        },
+        {
+          "path": "res/layout/abc_action_mode_bar.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/layout/abc_action_mode_close_item_material.xml",
+          "bytes": 840
+        },
+        {
+          "path": "res/layout/abc_activity_chooser_view.xml",
+          "bytes": 1684
+        },
+        {
+          "path": "res/layout/abc_activity_chooser_view_list_item.xml",
+          "bytes": 1304
+        },
+        {
+          "path": "res/layout/abc_alert_dialog_button_bar_material.xml",
+          "bytes": 1584
+        },
+        {
+          "path": "res/layout/abc_alert_dialog_material.xml",
+          "bytes": 2476
+        },
+        {
+          "path": "res/layout/abc_alert_dialog_title_material.xml",
+          "bytes": 1516
+        },
+        {
+          "path": "res/layout/abc_cascading_menu_item_layout.xml",
+          "bytes": 1868
+        },
+        {
+          "path": "res/layout/abc_dialog_title_material.xml",
+          "bytes": 1072
+        },
+        {
+          "path": "res/layout/abc_expanded_menu_layout.xml",
+          "bytes": 388
+        },
+        {
+          "path": "res/layout/abc_list_menu_item_checkbox.xml",
+          "bytes": 528
+        },
+        {
+          "path": "res/layout/abc_list_menu_item_icon.xml",
+          "bytes": 684
+        },
+        {
+          "path": "res/layout/abc_list_menu_item_layout.xml",
+          "bytes": 1396
+        },
+        {
+          "path": "res/layout/abc_list_menu_item_radio.xml",
+          "bytes": 532
+        },
+        {
+          "path": "res/layout/abc_popup_menu_header_item_layout.xml",
+          "bytes": 848
+        },
+        {
+          "path": "res/layout/abc_popup_menu_item_layout.xml",
+          "bytes": 2072
+        },
+        {
+          "path": "res/layout/abc_screen_content_include.xml",
+          "bytes": 548
+        },
+        {
+          "path": "res/layout/abc_screen_simple.xml",
+          "bytes": 832
+        },
+        {
+          "path": "res/layout/abc_screen_simple_overlay_action_mode.xml",
+          "bytes": 792
+        },
+        {
+          "path": "res/layout/abc_search_dropdown_item_icons_2line.xml",
+          "bytes": 1916
+        },
+        {
+          "path": "res/layout/abc_search_view.xml",
+          "bytes": 3472
+        },
+        {
+          "path": "res/layout/abc_select_dialog_material.xml",
+          "bytes": 976
+        },
+        {
+          "path": "res/layout/abc_tooltip.xml",
+          "bytes": 1056
+        },
+        {
+          "path": "res/layout/activity_main.xml",
+          "bytes": 912
+        },
+        {
+          "path": "res/layout/ad_mob_native_banner_medium_layout.xml",
+          "bytes": 3012
+        },
+        {
+          "path": "res/layout/ad_mob_native_banner_small_layout.xml",
+          "bytes": 2652
+        },
+        {
+          "path": "res/layout/admob_empty_layout.xml",
+          "bytes": 396
+        },
+        {
+          "path": "res/layout/browser_actions_context_menu_page.xml",
+          "bytes": 1660
+        },
+        {
+          "path": "res/layout/browser_actions_context_menu_row.xml",
+          "bytes": 1212
+        },
+        {
+          "path": "res/layout/custom_dialog.xml",
+          "bytes": 612
+        },
+        {
+          "path": "res/layout/notification_template_part_chronometer.xml",
+          "bytes": 440
+        },
+        {
+          "path": "res/layout/notification_template_part_time.xml",
+          "bytes": 440
+        },
+        {
+          "path": "res/layout/select_dialog_item_material.xml",
+          "bytes": 640
+        },
+        {
+          "path": "res/layout/select_dialog_multichoice_material.xml",
+          "bytes": 864
+        },
+        {
+          "path": "res/layout/select_dialog_singlechoice_material.xml",
+          "bytes": 864
+        },
+        {
+          "path": "res/layout/support_simple_spinner_dropdown_item.xml",
+          "bytes": 464
+        },
+        {
+          "path": "res/layout-v21/notification_action.xml",
+          "bytes": 1052
+        },
+        {
+          "path": "res/layout-v21/notification_action_tombstone.xml",
+          "bytes": 1228
+        },
+        {
+          "path": "res/layout-v21/notification_template_custom_big.xml",
+          "bytes": 2456
+        },
+        {
+          "path": "res/layout-v21/notification_template_icon_group.xml",
+          "bytes": 988
+        },
+        {
+          "path": "res/layout-v26/abc_screen_toolbar.xml",
+          "bytes": 1560
+        },
+        {
+          "path": "res/layout-watch-v20/abc_alert_dialog_button_bar_material.xml",
+          "bytes": 1208
+        },
+        {
+          "path": "res/layout-watch-v20/abc_alert_dialog_title_material.xml",
+          "bytes": 1352
+        },
+        {
+          "path": "res/mipmap-anydpi-v26/ic_launcher.xml",
+          "bytes": 448
+        },
+        {
+          "path": "res/mipmap-hdpi-v4/ic_launcher.png",
+          "bytes": 6880
+        },
+        {
+          "path": "res/mipmap-mdpi-v4/ic_launcher.png",
+          "bytes": 3525
+        },
+        {
+          "path": "res/mipmap-xhdpi-v4/ic_launcher.png",
+          "bytes": 11129
+        },
+        {
+          "path": "res/mipmap-xxhdpi-v4/ic_launcher.png",
+          "bytes": 22206
+        },
+        {
+          "path": "res/mipmap-xxxhdpi-v4/ic_launcher.png",
+          "bytes": 36064
+        },
+        {
+          "path": "res/xml/image_share_filepaths.xml",
+          "bytes": 308
+        },
+        {
+          "path": "res/xml/network_security_config.xml",
+          "bytes": 564
+        },
+        {
+          "path": "res/xml/splits0.xml",
+          "bytes": 9588
+        },
+        {
+          "path": "resources.arsc",
+          "bytes": 82532
+        },
+        {
+          "path": "transport-api.properties",
+          "bytes": 62
+        },
+        {
+          "path": "transport-backend-cct.properties",
+          "bytes": 78
+        },
+        {
+          "path": "transport-runtime.properties",
+          "bytes": 70
+        },
+        {
+          "path": "user-messaging-platform.properties",
+          "bytes": 82
+        },
+        {
+          "path": "stamp-cert-sha256",
+          "bytes": 32
+        }
+      ],
+      "data_files": [
+        {
+          "path": "assets/data/acidcloud.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/acidcloud.txt",
+          "sha256": "030842884134a48cc2b8cabfb658a6f07e4fbcd3dd49ea036484f15f31a3adb7"
+        },
+        {
+          "path": "assets/data/battlemage.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/battlemage.txt",
+          "sha256": "c9b99dc27d4bd1ba91e85b7017b5e1f4df3c43e95c324b00e66ea5c03421afeb"
+        },
+        {
+          "path": "assets/data/callcomet.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/callcomet.txt",
+          "sha256": "bdef421da0d3dfa4c59460c17778ab81a5ef8219369496117cd52364b8581fae"
+        },
+        {
+          "path": "assets/data/chaining.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/chaining.txt",
+          "sha256": "87ff32c0593c313607bf1285a99403134c934e890a56865154dc725660ec402d"
+        },
+        {
+          "path": "assets/data/channelmana.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/channelmana.txt",
+          "sha256": "b280bee1d71caf97a27efa313c992e87aae0c7acac157eea73a38407fc7b0da4"
+        },
+        {
+          "path": "assets/data/chillwind.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/chillwind.txt",
+          "sha256": "b8db84b68e88011cf7851d3331d3bc6924ba7acee8fefc06f58d7a30a312760e"
+        },
+        {
+          "path": "assets/data/coneofice.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/coneofice.txt",
+          "sha256": "d46a2bc3dd988d598abe413a8d9aaeae4ef9da16f5241b737f82621cb5655b3e"
+        },
+        {
+          "path": "assets/data/creativity.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/creativity.txt",
+          "sha256": "262a2c5c0ef51ed9a23b5b7abef0967889a4d9b1cb1efd2df1c2d2ff8348cb7d"
+        },
+        {
+          "path": "assets/data/embers.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/embers.txt",
+          "sha256": "3ba03e6634cfbe1c1a68dd49878062ca91dbb663d8a73bbb42b8cc53ea2422ba"
+        },
+        {
+          "path": "assets/data/ethercharge.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/ethercharge.txt",
+          "sha256": "f15379059bcab61146860cbcbb813cf377d1ed39ef4237528e32f5402c64a726"
+        },
+        {
+          "path": "assets/data/explode.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/explode.txt",
+          "sha256": "f714308410423e6d2bf3761bdcf608cc6a884b584811c46bd3c820a5674237e0"
+        },
+        {
+          "path": "assets/data/explosiveshield.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/explosiveshield.txt",
+          "sha256": "eed63c5be47da03b60cc33230122a9a5e8c744cc2e06b9b17876c47c03e7d29b"
+        },
+        {
+          "path": "assets/data/fastercaster.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/fastercaster.txt",
+          "sha256": "07960ddef1d2a90fca613ec3e816f3bfbd999d8f1edd32d58e05c43d11a4c90e"
+        },
+        {
+          "path": "assets/data/fireball.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/fireball.txt",
+          "sha256": "546923832bf8530751d260b69eb3a23dadcca105c77fb21701fbeab6f247fc7c"
+        },
+        {
+          "path": "assets/data/frostwail.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/frostwail.txt",
+          "sha256": "e49f262f6ed4d21cd996245e5f08b5656fff631060d2a4e5758fd3451a94aa08"
+        },
+        {
+          "path": "assets/data/harden.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/harden.txt",
+          "sha256": "2b2e6a562df28c1bf45f2193aed97fdbb4359bcba153a440985360fc7c9d2815"
+        },
+        {
+          "path": "assets/data/immolation.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/immolation.txt",
+          "sha256": "7d1d6cf11cc4efb38f082c78cbfbc8a0bf7dda158e06bbb6e7ea66aa245758c5"
+        },
+        {
+          "path": "assets/data/items.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/items.txt",
+          "sha256": "8980cae376b1beb8e07533384b6c62209e18584132ab76e962aa3fa900d8813c"
+        },
+        {
+          "path": "assets/data/lifeup.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/lifeup.txt",
+          "sha256": "b6e46d8feaa4d4065fa4ebfd157d0810853af359aa35e8da7625736995a7afee"
+        },
+        {
+          "path": "assets/data/lightning.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/lightning.txt",
+          "sha256": "d9301b79abe4ce5f6bfc6df4065a912d6b5005bda544a892a201147887b944d6"
+        },
+        {
+          "path": "assets/data/magiccircle.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/magiccircle.txt",
+          "sha256": "733edadf1a13c1ed161e596b6437fe9deaa259e212edcd0d268ba401e88b05a1"
+        },
+        {
+          "path": "assets/data/magicmissile.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/magicmissile.txt",
+          "sha256": "88a5567223de6e0ba2c92fcbd4530a6b00eed1783d6d6c6afd199aa5041ebf0a"
+        },
+        {
+          "path": "assets/data/magicshield.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/magicshield.txt",
+          "sha256": "f627fc06b490ad2b9ca04e678a0b860a92515c19610f00e49368974a9d0219a0"
+        },
+        {
+          "path": "assets/data/magictrap.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/magictrap.txt",
+          "sha256": "901f55a4b8d7076c962ef3362ce3c2aec038b4346f82eb12ba9daa531f90def5"
+        },
+        {
+          "path": "assets/data/manaup.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/manaup.txt",
+          "sha256": "431698b49b0ce660bd0c93c75cfd29b4f5f19da60870b1052e41fefc675557b0"
+        },
+        {
+          "path": "assets/data/meditation.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/meditation.txt",
+          "sha256": "593e068b27607b258cf61d4bf1e29eb85fc3a27068e54d61dfc58a24e51a352e"
+        },
+        {
+          "path": "assets/data/mentalfocus.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/mentalfocus.txt",
+          "sha256": "f9049f3e178cc3c06b85ccf60a87917c20ee2836e7d5d0b7906e83f7962abd06"
+        },
+        {
+          "path": "assets/data/missilespeed.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/missilespeed.txt",
+          "sha256": "5c224a8254b8d1dc7713c53789d1e6bdb4b372a729550e38bd61ec27376934ef"
+        },
+        {
+          "path": "assets/data/moremissiles.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/moremissiles.txt",
+          "sha256": "76041c4f007d49f3bfb7a0b769e96b354eb28d99e39b6998a1563b2bbac2aabb"
+        },
+        {
+          "path": "assets/data/resist.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/resist.txt",
+          "sha256": "dd525c77f85401eb9c47cfd3ab3a2a7a977f49dfd190be58aca9c48c279d5d01"
+        },
+        {
+          "path": "assets/data/ringoffire.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/ringoffire.txt",
+          "sha256": "83089581efc67f692367ef7da434b57769b3b2b22c8ea66b877cab00be4689a1"
+        },
+        {
+          "path": "assets/data/ringofice.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/ringofice.txt",
+          "sha256": "1e555f2d73495a153adabfc775aa64dc218a756a0f853efe2bb1634189dfb188"
+        },
+        {
+          "path": "assets/data/rush.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/rush.txt",
+          "sha256": "adc9b203f6b69b0dd5142b797118b5e76bbab78fb1ecd92e57f893b8e9bcff32"
+        },
+        {
+          "path": "assets/data/siegemage.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/siegemage.txt",
+          "sha256": "e72a7f0ac032c278979ae23bacf6dd0fb3f4d8818ff242daab32156f3ccfa5d0"
+        },
+        {
+          "path": "assets/data/storm.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/storm.txt",
+          "sha256": "8b5b4a8f74ceb36c46f227a26babe811d3dd6719044bed91b45f158bad26a491"
+        },
+        {
+          "path": "assets/data/stun.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/stun.txt",
+          "sha256": "d5d437310ac22b09649af23a1fd693df1e77b64ca8e72583a683053484a814a5"
+        },
+        {
+          "path": "assets/data/telekinesis.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/telekinesis.txt",
+          "sha256": "d270cda17431e2f82ba3ff2a61f3070d89abd16712303e1d8980fcf3ef90dd40"
+        },
+        {
+          "path": "assets/data/teleport.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/teleport.txt",
+          "sha256": "188af7abebe9de8995d7d7561be2d0e5bd5b0124a225d8640242760e87b585d1"
+        },
+        {
+          "path": "assets/data/turnundead.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/turnundead.txt",
+          "sha256": "08c73a7b4b13d5dda8268b54dc5da2e3e2fe26d27afc152ca9b5b8fcbded9e3b"
+        },
+        {
+          "path": "assets/data/wave.txt",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/assets/data/wave.txt",
+          "sha256": "db844354d764f92f92c3345cf0417cc2fca1e8d894d0cd07dbe548342be7761b"
+        }
+      ]
+    },
+    {
+      "name": "config.fr.apk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/packages/config.fr.apk",
+      "size": 29081,
+      "sha256": "155fa495768ecb43ec9342fb9fca5dd3d86e011547d5b934caf964e1832327b4",
+      "members": [
+        {
+          "path": "AndroidManifest.xml",
+          "bytes": 996
+        },
+        {
+          "path": "resources.arsc",
+          "bytes": 10612
+        },
+        {
+          "path": "stamp-cert-sha256",
+          "bytes": 32
+        },
+        {
+          "path": "META-INF/BNDLTOOL.SF",
+          "bytes": 342
+        },
+        {
+          "path": "META-INF/BNDLTOOL.RSA",
+          "bytes": 2170
+        },
+        {
+          "path": "META-INF/MANIFEST.MF",
+          "bytes": 234
+        }
+      ]
+    },
+    {
+      "name": "config.en.apk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/packages/config.en.apk",
+      "size": 37273,
+      "sha256": "cd2e2e81474f889fa0d57ca50b2ad6e9fbfdd5eea64fefdd7fac8c0ac7ba8c91",
+      "members": [
+        {
+          "path": "AndroidManifest.xml",
+          "bytes": 996
+        },
+        {
+          "path": "resources.arsc",
+          "bytes": 21040
+        },
+        {
+          "path": "stamp-cert-sha256",
+          "bytes": 32
+        },
+        {
+          "path": "META-INF/BNDLTOOL.SF",
+          "bytes": 342
+        },
+        {
+          "path": "META-INF/BNDLTOOL.RSA",
+          "bytes": 2170
+        },
+        {
+          "path": "META-INF/MANIFEST.MF",
+          "bytes": 234
+        }
+      ]
+    },
+    {
+      "name": "config.arm64_v8a.apk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/packages/config.arm64_v8a.apk",
+      "size": 5485035,
+      "sha256": "34ac5c5e861cc3146287217a0c4d0f05b542832dba1d0d2c0e9796f9a4641ceb",
+      "members": [
+        {
+          "path": "AndroidManifest.xml",
+          "bytes": 1028
+        },
+        {
+          "path": "lib/arm64-v8a/libSB_ndk.so",
+          "bytes": 5115456
+        },
+        {
+          "path": "lib/arm64-v8a/libbass.so",
+          "bytes": 324856
+        },
+        {
+          "path": "stamp-cert-sha256",
+          "bytes": 32
+        },
+        {
+          "path": "META-INF/BNDLTOOL.SF",
+          "bytes": 431
+        },
+        {
+          "path": "META-INF/BNDLTOOL.RSA",
+          "bytes": 2170
+        },
+        {
+          "path": "META-INF/MANIFEST.MF",
+          "bytes": 323
+        }
+      ],
+      "libraries": [
+        {
+          "path": "lib/arm64-v8a/libSB_ndk.so",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/lib/arm64-v8a/libSB_ndk.so",
+          "sha256": "19bfbbe105c01018941d97b92b08615a72841151d50ca6f19bd12fcb83388d01",
+          "machine": 183,
+          "dynamic_symbol_count": 9865,
+          "symbol_inventory": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/lib/arm64-v8a/libSB_ndk.so.symbols.json"
+        },
+        {
+          "path": "lib/arm64-v8a/libbass.so",
+          "extracted_path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/lib/arm64-v8a/libbass.so",
+          "sha256": "87ec12fd8baec35097e976ceec56640dd846e7020739a0e921a979dd8091e2ad",
+          "machine": 183,
+          "dynamic_symbol_count": 331,
+          "symbol_inventory": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/extracted/lib/arm64-v8a/libbass.so.symbols.json"
+        }
+      ]
+    },
+    {
+      "name": "config.mdpi.apk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/solomons-boneyard/1.3.0-1049/packages/config.mdpi.apk",
+      "size": 64199,
+      "sha256": "13337ad5bb85b9ffc8de8183ee746eff62b23db40fb8dc422cb4c39533d6e6c3",
+      "members": [
+        {
+          "path": "AndroidManifest.xml",
+          "bytes": 1028
+        },
+        {
+          "path": "res/drawable-hdpi-v4/common_full_open_on_phone.png",
+          "bytes": 681
+        },
+        {
+          "path": "res/drawable-ldrtl-mdpi-v17/abc_ic_menu_copy_mtrl_am_alpha.png",
+          "bytes": 127
+        },
+        {
+          "path": "res/drawable-ldrtl-mdpi-v17/abc_ic_menu_cut_mtrl_alpha.png",
+          "bytes": 253
+        },
+        {
+          "path": "res/drawable-ldrtl-mdpi-v17/abc_spinner_mtrl_am_alpha.9.png",
+          "bytes": 318
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ab_share_pack_mtrl_alpha.9.png",
+          "bytes": 267
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_btn_check_to_on_mtrl_000.png",
+          "bytes": 214
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_btn_check_to_on_mtrl_015.png",
+          "bytes": 321
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_btn_radio_to_on_mtrl_000.png",
+          "bytes": 324
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_btn_radio_to_on_mtrl_015.png",
+          "bytes": 356
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_btn_switch_to_on_mtrl_00001.9.png",
+          "bytes": 754
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_btn_switch_to_on_mtrl_00012.9.png",
+          "bytes": 825
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_cab_background_top_mtrl_alpha.9.png",
+          "bytes": 216
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_commit_search_api_mtrl_alpha.png",
+          "bytes": 173
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_menu_copy_mtrl_am_alpha.png",
+          "bytes": 133
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_menu_cut_mtrl_alpha.png",
+          "bytes": 251
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_menu_paste_mtrl_am_alpha.png",
+          "bytes": 152
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_menu_selectall_mtrl_alpha.png",
+          "bytes": 139
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_menu_share_mtrl_alpha.png",
+          "bytes": 270
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_star_black_16dp.png",
+          "bytes": 193
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_star_black_36dp.png",
+          "bytes": 364
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_star_black_48dp.png",
+          "bytes": 467
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_star_half_black_16dp.png",
+          "bytes": 146
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_star_half_black_36dp.png",
+          "bytes": 253
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_ic_star_half_black_48dp.png",
+          "bytes": 310
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_divider_mtrl_alpha.9.png",
+          "bytes": 167
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_focused_holo.9.png",
+          "bytes": 222
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_longpressed_holo.9.png",
+          "bytes": 211
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_pressed_holo_dark.9.png",
+          "bytes": 207
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_pressed_holo_light.9.png",
+          "bytes": 207
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_selector_disabled_holo_dark.9.png",
+          "bytes": 217
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_list_selector_disabled_holo_light.9.png",
+          "bytes": 217
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_menu_hardkey_panel_mtrl_mult.9.png",
+          "bytes": 541
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_popup_background_mtrl_mult.9.png",
+          "bytes": 776
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_scrubber_control_off_mtrl_alpha.png",
+          "bytes": 159
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_scrubber_control_to_pressed_mtrl_000.png",
+          "bytes": 145
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_scrubber_control_to_pressed_mtrl_005.png",
+          "bytes": 197
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_scrubber_primary_mtrl_alpha.9.png",
+          "bytes": 203
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_scrubber_track_mtrl_alpha.9.png",
+          "bytes": 194
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_spinner_mtrl_am_alpha.9.png",
+          "bytes": 327
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_switch_track_mtrl_alpha.9.png",
+          "bytes": 395
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_tab_indicator_mtrl_alpha.9.png",
+          "bytes": 186
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_text_select_handle_left_mtrl_dark.png",
+          "bytes": 203
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_text_select_handle_left_mtrl_light.png",
+          "bytes": 203
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_text_select_handle_middle_mtrl_dark.png",
+          "bytes": 311
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_text_select_handle_middle_mtrl_light.png",
+          "bytes": 310
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_text_select_handle_right_mtrl_dark.png",
+          "bytes": 187
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_text_select_handle_right_mtrl_light.png",
+          "bytes": 186
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_textfield_activated_mtrl_alpha.9.png",
+          "bytes": 181
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_textfield_default_mtrl_alpha.9.png",
+          "bytes": 178
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_textfield_search_activated_mtrl_alpha.9.png",
+          "bytes": 178
+        },
+        {
+          "path": "res/drawable-mdpi-v4/abc_textfield_search_default_mtrl_alpha.9.png",
+          "bytes": 178
+        },
+        {
+          "path": "res/drawable-mdpi-v4/common_google_signin_btn_icon_dark_normal_background.9.png",
+          "bytes": 610
+        },
+        {
+          "path": "res/drawable-mdpi-v4/common_google_signin_btn_icon_light_normal_background.9.png",
+          "bytes": 500
+        },
+        {
+          "path": "res/drawable-mdpi-v4/common_google_signin_btn_text_dark_normal_background.9.png",
+          "bytes": 615
+        },
+        {
+          "path": "res/drawable-mdpi-v4/common_google_signin_btn_text_light_normal_background.9.png",
+          "bytes": 465
+        },
+        {
+          "path": "res/drawable-mdpi-v4/googleg_disabled_color_18.png",
+          "bytes": 281
+        },
+        {
+          "path": "res/drawable-mdpi-v4/googleg_standard_color_18.png",
+          "bytes": 562
+        },
+        {
+          "path": "res/drawable-mdpi-v4/notification_bg_low_normal.9.png",
+          "bytes": 215
+        },
+        {
+          "path": "res/drawable-mdpi-v4/notification_bg_low_pressed.9.png",
+          "bytes": 223
+        },
+        {
+          "path": "res/drawable-mdpi-v4/notification_bg_normal.9.png",
+          "bytes": 215
+        },
+        {
+          "path": "res/drawable-mdpi-v4/notification_bg_normal_pressed.9.png",
+          "bytes": 223
+        },
+        {
+          "path": "res/drawable-mdpi-v4/notify_panel_notification_icon_bg.png",
+          "bytes": 98
+        },
+        {
+          "path": "resources.arsc",
+          "bytes": 10020
+        },
+        {
+          "path": "stamp-cert-sha256",
+          "bytes": 32
+        },
+        {
+          "path": "META-INF/BNDLTOOL.SF",
+          "bytes": 7249
+        },
+        {
+          "path": "META-INF/BNDLTOOL.RSA",
+          "bytes": 2170
+        },
+        {
+          "path": "META-INF/MANIFEST.MF",
+          "bytes": 7141
+        }
+      ]
+    }
+  ],
+  "xapk_manifest": {
+    "xapk_version": 2,
+    "package_name": "com.raptisoft.SB",
+    "name": "SB",
+    "version_code": "1049",
+    "version_name": "1.3.0",
+    "min_sdk_version": "31",
+    "target_sdk_version": "35",
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "com.google.android.gms.permission.AD_ID",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "com.android.vending.BILLING",
+      "com.google.android.gms.permission.AD_ID",
+      "com.google.android.c2dm.permission.RECEIVE",
+      "android.permission.WAKE_LOCK",
+      "android.permission.FOREGROUND_SERVICE"
+    ],
+    "split_configs": [
+      "config.fr",
+      "config.en",
+      "config.arm64_v8a",
+      "config.mdpi"
+    ],
+    "total_size": 35090334,
+    "icon": "icon.png",
+    "split_apks": [
+      {
+        "file": "com.raptisoft.SB.apk",
+        "id": "base"
+      },
+      {
+        "file": "config.fr.apk",
+        "id": "config.fr"
+      },
+      {
+        "file": "config.en.apk",
+        "id": "config.en"
+      },
+      {
+        "file": "config.arm64_v8a.apk",
+        "id": "config.arm64_v8a"
+      },
+      {
+        "file": "config.mdpi.apk",
+        "id": "config.mdpi"
+      }
+    ]
+  }
+}

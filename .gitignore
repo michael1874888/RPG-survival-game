@@ -1,0 +1,39 @@
+# Godot generated state and local exports
+game/.godot/
+game/export_credentials.cfg
+game/builds/
+.DS_Store
+
+# Machine-specific generated export configuration and editor state snapshots
+game/export_presets.cfg
+tools/android-editor-settings-before.json
+
+# Local agent installation; research reports and project scripts are tracked
+.agents/
+
+# Signing identities, credentials and local environment files
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
+# Build products, external game packages, analysis caches and archives
+builds/
+dist/
+artifacts/
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.apk
+*.aab
+*.xapk
+*.ipa
+*.zip
+*.tar.gz
+*.tpz

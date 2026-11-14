@@ -1,0 +1,46 @@
+{
+  "source": "User downloaded via Chrome, APKPure URLs in Chrome history",
+  "storage": "verified SSD via storagectl",
+  "files": [
+    {
+      "file": "Survivor.io_5.4.0_APKPure.xapk",
+      "original_path": "/tmp/openclaw/downloads/4dfa86f1-61f9-4b28-95f3-27f45ed11b72-Survivor.io_5.4.0_APKPure.xapk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/competitive-apks-20261113/Survivor.io_5.4.0_APKPure.xapk",
+      "bytes": 1947517103,
+      "sha256": "b34d56acef845ff2afc63db5dc9856163d5d1925284da9f64d9b6535f7c67f25",
+      "verified": "source and destination sha256 and byte size match"
+    },
+    {
+      "file": "Brotato_1.3.932_APKPure.xapk",
+      "original_path": "/tmp/openclaw/downloads/697d928b-c1d3-4e7c-8668-b4e56ab1175f-Brotato_1.3.932_APKPure.xapk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/competitive-apks-20261113/Brotato_1.3.932_APKPure.xapk",
+      "bytes": 219847360,
+      "sha256": "dfc518330231206c56a1e7ee37ee0d6a2e48c328d5e6ca92a092a65047f08a64",
+      "verified": "source and destination sha256 and byte size match"
+    },
+    {
+      "file": "Vampire+Survivors_1.16.111_APKPure.xapk",
+      "original_path": "/tmp/openclaw/downloads/0ef9d1ed-a0fc-4853-a107-54bf74328dd7-Vampire+Survivors_1.16.111_APKPure.xapk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/competitive-apks-20261113/Vampire+Survivors_1.16.111_APKPure.xapk",
+      "bytes": 1244723096,
+      "sha256": "8ddab87d1f6718895e68ef215e40075f650dfd3fcd7c2bea17c66b0ade602a72",
+      "verified": "source and destination sha256 and byte size match"
+    },
+    {
+      "file": "Magic+Survival_0.9941_APKPure.xapk",
+      "original_path": "/tmp/openclaw/downloads/cf125062-10a3-4176-b98e-3e79ad1b82ad-Magic+Survival_0.9941_APKPure.xapk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/competitive-apks-20261113/Magic+Survival_0.9941_APKPure.xapk",
+      "bytes": 202766661,
+      "sha256": "a3a274fa0892efa571e8f8375dc8022728d4c200bac7929afa01fa87fee1f00e",
+      "verified": "source and destination sha256 and byte size match"
+    },
+    {
+      "file": "20+Minutes+Till+Dawn_8.7_APKPure.xapk",
+      "original_path": "/tmp/openclaw/downloads/a5ee3398-7495-43c8-a576-c5f504ce89d4-20+Minutes+Till+Dawn_8.7_APKPure.xapk",
+      "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/competitive-apks-20261113/20+Minutes+Till+Dawn_8.7_APKPure.xapk",
+      "bytes": 129093242,
+      "sha256": "32b676282cbc3ef6583f4b05c8518e237fe43850ba1834285824ccb4f3b0168b",
+      "verified": "source and destination sha256 and byte size match"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+*.ttf binary
+
+# Preserve upstream license bytes and raw historical tool output.
+game/assets/fonts/OFL.txt whitespace=-blank-at-eol
+docs/development/*.txt whitespace=-blank-at-eol

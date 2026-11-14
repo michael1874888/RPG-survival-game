@@ -1,0 +1,190 @@
+{
+  "method": "Python binary XML / APK Signing Block certificate parsing; not REA Evidence",
+  "signature_verified": false,
+  "official_publisher_provenance_verified": false,
+  "packages": [
+    {
+      "name": "com.raptisoft.SB.apk",
+      "sha256": "0b6bc1769f818025b37011f0a564cc883da6307addcccf71c88c731221f61db0",
+      "manifest": [
+        {
+          "tag": "manifest",
+          "attributes": {
+            "versionCode": 1049,
+            "versionName": "1.3.0",
+            "installLocation": 0,
+            "targetSandboxVersion": 2,
+            "compileSdkVersion": 35,
+            "compileSdkVersionCodename": "15",
+            "requiredSplitTypes": "base__abi,base__density",
+            "splitTypes": "",
+            "package": "com.raptisoft.SB",
+            "platformBuildVersionCode": 35,
+            "platformBuildVersionName": 15
+          }
+        },
+        {
+          "tag": "uses-sdk",
+          "attributes": {
+            "minSdkVersion": 31,
+            "targetSdkVersion": 35
+          }
+        },
+        {
+          "tag": "application",
+          "attributes": {
+            "theme": 16973831,
+            "label": "SB",
+            "icon": 2131361792,
+            "name": "androidx.multidex.MultiDexApplication",
+            "allowBackup": 4294967295,
+            "largeHeap": 4294967295,
+            "extractNativeLibs": 0,
+            "backupInForeground": 0,
+            "networkSecurityConfig": 2131689474,
+            "appCategory": 0,
+            "appComponentFactory": "androidx.core.app.CoreComponentFactory"
+          }
+        }
+      ],
+      "certificates": [
+        {
+          "scheme_block_id": "0x7109871a",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        },
+        {
+          "scheme_block_id": "0xf05368c0",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        }
+      ]
+    },
+    {
+      "name": "config.arm64_v8a.apk",
+      "sha256": "34ac5c5e861cc3146287217a0c4d0f05b542832dba1d0d2c0e9796f9a4641ceb",
+      "manifest": [
+        {
+          "tag": "manifest",
+          "attributes": {
+            "versionCode": 1049,
+            "splitTypes": "base__abi",
+            "package": "com.raptisoft.SB",
+            "split": "config.arm64_v8a"
+          }
+        },
+        {
+          "tag": "application",
+          "attributes": {
+            "hasCode": 0,
+            "extractNativeLibs": 0
+          }
+        }
+      ],
+      "certificates": [
+        {
+          "scheme_block_id": "0x7109871a",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        },
+        {
+          "scheme_block_id": "0xf05368c0",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        }
+      ]
+    },
+    {
+      "name": "config.en.apk",
+      "sha256": "cd2e2e81474f889fa0d57ca50b2ad6e9fbfdd5eea64fefdd7fac8c0ac7ba8c91",
+      "manifest": [
+        {
+          "tag": "manifest",
+          "attributes": {
+            "versionCode": 1049,
+            "splitTypes": "",
+            "package": "com.raptisoft.SB",
+            "split": "config.en"
+          }
+        },
+        {
+          "tag": "application",
+          "attributes": {
+            "hasCode": 0,
+            "extractNativeLibs": 0
+          }
+        }
+      ],
+      "certificates": [
+        {
+          "scheme_block_id": "0x7109871a",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        },
+        {
+          "scheme_block_id": "0xf05368c0",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        }
+      ]
+    },
+    {
+      "name": "config.fr.apk",
+      "sha256": "155fa495768ecb43ec9342fb9fca5dd3d86e011547d5b934caf964e1832327b4",
+      "manifest": [
+        {
+          "tag": "manifest",
+          "attributes": {
+            "versionCode": 1049,
+            "splitTypes": "",
+            "package": "com.raptisoft.SB",
+            "split": "config.fr"
+          }
+        },
+        {
+          "tag": "application",
+          "attributes": {
+            "hasCode": 0,
+            "extractNativeLibs": 0
+          }
+        }
+      ],
+      "certificates": [
+        {
+          "scheme_block_id": "0x7109871a",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        },
+        {
+          "scheme_block_id": "0xf05368c0",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        }
+      ]
+    },
+    {
+      "name": "config.mdpi.apk",
+      "sha256": "13337ad5bb85b9ffc8de8183ee746eff62b23db40fb8dc422cb4c39533d6e6c3",
+      "manifest": [
+        {
+          "tag": "manifest",
+          "attributes": {
+            "versionCode": 1049,
+            "splitTypes": "base__density",
+            "package": "com.raptisoft.SB",
+            "split": "config.mdpi"
+          }
+        },
+        {
+          "tag": "application",
+          "attributes": {
+            "hasCode": 0,
+            "extractNativeLibs": 0
+          }
+        }
+      ],
+      "certificates": [
+        {
+          "scheme_block_id": "0x7109871a",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        },
+        {
+          "scheme_block_id": "0xf05368c0",
+          "certificate_sha256": "868473e1a4de9d1d3d723b0170b70d69f99029291c6beb4467c46a6fa3da92cf"
+        }
+      ]
+    }
+  ]
+}
