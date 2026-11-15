@@ -2,12 +2,14 @@ extends Control
 
 const Run := preload("res://scripts/run_model.gd")
 const Touch := preload("res://scripts/touch_controls.gd")
+const Series := preload("res://scripts/nana_series.gd")
 const CREAM := Color("fff2d4")
 const MUTED := Color("a9c9ae")
 const GOLD := Color("ffd479")
 const INK := Color("17362d")
 
 var run = Run.new()
+var series = Series.new()
 var touch = Touch.new()
 var font: Font
 var bold_font: Font
@@ -183,13 +185,13 @@ func _consume_events() -> void:
 			tone_remaining = 0.055
 		elif kind == "nana_bite" or kind == "nana_bite_windup" or kind == "nana_ultimate" or kind == "nana_shadow":
 			var effect: Dictionary = event.duplicate()
-			effect["life"] = 0.45 if kind == "nana_ultimate" else (0.1 if kind == "nana_bite_windup" else 0.22)
+			effect["life"] = 0.45 if kind == "nana_ultimate" else (0.1 if kind == "nana_bite_windup" else (0.32 if kind == "nana_shadow" else 0.22))
 			effect["max_life"] = effect["life"]
 			effects.append(effect)
 			tone_frequency = 140.0 if kind == "nana_ultimate" else 330.0
 			tone_remaining = 0.11 if kind == "nana_ultimate" else 0.05
-		elif kind in ["nana_ready", "nana_charged", "nana_cash"]:
-			effects.append({"pos": event.pos, "life": 0.35, "max_life": 0.35, "kind": kind})
+		elif kind in ["nana_ready", "nana_charged", "nana_cash", "nana_push", "nana_cash_wave"]:
+			effects.append({"pos": event.pos, "life": 0.35, "max_life": 0.35, "kind": kind, "radius": event.get("radius", 0.0)})
 			tone_frequency = 920.0 if kind == "nana_ready" else (570.0 if kind == "nana_charged" else 190.0)
 			tone_remaining = 0.09
 	run.events.clear()
@@ -274,6 +276,7 @@ func _resume_run() -> void:
 func _start_run() -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
+	series.active = false
 	run.reset(0, "nana", "standard", selected_scenario)
 	run.experiment.configure(run, selected_build_abilities)
 	effects.clear()
@@ -304,6 +307,7 @@ func _select_build_preset(ids: Array) -> void:
 func _show_build_experiment() -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
+	series.active = false
 	screen = "title"
 	selected_character = "nana"
 	selected_mode = "standard"
@@ -351,6 +355,12 @@ func _show_build_experiment() -> void:
 
 
 func _sync_screen() -> void:
+	if series.active and run.state in ["won", "lost", "unfinished"]:
+		series.collect(run)
+		if series.between:
+			if screen != "between":
+				_show_series_between()
+			return
 	if screen == run.state:
 		return
 	screen = run.state
@@ -440,6 +450,7 @@ func _show_title() -> void:
 	screen = "title"
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
+	series.active = false
 	selected_character = "nana"
 	selected_mode = "standard"
 	selected_scenario = "nana_build_e1"
@@ -455,7 +466,8 @@ func _show_title() -> void:
 	column.add_child(_label("BRAMBLE", 38))
 	column.add_child(_label("奈奈 · 構築實驗", 25, GOLD))
 	column.add_child(_label("選擇能力，試試不同的戰鬥方式。", 18, MUTED))
-	column.add_child(_button("選擇能力與情境", _show_build_experiment, true))
+	column.add_child(_button("三連戰 · 段間構築", _show_series_setup, true))
+	column.add_child(_button("選擇能力與情境", _show_build_experiment))
 	column.add_child(_label("手機：左側移動，右側瞄準並攻擊；點擊按鈕釋放大絕。\n電腦：WASD／方向鍵移動，按住滑鼠攻擊，空白鍵釋放大絕。", 15, MUTED))
 	column.add_child(_label("M 靜音 / P 暫停", 14, MUTED))
 
@@ -466,11 +478,14 @@ func _show_pause() -> void:
 	column.add_child(_label("戰鬥、計時與攻擊都已暫停。", 18, MUTED))
 	_add_build_recap(column)
 	column.add_child(_button("繼續冒險", _resume_run, true))
-	column.add_child(_button("重新挑戰", _start_run))
+	column.add_child(_button("從第一段重新挑戰" if series.active else "重新挑戰", _restart_current))
 	column.add_child(_button("回到起點", _show_title))
 
 
 func _show_result() -> void:
+	if series.active:
+		_show_series_result()
+		return
 	var won: bool = screen == "won"
 	var column: VBoxContainer = _make_overlay(960)
 	var success_text: String = "情境完成！" if run.scenario_id != "normal" else "森林守住了！"
@@ -500,11 +515,117 @@ func _show_result() -> void:
 
 
 func _add_build_recap(column: VBoxContainer) -> void:
+	column.add_child(_label("三連戰 · 第 %d / 3 段" % (series.stage + 1) if series.active else "奈奈構築實驗 · 固定能力", 18, GOLD))
+	column.add_child(_label("能力：" + (_ability_names(run.experiment.abilities, run.experiment.levels) if not run.experiment.abilities.is_empty() else "基礎"), 16, MUTED))
+
+
+func _restart_current() -> void:
+	if series.active:
+		_start_series(series.opening)
+	else:
+		_start_run()
+
+
+func _ability_names(ids: Array, levels: Dictionary = {}) -> String:
 	var names: Array[String] = []
-	for id: String in run.experiment.abilities:
-		names.append({"a": "穿影爪", "b": "游走蓄勢", "c": "獵痕重咬"}[id])
-	column.add_child(_label("奈奈構築實驗 · 固定能力", 18, GOLD))
-	column.add_child(_label("能力：" + ("、".join(names) if not names.is_empty() else "基礎"), 16, MUTED))
+	for id in ids:
+		var name: String = {"a": "穿影爪", "b": "游走蓄勢", "c": "獵痕重咬"}[id]
+		names.append(name + (" Lv.%d" % int(levels[id]) if levels.has(id) else ""))
+	return "＋".join(names)
+
+
+func _show_series_setup() -> void:
+	if run.experiment.active and not run.experiment.logged:
+		run.experiment.save(run, "abandoned")
+	series.active = false
+	screen = "title"
+	touch.clear()
+	ultimate_touches.clear()
+	mouse_held = false
+	pause_button.hide()
+	ultimate_button.hide()
+	var column: VBoxContainer = _make_overlay(940)
+	column.add_child(_label("奈奈 · 三連戰", 32))
+	column.add_child(_label("清路 → 混合威脅 → 強敵帶支援", 22, GOLD))
+	column.add_child(_label("選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。", 17, MUTED))
+	for item in [["a", "穿影爪 · 連續命中，長條穿透"], ["b", "游走蓄勢 · 停手移動，換取爆發"], ["c", "獵痕重咬 · 追擊獵物，再咬兌現"]]:
+		column.add_child(_button("以「%s」開始" % item[1], _start_series.bind(str(item[0]))))
+	column.add_child(_button("回到起點", _show_title))
+
+
+func _start_series(ability: String) -> void:
+	if run.experiment.active and not run.experiment.logged:
+		run.experiment.save(run, "abandoned")
+	if not series.begin(run, ability):
+		return
+	effects.clear()
+	hurt_flash = 0.0
+	screen = ""
+	_sync_screen()
+
+
+func _show_series_between() -> void:
+	screen = "between"
+	touch.clear()
+	ultimate_touches.clear()
+	mouse_held = false
+	pause_button.hide()
+	ultimate_button.hide()
+	var column: VBoxContainer = _make_overlay(960)
+	column.add_theme_constant_override("separation", 10)
+	column.add_child(_label("第 %d 段完成" % (series.stage + 1), 30))
+	var next_id: String = Series.STAGES[series.stage + 1]
+	column.add_child(_label("下一段：" + str(Run.SCENARIOS[next_id].name), 22, GOLD))
+	column.add_child(_label("追逐者、投擲者、衝撞者與守衛" if series.stage == 0 else "精英與持續追加的追逐者", 16, MUTED))
+	column.add_child(_label("目前：" + _ability_names(run.experiment.abilities, series.levels), 16, MUTED))
+	column.add_child(_label("生命 %d → %d / 100　·　大絕冷卻 %.1f 秒" % [int(run.hp), int(series.snapshot.hp), run.nana.cooldown], 18))
+	column.add_child(_label("選擇期間不計時；進入下一段才恢復戰鬥。", 16, MUTED))
+	column.add_child(_label("選一項：發展、加裝或替換", 18, GOLD))
+	var descriptions := {"a": "爪影也向身後延伸", "b": "蓄勢推開非獵痕敵人", "c": "兌現波及附近敵人"}
+	var cards := GridContainer.new()
+	cards.columns = 2
+	cards.add_theme_constant_override("h_separation", 8)
+	cards.add_theme_constant_override("v_separation", 8)
+	column.add_child(cards)
+	for choice: Dictionary in series.choices():
+		var text: String
+		if choice.kind == "upgrade":
+			text = "發展：%s Lv.2\n%s" % [_ability_names([choice.id]), descriptions[choice.id]]
+		elif choice.kind == "add":
+			text = "加裝：%s Lv.1\n保留現有能力" % _ability_names([choice.id])
+		else:
+			text = "替換：%s → %s Lv.1\n失去原能力與其進度" % [_ability_names([choice.remove]), _ability_names([choice.id])]
+		var button: Button = _button(text, _advance_series.bind(choice))
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.custom_minimum_size.y = 72
+		button.add_theme_font_size_override("font_size", 16)
+		cards.add_child(button)
+	if series.save_failures > 0:
+		column.add_child(_label("有 %d 段觀察紀錄無法儲存" % series.save_failures, 15, Color("ffb58e")))
+	column.add_child(_button("結束本輪，回到起點", _show_title))
+
+
+func _advance_series(choice: Dictionary) -> void:
+	if not series.advance(run, choice):
+		return
+	effects.clear()
+	hurt_flash = 0.0
+	screen = ""
+	_sync_screen()
+
+
+func _show_series_result() -> void:
+	var column: VBoxContainer = _make_overlay(970)
+	column.add_child(_label("三連戰完成！" if run.state == "won" else ("本段時間到，三連戰結束" if run.state == "unfinished" else "這次先到這裡"), 32))
+	column.add_child(_label("累計戰鬥 %.1f 秒　·　完成 %d / 3 段" % [series.total_seconds(), series.results.filter(func(row): return row.result == "won").size()], 21, GOLD))
+	for row in series.results:
+		var result_name: String = {"won": "完成", "lost": "失敗", "unfinished": "未完成"}[row.result]
+		column.add_child(_label("第 %d 段 %s · %s\n%.1f 秒 · 剩餘生命 %d · %s" % [row.stage, result_name, _ability_names(row.abilities, row.levels), row.time, int(row.hp), "獵痕兌現 %d 次" % int(row.counts.cash)], 16, MUTED))
+	if series.save_failures > 0:
+		column.add_child(_label("有 %d 段觀察紀錄無法儲存" % series.save_failures, 15, Color("ffb58e")))
+	column.add_child(_button("同開局，再挑戰三連戰", _start_series.bind(series.opening), true))
+	column.add_child(_button("更換開局能力", _show_series_setup))
+	column.add_child(_button("回到起點", _show_title))
 
 
 func _format_time(seconds: float) -> String:
@@ -571,12 +692,17 @@ func _draw() -> void:
 		if effect["kind"] == "nana_ultimate":
 			draw_arc(pos, float(effect["radius"]) * progress, 0, TAU, 48, Color(0.80, 0.68, 1.0, (1.0 - progress) * 0.9), 7.0, true)
 			continue
+		if effect["kind"] == "nana_cash_wave":
+			draw_arc(pos, float(effect.radius) * (0.55 + 0.45 * progress), 0.0, TAU, 36, Color(1.0, 0.60, 0.72, (1.0 - progress) * 0.8), 4.0, true)
+			continue
 		if effect["kind"] == "nana_shadow":
-			var angle: float = Vector2(effect.dir).angle()
-			var half := deg_to_rad(12.0)
-			draw_line(pos, pos + Vector2.RIGHT.rotated(angle - half) * 340.0, Color(0.52, 0.92, 1.0, 1.0 - progress), 3.0, true)
-			draw_line(pos, pos + Vector2.RIGHT.rotated(angle + half) * 340.0, Color(0.52, 0.92, 1.0, 1.0 - progress), 3.0, true)
-			draw_arc(pos, 340.0, angle - half, angle + half, 12, Color(0.52, 0.92, 1.0, 1.0 - progress), 3.0, true)
+			var axis: Vector2 = Vector2(effect.dir).normalized()
+			var side := axis.orthogonal() * float(effect.width) * 0.5
+			var end: Vector2 = pos + axis * float(effect.reach)
+			var fade: float = 1.0 - progress
+			draw_colored_polygon(PackedVector2Array([pos - side, end - side, end + side, pos + side]), Color(0.40, 0.85, 1.0, fade * 0.18))
+			for stripe in [-0.65, 0.0, 0.65]:
+				draw_line(pos + side * stripe, end + side * stripe, Color(0.70, 0.96, 1.0, fade * 0.85), 4.0, true)
 			continue
 		if effect["kind"] == "nana_bite" or effect["kind"] == "nana_bite_windup":
 			var angle: float = Vector2(effect["dir"]).angle()
@@ -679,12 +805,13 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 	if int(enemy["id"]) == run.nana.marked_target_id:
 		draw_arc(pos, radius + 10.0, 0.0, TAU, 24, Color("bdefff"), 2.0, true)
 	if run.experiment.active:
-		if int(enemy.id) == run.nana.prey_id and run.nana.prey_remaining > 0.0:
+		if int(enemy.id) == run.nana.prey_id and run.nana.has_prey():
 			draw_arc(pos, radius + 15.0, 0.0, TAU, 28, Color("ff9eac"), 3.0, true)
 			draw_string(bold_font, pos + Vector2(-7, -radius - 20), "◆", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("ff9eac"))
 		if build_preview_id == int(enemy.id):
-			var opacity: float = 1.0 if run.nana.bite_charge == 3 else 0.35
-			draw_arc(pos, radius + 21.0, -PI * 0.35, PI * 0.35, 16, Color(0.65, 0.95, 1.0, opacity), 3.0, true)
+			var opacity: float = 1.0 if run.nana.bite_charge == 3 or not run.nana.pending_bite.is_empty() else 0.7
+			draw_arc(pos, radius + 21.0, -PI * 0.8, PI * 0.8, 24, Color(0.65, 0.95, 1.0, opacity), 4.0, true)
+			draw_string(bold_font, pos + Vector2(-7, -radius - 45), "▼", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color(0.65, 0.95, 1.0, opacity))
 	if float(enemy.get("vulnerable", 0.0)) > 0.0:
 		draw_arc(pos, radius + 14.0, -PI * 0.5, -PI * 0.5 + TAU * minf(1.0, float(enemy["vulnerable"]) / 2.0), 28, Color("ffb58e"), 3.0, true)
 	if enemy["kind"] == "elite":
@@ -721,12 +848,14 @@ func _draw_hud() -> void:
 		draw_string(font, Vector2(40, 142), "Lv.%d  經驗 %d / %d" % [run.level, run.xp, run.required_xp()] if run.scenario_id == "nana_growth" else "連抓命中累積 · 朝目標重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, CREAM)
 		if run.experiment.active:
 			if "a" in run.experiment.abilities:
-				draw_string(font, Vector2(40, 166), "穿影 ◇ %d / 3" % run.nana.shadow_count, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("9deaff"))
+				draw_string(font, Vector2(40, 166), "穿影 Lv.%d ◇ %d / 3" % [run.experiment.levels.get("a", 1), run.nana.shadow_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("9deaff"))
 			if "b" in run.experiment.abilities:
-				draw_string(font, Vector2(40, 190), "蓄勢 %d%%" % int(100.0 * run.nana.movement_charge / 260.0), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
+				draw_string(font, Vector2(40, 190), "蓄勢 Lv.%d %d%%" % [run.experiment.levels.get("b", 1), int(100.0 * run.nana.movement_charge / 260.0)], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
 			if "c" in run.experiment.abilities:
-				draw_string(font, Vector2(40, 214), "獵痕 %.1f 秒" % run.nana.prey_remaining if run.nana.prey_remaining > 0.0 else "獵痕：等待重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ff9eac"))
-			draw_string(font, Vector2(size.x * 0.5 - 85, size.y - 35), "構築實驗 · 固定能力", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, MUTED)
+				draw_string(font, Vector2(40, 214), "獵痕 Lv.%d：%s" % [run.experiment.levels.get("c", 1), "追蹤中" if run.nana.has_prey() else "等待重咬"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ff9eac"))
+			if "b" in run.experiment.abilities and "c" in run.experiment.abilities:
+				draw_string(font, Vector2(40, 238), "蓄勢命中獵痕可蓄滿重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, GOLD)
+			draw_string(font, Vector2(size.x * 0.5 - 105, size.y - 35), "三連戰 · 第 %d / 3 段" % (series.stage + 1) if series.active else "構築實驗 · 固定能力", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, MUTED)
 			return
 		if int(run.upgrades.get("sweep", 0)) > 0:
 			draw_string(font, Vector2(40, 165), "環掃：下一擊！" if run.nana.sweep_count == 2 else "環掃準備 %d / 3" % run.nana.sweep_count, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)

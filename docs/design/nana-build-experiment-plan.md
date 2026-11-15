@@ -2,6 +2,8 @@
 
 **Status:** in progress · **Updated:** 2026-11-15
 
+**版本提示：**本文件以下保留 v0.10 規格與歷史驗證；v0.11 的能力修正獲使用者「符合預期」回饋後，依其繼續指示製作 [v0.12 三連戰](../development/nana-v0.12-practice.md)。單場能力規則見 [v0.11 說明](../development/nana-v0.11-practice.md)，跨段與能力最新規則以 [v0.13 說明](../development/nana-v0.13-practice.md)及程式為準。
+
 **v0.10 實驗場已實作，Android 首輪試玩回饋整體體感 OK；能力行為差異仍待比較。** 使用者在補正規劃後指示「好 開始做吧」，授權製作本版實驗場；三連戰及隨機構築仍為後續候選。基準為 `main @ 0bc6f12`（v0.9.0），現行變更以工作區程式為準。能力數值與測試目標仍是待真人驗證的起點。[v0.10 試玩說明](../development/nana-v0.10-practice.md)
 
 ## 1. 這一版要回答什麼

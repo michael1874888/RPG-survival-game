@@ -14,6 +14,7 @@ GODOT = Path('/Applications/Godot.app/Contents/MacOS/Godot')
 CONTROLLER = Path('/Users/junming/AI-Setup/storage/storagectl.py')
 CHECK = '''extends SceneTree
 const Run = preload("res://scripts/run_model.gd")
+const Series = preload("res://scripts/nana_series.gd")
 
 func _initialize():
  var run = Run.new(99, "nana")
@@ -79,7 +80,7 @@ func _initialize():
  if run.encounters.pending_spawns.size() != 1: quit(1); return
  run.reset(99, "nana", "standard", "nana_build_e3")
  run.experiment.configure(run, ["a", "c"])
- if run.experiment.schedule.size() != 25 or run.experiment.abilities.size() != 2: quit(1); return
+ if run.experiment.schedule.size() != 34 or run.experiment.abilities.size() != 2: quit(1); return
  run.encounters.add_enemy(run, "guard", run.player + Vector2(100, 0))
  var target = run.enemies[0]
  target.hp = 1000.0
@@ -96,7 +97,50 @@ func _initialize():
  run.encounters.add_enemy(run, "chaser", run.player + Vector2(100, 0))
  run.nana.attack(run)
  if run.nana.movement_charge != 0.0 or run.enemies[0].hp > 0.0: quit(1); return
- print("PACKAGED NANA RULES: legacy, experiment schedule, A/C interactions and B charge passed")
+ run.reset(99, "nana", "standard", "nana_build_e1")
+ run.experiment.configure(run, ["a"])
+ run.encounters.add_enemy(run, "guard", run.player + Vector2(80, 60))
+ var side = run.enemies[0]
+ side.hp = 1000.0
+ run.nana.pending_shadows.append({"remaining": 0.01, "pos": run.player, "dir": Vector2.RIGHT})
+ run.nana.advance(run, 0.02)
+ if side.hp != 992.0: quit(1); return
+ run.nana.bite_charge = 3
+ run.nana.attack(run)
+ run.aim = Vector2.DOWN
+ var preview = run.nana.bite_target(run, 175.0, deg_to_rad(27.5))
+ if preview.is_empty() or int(preview.id) != int(side.id): quit(1); return
+ var series = Series.new()
+ if not series.begin(run, "b") or run.experiment.abilities != ["b"]: quit(1); return
+ run.hp = 50.0
+ run.nana.cooldown = 20.0
+ run.state = "won"
+ if not series.collect(run): quit(1); return
+ var record_path = run.experiment.saved_path
+ if not series.advance(run, {"kind": "add", "id": "a"}) or run.hp != 75.0 or run.nana.cooldown != 20.0: quit(1); return
+ if run.scenario_id != "nana_build_e2": quit(1); return
+ run.state = "won"
+ if not series.collect(run): quit(1); return
+ var record_path2 = run.experiment.saved_path
+ if not series.advance(run, {"kind": "upgrade", "id": "b"}) or int(run.experiment.levels.b) != 2: quit(1); return
+ if not record_path.is_empty(): DirAccess.remove_absolute(record_path)
+ if not record_path2.is_empty(): DirAccess.remove_absolute(record_path2)
+ run.reset(99, "nana", "standard", "nana_build_e3")
+ run.experiment.configure(run, ["b", "c"])
+ run.encounters.add_enemy(run, "guard", run.player + Vector2(100, 0))
+ var marked = run.enemies[0]
+ marked.hp = 1000.0
+ run.nana.prey_id = int(marked.id)
+ run.nana.prey_remaining = -1.0
+ run.nana.advance(run, 6.0)
+ if not run.nana.has_prey(): quit(1); return
+ run.nana.movement_charge = 260.0
+ run.nana.attack(run)
+ if run.nana.bite_charge != 3: quit(1); return
+ run.nana.attack(run)
+ run.nana.advance(run, 0.11)
+ if run.experiment.counts.cash != 1: quit(1); return
+ print("PACKAGED NANA RULES: rectangle shadow, bite preview, upgrades, persistent mark and B+C passed")
  quit(0)
 '''
 
@@ -123,6 +167,7 @@ def main():
         with zipfile.ZipFile(apk) as archive:
             for name in ('run_model.gdc', 'run_model.gd.remap',
                          'nana_experiment.gdc', 'nana_experiment.gd.remap',
+                         'nana_series.gdc', 'nana_series.gd.remap',
                          'nana_combat.gdc', 'nana_combat.gd.remap',
                          'nana_encounters.gdc', 'nana_encounters.gd.remap',
                          'combat_geometry.gdc', 'combat_geometry.gd.remap'):

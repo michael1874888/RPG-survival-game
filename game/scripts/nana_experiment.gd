@@ -1,13 +1,17 @@
 extends RefCounted
 ## Isolated encounter schedule and observations for Nana's build experiment.
 
-const VERSION := "nana-build-v2.1"
+const VERSION := "nana-build-v3.0"
 const LIMIT := 45
 const WARNING := 1.0
 const SAFE_DISTANCE := 320.0
 
 var active := false
 var abilities: Array[String] = []
+var levels: Dictionary = {}
+var legacy_c := false
+var timed_mark := false
+var charged_mark_bonus := true
 var schedule: Array[Dictionary] = []
 var timeline: Array[Dictionary] = []
 var samples: Array[Dictionary] = []
@@ -25,14 +29,22 @@ var elite_born := false
 var logged := false
 var saved_path := ""
 var input_kind := "unknown"
+var context: Dictionary = {}
 
 
-func configure(run, selected: Array) -> void:
+func configure(run, selected: Array, options: Dictionary = {}) -> void:
 	active = true
 	abilities.clear()
 	for id in selected:
 		if id in ["a", "b", "c"] and id not in abilities and abilities.size() < 2:
 			abilities.append(id)
+	levels.clear()
+	var requested: Dictionary = options.get("levels", {})
+	for id: String in abilities:
+		levels[id] = clampi(int(requested.get(id, 1)), 1, 2)
+	legacy_c = bool(options.get("legacy_c", false))
+	timed_mark = bool(options.get("timed_mark", legacy_c))
+	charged_mark_bonus = bool(options.get("charged_mark_bonus", not legacy_c))
 	schedule.clear()
 	timeline.clear()
 	samples.clear()
@@ -50,24 +62,25 @@ func configure(run, selected: Array) -> void:
 	logged = false
 	saved_path = ""
 	input_kind = "unknown"
+	context.clear()
 	match run.scenario_id:
 		"nana_build_e1":
-			_add_wave(0.0, "chaser", 8, 0)
+			_add_wave(0.0, "chaser", 12, 0)
 			for i in range(1, 9):
-				_add_wave(float(i * 2), "chaser", 4, 1 if i % 2 == 1 else -1)
+				_add_wave(float(i * 2), "chaser", 6, 1 if i % 2 == 1 else -1)
 		"nana_build_e2":
-			_add_wave(0.0, "chaser", 5, 0)
+			_add_wave(0.0, "chaser", 8, 0)
 			_add_wave(0.0, "thrower", 1, 1)
-			_add_wave(4.0, "guard", 1, -1)
-			_add_wave(4.0, "chaser", 3, -1)
-			_add_wave(10.0, "charger", 1, 1)
-			_add_wave(10.0, "thrower", 1, -1)
-			_add_wave(10.0, "chaser", 4, 1)
-			_add_wave(15.0, "chaser", 4, -1)
+			_add_wave(3.0, "guard", 1, -1)
+			_add_wave(3.0, "chaser", 5, -1)
+			_add_wave(7.0, "charger", 1, 1)
+			_add_wave(7.0, "thrower", 1, -1)
+			_add_wave(7.0, "chaser", 6, 1)
+			_add_wave(12.0, "chaser", 6, -1)
 		"nana_build_e3":
 			_add_wave(0.0, "elite", 1, 1)
 			_add_wave(0.0, "chaser", 3, -1)
-			for t in [2, 8, 14, 20, 26, 32, 38]:
+			for t in [2, 6, 10, 14, 18, 22, 26, 30, 34, 38]:
 				_add_wave(float(t), "chaser", 3, 1 if int(t) % 4 == 2 else -1, true)
 	note(run, "start", {"abilities": abilities.duplicate(), "scenario": run.scenario_id})
 
@@ -126,6 +139,9 @@ func update_schedule(run, delta: float) -> void:
 			if float(entry.timer) <= 0.0:
 				if Vector2(entry.pos).distance_to(run.player) >= SAFE_DISTANCE:
 					run.encounters.add_enemy(run, entry.kind, entry.pos)
+					if run.scenario_id == "nana_build_e3" and entry.kind == "elite":
+						run.enemies[-1].hp = 320.0
+						run.enemies[-1].max_hp = 320.0
 					entry.state = "born"
 					entry.enemy_id = run.next_enemy_id - 1
 					run.enemies[-1]["born_at"] = run.elapsed
@@ -218,7 +234,7 @@ func observe(run, delta: float, movement: Vector2, firing: bool, displacement: f
 		"movement": [movement.x, movement.y], "aim": [run.aim.x, run.aim.y], "firing": firing,
 		"hp": run.hp, "bite_charge": run.nana.bite_charge, "shadow_count": run.nana.shadow_count,
 		"movement_charge": run.nana.movement_charge, "prey_id": run.nana.prey_id,
-		"prey_remaining": run.nana.prey_remaining, "projectiles": projectiles,
+		"prey_remaining": run.nana.prey_remaining, "mark_persistent": run.nana.has_prey() and run.nana.prey_remaining < 0.0, "projectiles": projectiles,
 		"enemies": enemies, "nearest": closest, "engaged": engaged, "movement_distance": move_distance})
 
 
@@ -244,7 +260,7 @@ func save(run, final_state: String) -> String:
 		var point: Vector2 = copy.pos
 		copy.pos = [point.x, point.y]
 		output_schedule.append(copy)
-	var record := {"version": VERSION, "scenario": run.scenario_id, "abilities": abilities,
+	var record := {"version": VERSION, "scenario": run.scenario_id, "abilities": abilities, "levels": levels, "timed_mark": timed_mark, "charged_mark_bonus": charged_mark_bonus, "context": context,
 		"result": final_state, "game_seconds": run.elapsed, "wall_seconds": wall_seconds,
 		"pause_seconds": pause_seconds, "hitstop_seconds": hitstop_seconds,
 		"platform": OS.get_name(), "model": OS.get_model_name(), "input": input_kind,

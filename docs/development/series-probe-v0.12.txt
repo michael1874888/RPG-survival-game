@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+a -> a+b -> a+b | E1:won 19.4s hp100->100 C0 / E2:won 17.4s hp100->80 C0 / E3:won 14.9s hp100->60 C0 | total 51.7s
+a -> a+b -> a+c | E1:won 19.4s hp100->100 C0 / E2:won 17.4s hp100->80 C0 / E3:won 11.4s hp100->60 C2 | total 48.2s
+a -> a+b -> b+c | E1:won 19.4s hp100->100 C0 / E2:won 17.4s hp100->80 C0 / E3:won 17.2s hp100->40 C2 | total 54.0s
+a -> a+c -> a+b | E1:won 19.4s hp100->100 C0 / E2:won 18.3s hp100->80 C0 / E3:won 14.9s hp100->60 C0 | total 52.6s
+a -> a+c -> a+c | E1:won 19.4s hp100->100 C0 / E2:won 18.3s hp100->80 C0 / E3:won 11.7s hp100->60 C2 | total 49.4s
+a -> a+c -> b+c | E1:won 19.4s hp100->100 C0 / E2:won 18.3s hp100->80 C0 / E3:won 18.1s hp100->60 C2 | total 55.8s
+b -> a+b -> a+b | E1:won 22.8s hp100->100 C0 / E2:won 17.9s hp100->80 C0 / E3:won 17.9s hp100->60 C0 | total 58.5s
+b -> a+b -> a+c | E1:won 22.8s hp100->100 C0 / E2:won 17.9s hp100->80 C0 / E3:won 11.4s hp100->60 C2 | total 52.0s
+b -> a+b -> b+c | E1:won 22.8s hp100->100 C0 / E2:won 17.9s hp100->80 C0 / E3:won 17.8s hp100->40 C2 | total 58.5s
+b -> b+c -> a+b | E1:won 22.8s hp100->100 C0 / E2:won 20.1s hp100->68 C1 / E3:won 14.9s hp93->53 C0 | total 57.7s
+b -> b+c -> a+c | E1:won 22.8s hp100->100 C0 / E2:won 20.1s hp100->68 C1 / E3:won 11.7s hp93->53 C2 | total 54.5s
+b -> b+c -> b+c | E1:won 22.8s hp100->100 C0 / E2:won 20.1s hp100->68 C1 / E3:won 18.1s hp93->53 C2 | total 61.0s
+c -> a+c -> a+b | E1:won 18.9s hp100->100 C0 / E2:won 18.3s hp100->80 C0 / E3:won 14.9s hp100->60 C0 | total 52.1s
+c -> a+c -> a+c | E1:won 18.9s hp100->100 C0 / E2:won 18.3s hp100->80 C0 / E3:won 11.7s hp100->60 C2 | total 48.9s
+c -> a+c -> b+c | E1:won 18.9s hp100->100 C0 / E2:won 18.3s hp100->80 C0 / E3:won 18.1s hp100->60 C2 | total 55.3s
+c -> b+c -> a+b | E1:won 18.9s hp100->100 C0 / E2:won 20.1s hp100->68 C1 / E3:won 14.9s hp93->53 C0 | total 53.9s
+c -> b+c -> a+c | E1:won 18.9s hp100->100 C0 / E2:won 20.1s hp100->68 C1 / E3:won 11.7s hp93->53 C2 | total 50.7s
+c -> b+c -> b+c | E1:won 18.9s hp100->100 C0 / E2:won 20.1s hp100->68 C1 / E3:won 18.1s hp93->53 C2 | total 57.1s
+SERIES PROBE: 18 paths, 0 integrity failures

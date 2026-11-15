@@ -244,6 +244,8 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 		nana.advance(self, delta)
 	if direction.length_squared() > 0.01:
 		aim = direction.normalized()
+	if experiment.active:
+		nana.update_bite_target(self, nana.BITE_REACH * (1.4 if nana.ultimate_remaining > 0.0 else 1.0), nana.BITE_HALF_ANGLE)
 	shot_timer -= delta
 	if firing and shot_timer <= 0.0:
 		if character_id == "nana":

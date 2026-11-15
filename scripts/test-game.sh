@@ -22,4 +22,5 @@ run_checks() {
 
 run_checks res://tests/run_tests.gd '^RESULT: [0-9]+ checks, 0 failures$'
 run_checks res://tests/nana_build_tests.gd '^BUILD EXPERIMENT: [0-9]+ checks, 0 failures$'
+run_checks res://tests/nana_series_tests.gd '^SERIES RESULT: [0-9]+ checks, 0 failures$'
 run_checks res://tests/scene_flow.gd '^SCENE RESULT: [0-9]+ checks, 0 failures$'

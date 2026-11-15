@@ -78,6 +78,38 @@ func exercise_scene() -> void:
 		DirAccess.remove_absolute(model.experiment.saved_path)
 	scene._show_build_experiment()
 	check(scene.selected_build_abilities == ["a", "c"] and scene.selected_scenario == "nana_build_e2", "Returning to configuration preserves the test choices")
+	scene._show_title()
+	var series_entry: Button = find_button(scene.overlay, "三連戰")
+	check(series_entry != null, "The title exposes the three-stage mode")
+	series_entry.pressed.emit()
+	find_button(scene.overlay, "游走蓄勢").pressed.emit()
+	check(scene.series.active and model.experiment.abilities == ["b"] and model.scenario_id == "nana_build_e1", "Opening ability starts E1 through the actual menu")
+	var series_paths: Array[String] = []
+	for stage_index in 2:
+		# Terminal fixtures exercise UI transitions; the combat probe plays full encounters.
+		model.state = "won"
+		model.enemies.clear()
+		for event in model.experiment.schedule: event.state = "born"
+		model.hp = 50.0
+		model.nana.cooldown = 24.0
+		scene._sync_screen()
+		series_paths.append(model.experiment.saved_path)
+		check(scene.screen == "between" and not scene.ultimate_button.visible and scene.series.results.size() == stage_index + 1, "Stage completion opens a single intermission")
+		check(contains_label(scene.overlay, "生命 50 → 75") and contains_label(scene.overlay, "冷卻 24.0"), "Intermission shows the actual recovery and carried cooldown")
+		var choice := "加裝：穿影爪" if stage_index == 0 else "替換：游走蓄勢 → 獵痕重咬"
+		find_button(scene.overlay, choice).pressed.emit()
+		check(scene.screen == "playing" and model.hp == 75.0 and model.nana.cooldown == 24.0, "Choosing a build starts the next stage with carried state")
+	check(scene.series.stage == 2 and model.experiment.abilities == ["a", "c"], "The second choice can replace one ability for E3")
+	model.state = "lost"
+	scene._sync_screen()
+	series_paths.append(model.experiment.saved_path)
+	check(scene.series.finished and contains_label(scene.overlay, "完成 2 / 3 段"), "A loss ends the whole series and shows its earlier stages")
+	find_button(scene.overlay, "同開局，再挑戰三連戰").pressed.emit()
+	check(scene.series.stage == 0 and model.hp == 100.0 and model.experiment.abilities == ["b"], "Result retry restarts at E1 with the same opening")
+	scene._pause_run()
+	check(find_button(scene.overlay, "從第一段重新挑戰") != null, "Pause makes series restart scope explicit")
+	for path in series_paths:
+		if not path.is_empty(): DirAccess.remove_absolute(path)
 	print("SCENE RESULT: %d checks, %d failures" % [checks, failures])
 	scene.queue_free()
 	await process_frame

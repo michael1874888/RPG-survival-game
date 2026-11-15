@@ -1,0 +1,23 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+nana_build_e1 base  state=won        time= 20.1 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=11 empty=6.6% mixed=0.0% close=91.2% A=0/0 B=0/0 C=0/0
+nana_build_e1 a     state=won        time= 19.4 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=11 empty=8.1% mixed=0.0% close=84.2% A=11/7 B=0/0 C=0/0
+nana_build_e1 b     state=won        time= 22.8 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=12 empty=4.7% mixed=0.0% close=95.3% A=0/0 B=6/9 C=0/0
+nana_build_e1 c     state=won        time= 18.9 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=11 empty=7.9% mixed=0.0% close=86.4% A=0/0 B=0/0 C=1/0
+nana_build_e1 a+b   state=won        time= 20.9 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=11 empty=5.1% mixed=0.0% close=86.9% A=10/13 B=7/13 C=0/0
+nana_build_e1 a+c   state=won        time= 19.5 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=11 empty=6.5% mixed=0.0% close=86.3% A=11/11 B=0/0 C=1/0
+nana_build_e1 b+c   state=won        time= 22.2 hp=100.0 kills=40 born=40 cancel= 0 pending= 0 max=12 empty=4.8% mixed=0.0% close=95.2% A=0/0 B=7/10 C=3/0
+nana_build_e2 base  state=won        time= 17.9 hp= 64.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=12.1% mixed=69.8% close=87.3% A=0/0 B=0/0 C=0/0
+nana_build_e2 a     state=won        time= 18.3 hp= 80.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=20.4% mixed=48.8% close=79.4% A=9/7 B=0/0 C=0/0
+nana_build_e2 b     state=won        time= 19.9 hp= 68.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=6.4% mixed=54.3% close=89.6% A=0/0 B=7/10 C=0/0
+nana_build_e2 c     state=won        time= 18.4 hp= 80.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=21.3% mixed=59.0% close=77.8% A=0/0 B=0/0 C=3/1
+nana_build_e2 a+b   state=won        time= 17.9 hp= 80.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=16.9% mixed=55.8% close=82.6% A=7/7 B=6/9 C=0/0
+nana_build_e2 a+c   state=won        time= 18.3 hp= 80.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=20.4% mixed=48.8% close=79.4% A=9/7 B=0/0 C=1/0
+nana_build_e2 b+c   state=won        time= 20.1 hp= 68.0 kills=20 born=20 cancel= 0 pending= 0 max= 6 empty=8.4% mixed=55.9% close=87.6% A=0/0 B=7/9 C=2/1
+nana_build_e3 base  state=won        time= 14.2 hp= 40.0 kills=10 born=10 cancel=15 pending= 0 max= 4 empty=7.5% mixed=52.2% close=91.3% A=0/0 B=0/0 C=0/0
+nana_build_e3 a     state=won        time= 12.9 hp= 40.0 kills=10 born=10 cancel=15 pending= 0 max= 4 empty=8.2% mixed=45.1% close=90.5% A=8/9 B=0/0 C=0/0
+nana_build_e3 b     state=lost       time= 16.0 hp=  0.0 kills= 9 born=13 cancel= 0 pending=12 max= 7 empty=6.7% mixed=73.9% close=92.3% A=0/0 B=5/5 C=0/0
+nana_build_e3 c     state=won        time= 12.1 hp= 40.0 kills=10 born=10 cancel=15 pending= 0 max= 4 empty=8.8% mixed=41.3% close=89.8% A=0/0 B=0/0 C=3/3
+nana_build_e3 a+b   state=won        time= 14.9 hp= 60.0 kills=10 born=10 cancel=15 pending= 0 max= 4 empty=7.2% mixed=52.2% close=91.7% A=7/8 B=4/4 C=0/0
+nana_build_e3 a+c   state=won        time= 11.7 hp= 60.0 kills=10 born=10 cancel=15 pending= 0 max= 4 empty=9.1% mixed=35.4% close=89.4% A=7/10 B=0/0 C=3/2
+nana_build_e3 b+c   state=won        time= 18.1 hp= 60.0 kills=13 born=13 cancel=12 pending= 0 max= 5 empty=5.9% mixed=57.6% close=89.7% A=0/0 B=6/6 C=3/2

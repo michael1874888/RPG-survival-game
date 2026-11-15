@@ -2,16 +2,16 @@
 
 更新：2026-11-15。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`，分支 `main`。
 
-**可玩版本為 v0.10.0，奈奈構築實驗已實作；使用者已在 Android 手機試玩，回饋整體體感 OK。** 入口與對照方式見 [v0.10 試玩說明](docs/development/nana-v0.10-practice.md)。接手時以 `git log -1 --oneline` 和 `git status --short` 區分已提交基線與本輪文件變更。
+**最新可玩版本為 v0.13.0，已校準遭遇、調整 C／B＋C 並加入段間能力發展。** [v0.13 試玩說明](docs/development/nana-v0.13-practice.md)；Android APK 已建置並完成開發端驗證，尚未在手機試玩。使用者對 v0.12 的回饋是：換能力缺少理由、普攻足以應付所以未使用大絕、B＋C 節奏不直觀；B 停手蓄勢本身可接受。接手時以 `git log -1 --oneline` 和 `git status --short` 區分已提交基線與本輪變更。
 
 ## 1. 接手後先做什麼
 
-1. 先讀 [v0.10 試玩說明](docs/development/nana-v0.10-practice.md) 與 [構築實驗規格](docs/design/nana-build-experiment-plan.md)：A 窄長爪影、B 命中才消耗、C 扇形內黏著與第二咬兌現；三連戰後移。
-2. 再讀 [隨機構築可行性分析](docs/research/random-driven-combat-mode-feasibility-2026-11-14.md) 與 [v0.9 設計重新盤點](docs/design/nana-v0.9-design-audit-2026-11-14.md)，了解研究依據與已知問題。
-3. 對照現行程式與 [自動探針輸出](docs/development/build-experiment-probe-v0.10.txt)，分清楚已實作、開發端量測與玩家體感。
-4. 使用者可先依試玩說明比較基礎、A／B、基礎與 C；已收到 Android 手機整體體感 OK 的回饋；接下來整理各能力是否改變打法，裝置資訊與效能紀錄待補。
+1. 先讀 [v0.13 試玩說明](docs/development/nana-v0.13-practice.md)：三段加壓；C 獵痕持續到死亡／轉移／兌現；B 蓄勢命中存活獵痕可為下一次出手蓄滿重咬；段間發展、加裝或替換。
+2. 先看 [能力調整前壓力探針](docs/development/pressure-v0.13-before-abilities.txt)、[C／B＋C 遭遇對照](docs/development/c-comparison-v0.13.txt)、[固定目標交叉對照](docs/development/bc-fixed-target-v0.13.txt) 與 [30 條路徑](docs/development/series-probe-v0.13.txt)。固定控制器不代表真人平衡或樂趣。
+3. 留意用戶是否有解圍時刻、發展／加裝／替換理由，以及 B＋C 的留痕→遊走→蓄勢→重咬是否直觀。30 條固定控制器路徑不用大絕也都完成，不能宣稱大絕需求已驗證；條件觸發大絕的單場 E3 基礎探針則從失敗變成功，但無法拆出各效果貢獻。
+4. 舊版 [v0.12 三連戰](docs/development/nana-v0.12-practice.md)保留歷史紀錄；其探針使用舊 API，不能直接對現行原始碼重播。v0.12 APK 保留在 SSD；原始碼在本輪更動前未提交。
 
-**授權界線：**使用者 review 修訂後於 11/15 指示「好 開始做吧」，已授權製作本版實驗場與 Android 測試 APK。三連戰、隨機構築與完整一局仍是後續候選；本輪沒有提交或推送。
+**授權界線：**依使用者「Ok開始做吧」實作前一輪討論的壓力校準、C／B＋C 對照、段間發展／轉向。隨機候選、商店、貨幣、正式十分鐘與 Boss 尚未製作；沒有提交或推送。
 
 ## 2. 已確認的方向與合作方式
 
@@ -25,7 +25,9 @@
 
 | 使用者回饋／問題 | 接手時如何理解 |
 | --- | --- |
-| 11/15 v0.10 在 Android 手機「目前測試起來體感ok」 | 已有實際手機試玩的正向整體回饋；先保留能力與數值，各能力行為差異與效能仍待對照 |
+| 11/15 v0.12 三連戰：不想換能力、幾乎沒用大絕，B＋C 不直觀；B 方式可接受 | 已依討論調整 v0.13，等待新版本的手機實玩與逐項回饋 |
+| 11/15 v0.10 在 Android 手機「目前測試起來體感ok」 | 已有 v0.10 手機試玩的正向整體回饋；v0.11 的能力差異與效能仍待對照 |
+| 11/15 追加：B 要走位、停手換爆發；A 遠距不明顯；不確定重擊會咬誰，也考慮自動選敵 | B 已有可描述的節奏差異；A 尚不能分清提示與收益問題。原文選敵段仍稱 A，先按共用重咬問題記錄，不推定為 C 回饋；後續已同意有限度選敵輔助，詳見回饋紀錄與 v0.11 說明 |
 | 普通範圍／傷害升級也能改強，早期專精差異不明顯 | 專精應改變行為、節奏或選敵；不能只靠名稱與倍率 |
 | 怪多時大範圍多點較爽，成長挑戰前版不夠密集 | v0.9 已增加分批生成；密度不是唯一壓力指標 |
 | v0.9 成長模式後期還可以，同密度比較單點較吃力 | 保留正向後期回饋；仍需檢查前段、清路與單體收益，不能宣稱平衡已通過 |
@@ -35,11 +37,17 @@ v0.9 回饋未提供比較的是狩獵原版、快攻或重擊，也未完整提
 
 最新研究推薦：隨機提供可理解的機會，玩家選擇投入、保持彈性或付出代價轉向；能力圍繞共用的命中、連擊、移動、重咬、擊殺等機制形成組合。先評估「分段戰鬥、段間構築」的獨立實驗規則，觀察是否真的產生不同打法，再決定整合成長模式、保留新模式或放棄。
 
-11/15 流程 review 已將實驗順序細分：先驗證自由搭配的能力差異，再評估三連戰的段間選擇，之後才研究受限隨機與整局節奏。具體規則以 v2 修訂稿為準；上述段間構築是研究推薦，不是本版新增交付。
+11/15 流程 review 已將實驗順序細分：先驗證自由搭配的能力差異，再評估三連戰的段間選擇，之後才研究受限隨機與整局節奏。具體規則以 v2 修訂稿為準；三連戰已在 v0.12 作為固定選擇試驗交付，隨機構築仍為後續候選。
 
 這仍是推薦，沒有已定案的牌池、卡片名稱、機率、經濟或技能樹。第一次實驗宜共用目前角色與敵人；比較隨機／可規劃選擇時，兩邊使用同樣能力和遭遇，避免把新增招式的效果誤當隨機性的效果。
 
-## 4. v0.10 與 v0.9 已實作範圍
+## 4. 已實作範圍
+
+- v0.13：E1／E2／E3 壓力排程；C 永久獵痕、B＋C 蓄勢命中獵痕後為下一次重咬蓄滿；三連戰每段後發展／加裝，兩格已滿也可替換。A Lv.2 前後爪影，B Lv.2 推開非獵痕目標，C Lv.2 兌現波及附近敵人；詳細邊界與代價見試玩說明。大絕規則及段間回血 25 保留。
+
+- v0.12：固定三段與已知下一段威脅；段間回復 25、能力新增／替換、生命／大絕／保留能力進度跨段延續。死亡／逾時結束本輪，重試從第一段開始；每段紀錄共用 series_id，終段含全程摘要。
+
+- v0.11：重咬預覽顯示已鎖定目標，加入有限特殊敵人偏好與選敵穩定；A 改為 340 × 90 長條、維持 8 傷害並加強特效；E3 精英生命調為 320。單 B 在固定控制器的 E3 失敗；使用者其後表示符合預期，完整平衡及效能紀錄仍未取得。
 
 - v0.10：新增三種可選能力及三種固定事件實驗情境、重咬預計目標、行為事件紀錄與結果重試；基礎／單能力／兩兩組合均可選，最多裝兩個。E1／E2 已根據受控探針調整節奏；Android 首輪整體手感獲正向回饋，能力間的行為差異仍待比較。
 
@@ -71,7 +79,7 @@ v0.9 回饋未提供比較的是狩獵原版、快攻或重擊，也未完整提
 | 構築實驗固定事件、取樣與紀錄 | [nana_experiment.gd](game/scripts/nana_experiment.gd) |
 | 場次、升級池、經驗、勝敗、亂數 | [run_model.gd](game/scripts/run_model.gd) |
 | 輸入、選單、HUD、構築實驗入口 | [main.gd](game/scripts/main.gd) |
-| 扇形／圓碰撞 | [combat_geometry.gd](game/scripts/combat_geometry.gd) |
+| 扇形／長條與圓碰撞 | [combat_geometry.gd](game/scripts/combat_geometry.gd) |
 | 規則與實際場景流程 | [run_tests.gd](game/tests/run_tests.gd)、[scene_flow.gd](game/tests/scene_flow.gd) |
 | Balatro 作者與官方原文 | [來源研究](docs/research/balatro-randomness-primary-sources-2026-11-14.md) |
 | 同類遊戲主攻、輔助與選敵 | [戰鬥架構研究](docs/research/survivors-combat-architecture-audit-2026-11-14.md) |
@@ -88,13 +96,13 @@ bash scripts/test-game.sh
 python3 -B scripts/verify-packaged-nana.py
 ```
 
-主畫面整理後既有規則 176 項、新實驗規則 33 項及現行場景流程 16 項，共 225 項通過；[先前 v0.10 驗證紀錄](docs/development/test-results-v0.10.txt)記錄的是整理前版本。測試專用無敵和自動輸入不在正式遊戲中，也不代表樂趣、真人勝率或手機效能已驗證。
+v0.13 既有規則 176 項、實驗規則 55 項、跨段規則 27 項及現行場景流程 28 項，共 286 項通過；[先前 v0.10 驗證紀錄](docs/development/test-results-v0.10.txt)記錄的是整理前版本。測試專用無敵和自動輸入不在正式遊戲中，也不代表樂趣、真人勝率或手機效能已驗證。
 
 設計盤點另有 [受控靶群探針](scripts/research/probe-nana-design-audit.gd)：固定靶、完美瞄準、無敵人反擊；只能說明當時攻擊規則的差異。其他 `scripts/research/probe-*` 有歷史版本界線，先讀註解再解讀輸出。
 
 ## 8. APK、儲存與版本管理
 
-最新 Android 建置為 v0.10.0／versionCode 10、ARM64 debug；獨立簽章、Manifest 與封裝規則已有檢查，開發端未偵測到連線裝置；使用者已自行在 Android 手機試玩並回饋體感 OK，機型與 Android 版本未提供。原 v0.9 APK 已保留；目前 v0.10 APK 亦是主畫面整理前的建置，尚未重匯出。
+最新 Android 建置為 v0.13.0／versionCode 13、ARM64 debug；獨立簽章、Manifest 與封裝後規則已驗證，v0.13 尚未在手機安裝或試玩。v0.9–v0.12 APK 保留在 SSD，v0.12 的雜湊已確認未變。
 
 APK 仍在本機核准 SSD，並未隨 Git push；確切位置、大小與 SHA-256 以 [tools/android-build.json](tools/android-build.json) 為準，安裝方式見 [Android 安裝說明](docs/development/android-install.md)。SDK、競品原始包、擷取大量資料與私鑰亦不在 Git。
 
@@ -106,4 +114,4 @@ Git HTTPS CLI 在本次交接環境沒有登入；已連接的 GitHub 工具可�
 
 ## 9. 新 session 可直接使用的起始訊息
 
-> 請先讀 RPG-survival-game 根目錄的 HANDOFF.md、docs/development/nana-v0.10-practice.md 與構築實驗規格。目前 v0.10 實驗場及 APK 已完成開發驗證，使用者已在 Android 手機試玩並回饋整體體感 OK。先按同情境基準與能力順序比較，整理可觀察差異及問題；三連戰與隨機構築是後續候選。
+> 請先讀 HANDOFF.md、docs/development/nana-v0.13-practice.md。v0.13 的遭遇、C／B＋C 與段間發展已完成開發驗證及 APK，尚待實玩；觀察大絕、取捨與組合直覺。固定控制器可不用大絕走完 30 條路徑，不能把自動通關當成壓力或平衡已通過。

@@ -8,6 +8,10 @@ const CLAW_HALF_ANGLE: float = deg_to_rad(50.0)
 const BITE_REACH: float = 175.0
 const BITE_HALF_ANGLE: float = deg_to_rad(27.5)
 const BITE_WINDUP: float = 0.1
+const SHADOW_LENGTH: float = 340.0
+const SHADOW_WIDTH: float = 90.0
+const TARGET_SPECIAL_BONUS: float = deg_to_rad(5.0)
+const TARGET_SWITCH_MARGIN: float = deg_to_rad(3.0)
 const ULTIMATE_COOLDOWN: float = 40.0
 const ULTIMATE_DURATION: float = 6.0
 const ULTIMATE_RADIUS: float = 220.0
@@ -26,6 +30,7 @@ var pending_shadows: Array[Dictionary] = []
 var movement_charge: float = 0.0
 var prey_id: int = -1
 var prey_remaining: float = 0.0
+var assisted_target_id: int = -1
 
 
 func reset() -> void:
@@ -43,6 +48,7 @@ func reset() -> void:
 	movement_charge = 0.0
 	prey_id = -1
 	prey_remaining = 0.0
+	assisted_target_id = -1
 
 
 func advance(run, delta: float) -> void:
@@ -59,13 +65,19 @@ func advance(run, delta: float) -> void:
 			shadow.remaining = float(shadow.remaining) - delta
 			if float(shadow.remaining) <= 0.0:
 				var hits := 0
-				for enemy: Dictionary in run.enemies:
-					if float(enemy.hp) > 0.0 and _in_cone(shadow.pos, shadow.dir, enemy, 340.0, deg_to_rad(12.0)):
-						run.damage_enemy(enemy, 8.0, "shadow")
-						hits += 1
+				var directions: Array[Vector2] = [shadow.dir]
+				if int(run.experiment.levels.get("a", 1)) >= 2:
+					directions.append(-Vector2(shadow.dir))
+				var seen: Dictionary = {}
+				for direction: Vector2 in directions:
+					for enemy: Dictionary in run.enemies:
+						if float(enemy.hp) > 0.0 and not seen.has(int(enemy.id)) and CombatGeometry.rectangle_circle(shadow.pos, direction, enemy.pos, float(enemy.radius), SHADOW_LENGTH, SHADOW_WIDTH):
+							seen[int(enemy.id)] = true
+							run.damage_enemy(enemy, 8.0, "shadow")
+							hits += 1
+					run.events.append({"kind": "nana_shadow", "pos": shadow.pos, "dir": direction, "reach": SHADOW_LENGTH, "width": SHADOW_WIDTH})
 				run.experiment.counts.shadow_hits += hits
 				run.experiment.note(run, "shadow_resolved", {"hits": hits})
-				run.events.append({"kind": "nana_shadow", "pos": shadow.pos, "dir": shadow.dir, "reach": 340.0})
 				pending_shadows.remove_at(i)
 	marker_remaining = maxf(0.0, marker_remaining - delta)
 	if marker_remaining <= 0.0:
@@ -84,7 +96,7 @@ func advance(run, delta: float) -> void:
 			continue
 		if _in_cone(run.player, Vector2(pending_bite["direction"]), enemy,
 				float(pending_bite["reach"]), deg_to_rad(75.0) if sweeping else BITE_HALF_ANGLE):
-			var is_prey: bool = run.experiment.active and "c" in run.experiment.abilities and int(enemy.id) == prey_id and prey_remaining > 0.0
+			var is_prey: bool = run.experiment.active and "c" in run.experiment.abilities and int(enemy.id) == prey_id and has_prey()
 			var bite_damage: float = float(pending_bite["damage"]) * (36.0 / 14.0 if is_prey else 1.0)
 			run.damage_enemy(enemy, bite_damage, "bite")
 			if float(enemy["hp"]) > 0.0:
@@ -98,11 +110,19 @@ func advance(run, delta: float) -> void:
 				if is_prey:
 					run.experiment.counts.cash += 1
 					run.experiment.note(run, "mark_cash", {"target": int(enemy.id)})
+					if int(run.experiment.levels.get("c", 1)) >= 2:
+						var wave_hits := 0
+						for other: Dictionary in run.enemies:
+							if int(other.id) != int(enemy.id) and float(other.hp) > 0.0 and Vector2(other.pos).distance_to(Vector2(enemy.pos)) <= 110.0 + float(other.radius):
+								run.damage_enemy(other, 8.0, "cash_wave")
+								wave_hits += 1
+						run.experiment.note(run, "cash_wave", {"target": int(enemy.id), "hits": wave_hits})
+						run.events.append({"kind": "nana_cash_wave", "pos": enemy.pos, "radius": 110.0})
 					run.experiment.request_hitstop()
 					run.events.append({"kind": "nana_cash", "pos": enemy.pos})
 				elif float(enemy.hp) > 0.0:
 					prey_id = int(enemy.id)
-					prey_remaining = 4.0
+					prey_remaining = 4.0 if run.experiment.timed_mark else -1.0
 					run.experiment.counts.mark += 1
 					run.experiment.note(run, "mark_transfer" if old_prey >= 0 else "mark", {"target": prey_id, "previous": old_prey})
 		if not sweeping:
@@ -151,7 +171,7 @@ func attack(run) -> float:
 		run.experiment.note(run, "claw", {"targets": target_ids, "charged": charged, "pos": [run.player.x, run.player.y], "aim": [run.aim.x, run.aim.y]})
 	for enemy: Dictionary in claw_targets:
 		hit_any = true
-		if int(enemy.id) == prey_id and prey_remaining > 0.0:
+		if int(enemy.id) == prey_id and has_prey():
 			hit_prey = true
 		if hunting:
 			marked_target_id = int(enemy["id"])
@@ -162,6 +182,10 @@ func attack(run) -> float:
 			var offset: Vector2 = Vector2(enemy["pos"]) - run.player
 			var push: Vector2 = offset.normalized() if offset.length_squared() > 0.01 else run.aim
 			enemy["pos"] = (Vector2(enemy["pos"]) + push * (24.0 if ring else 12.0)).clamp(Vector2.ONE * 20.0, run.WORLD - Vector2.ONE * 20.0)
+		if float(enemy.hp) > 0.0 and charged and int(run.experiment.levels.get("b", 1)) >= 2 and int(enemy.id) != hit_prey_id:
+			var away: Vector2 = Vector2(enemy.pos) - run.player
+			enemy.pos = (Vector2(enemy.pos) + (away.normalized() if away.length_squared() > 0.01 else run.aim) * 65.0).clamp(Vector2.ONE * 20.0, run.WORLD - Vector2.ONE * 20.0)
+			run.events.append({"kind": "nana_push", "pos": enemy.pos})
 	last_attack_was_bite = false
 	if run.experiment.active and charged:
 		if hit_any:
@@ -185,6 +209,8 @@ func attack(run) -> float:
 			run.experiment.note(run, "shadow_trigger")
 	if bite_charge == 3 and pending_bite.is_empty():
 		var bite_half: float = deg_to_rad(75.0) if sweeping else BITE_HALF_ANGLE
+		if run.experiment.active:
+			update_bite_target(run, BITE_REACH * reach_multiplier, bite_half)
 		var target: Dictionary = bite_target(run, BITE_REACH * reach_multiplier, bite_half)
 		if not target.is_empty():
 			bite_charge = 0
@@ -198,7 +224,11 @@ func attack(run) -> float:
 				"dir": run.aim, "reach": BITE_REACH * reach_multiplier, "half_angle": bite_half})
 	if hit_any and not last_attack_was_bite:
 		var extra: int = 1 if run.experiment.active and "c" in run.experiment.abilities and hit_prey else 0
-		bite_charge = mini(3, bite_charge + 1 + extra)
+		var charged_mark: bool = run.experiment.active and run.experiment.charged_mark_bonus and charged and hit_prey and prey_id == hit_prey_id and has_prey()
+		bite_charge = 3 if charged_mark else mini(3, bite_charge + 1 + extra)
+		if charged_mark:
+			run.experiment.note(run, "charged_mark_ready", {"target": hit_prey_id})
+			run.events.append({"kind": "nana_ready", "pos": run.player})
 		if extra > 0:
 			run.experiment.note(run, "mark_charge", {"target": hit_prey_id})
 	run.combat_metrics["attacks"].append({"time": run.elapsed, "kind": "ring" if ring else "claw", "targets": claw_targets.size()})
@@ -246,12 +276,50 @@ func _target(run, reach: float, half_angle: float) -> Dictionary:
 	return best
 
 
+func has_prey() -> bool:
+	return prey_id >= 0 and prey_remaining != 0.0
+
+
 func bite_target(run, reach: float, half_angle: float) -> Dictionary:
-	if run.experiment.active and "c" in run.experiment.abilities and prey_remaining > 0.0:
+	if run.experiment.active and not pending_bite.is_empty():
+		for enemy: Dictionary in run.enemies:
+			if int(enemy.id) == int(pending_bite.target_id) and float(enemy.hp) > 0.0:
+				return enemy
+		return {}
+	if run.experiment.active and "c" in run.experiment.abilities and has_prey():
 		for enemy: Dictionary in run.enemies:
 			if int(enemy.id) == prey_id and float(enemy.hp) > 0.0 and _in_cone(run.player, run.aim, enemy, reach, half_angle):
 				return enemy
-	return _target(run, reach, half_angle)
+	if not run.experiment.active:
+		return _target(run, reach, half_angle)
+	var best: Dictionary = {}
+	var current: Dictionary = {}
+	var best_score := INF
+	var best_distance := INF
+	var current_score := INF
+	for enemy: Dictionary in run.enemies:
+		if float(enemy.hp) <= 0.0 or not _in_cone(run.player, run.aim, enemy, reach, half_angle):
+			continue
+		var offset: Vector2 = Vector2(enemy.pos) - run.player
+		var angle: float = absf(run.aim.angle_to(offset)) if offset.length_squared() > 0.000001 else 0.0
+		var score: float = angle - (TARGET_SPECIAL_BONUS if enemy.kind != "chaser" else 0.0)
+		if score < best_score - 0.00001 or (is_equal_approx(score, best_score) and offset.length_squared() < best_distance):
+			best = enemy
+			best_score = score
+			best_distance = offset.length_squared()
+		if int(enemy.id) == assisted_target_id:
+			current = enemy
+			current_score = score
+	if not current.is_empty() and best_score >= current_score - TARGET_SWITCH_MARGIN:
+		return current
+	return best
+
+
+func update_bite_target(run, reach: float, half_angle: float) -> void:
+	if not pending_bite.is_empty():
+		return
+	var target := bite_target(run, reach, half_angle)
+	assisted_target_id = int(target.id) if not target.is_empty() else -1
 
 
 func _in_cone(origin: Vector2, direction: Vector2, enemy: Dictionary, reach: float, half_angle: float) -> bool:

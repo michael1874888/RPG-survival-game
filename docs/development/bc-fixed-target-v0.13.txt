@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+old wait=0.5s mark=true charged_claw_bite_charge=2 cash_after_next=0 target_hp=914.0
+old wait=6.0s mark=false charged_claw_bite_charge=1 cash_after_next=0 target_hp=914.0
+persistent_only wait=0.5s mark=true charged_claw_bite_charge=2 cash_after_next=0 target_hp=914.0
+persistent_only wait=6.0s mark=true charged_claw_bite_charge=2 cash_after_next=0 target_hp=914.0
+charged_bonus_only wait=0.5s mark=true charged_claw_bite_charge=3 cash_after_next=1 target_hp=878.0
+charged_bonus_only wait=6.0s mark=false charged_claw_bite_charge=1 cash_after_next=0 target_hp=914.0
+both wait=0.5s mark=true charged_claw_bite_charge=3 cash_after_next=1 target_hp=878.0
+both wait=6.0s mark=true charged_claw_bite_charge=3 cash_after_next=1 target_hp=878.0
