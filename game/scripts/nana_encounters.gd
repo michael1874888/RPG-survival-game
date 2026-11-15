@@ -233,7 +233,7 @@ func update(run, delta: float) -> void:
 		e.visible_time = float(e.get("visible_time", 0.0)) + delta if visible else 0.0
 		if kind == "chaser":
 			var separation := Vector2.ZERO
-			if run.scenario_id == "nana_growth" or run.scenario_id.begins_with("nana_pressure_"):
+			if run.experiment.active or run.scenario_id == "nana_growth" or run.scenario_id.begins_with("nana_pressure_"):
 				for other: Dictionary in run.enemies:
 					if other == e or float(other.hp) <= 0.0:
 						continue

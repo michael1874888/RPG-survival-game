@@ -77,7 +77,26 @@ func _initialize():
  run.reset(99, "nana", "standard", "nana_pressure_standard")
  run.tick(1.1, Vector2.ZERO, Vector2.RIGHT, false)
  if run.encounters.pending_spawns.size() != 1: quit(1); return
- print("PACKAGED NANA RULES: claw, ultimate, growth, comparison, ring, hunt and pressure passed")
+ run.reset(99, "nana", "standard", "nana_build_e3")
+ run.experiment.configure(run, ["a", "c"])
+ if run.experiment.schedule.size() != 25 or run.experiment.abilities.size() != 2: quit(1); return
+ run.encounters.add_enemy(run, "guard", run.player + Vector2(100, 0))
+ var target = run.enemies[0]
+ target.hp = 1000.0
+ for i in 7:
+  run.nana.attack(run)
+  run.nana.advance(run, 0.13)
+  run.elapsed += 0.42
+ if run.experiment.counts.shadow != 2 or run.experiment.counts.cash != 1: quit(1); return
+ run.reset(99, "nana", "standard", "nana_build_e1")
+ run.experiment.configure(run, ["b"])
+ run.nana.movement_charge = 260.0
+ run.nana.attack(run)
+ if run.nana.movement_charge != 260.0: quit(1); return
+ run.encounters.add_enemy(run, "chaser", run.player + Vector2(100, 0))
+ run.nana.attack(run)
+ if run.nana.movement_charge != 0.0 or run.enemies[0].hp > 0.0: quit(1); return
+ print("PACKAGED NANA RULES: legacy, experiment schedule, A/C interactions and B charge passed")
  quit(0)
 '''
 
@@ -103,12 +122,17 @@ def main():
         (temp / 'check.gd').write_text(CHECK)
         with zipfile.ZipFile(apk) as archive:
             for name in ('run_model.gdc', 'run_model.gd.remap',
+                         'nana_experiment.gdc', 'nana_experiment.gd.remap',
                          'nana_combat.gdc', 'nana_combat.gd.remap',
                          'nana_encounters.gdc', 'nana_encounters.gd.remap',
                          'combat_geometry.gdc', 'combat_geometry.gd.remap'):
                 (temp / 'scripts' / name).write_bytes(archive.read('assets/scripts/' + name))
-        subprocess.run([GODOT, '--headless', '--path', temp, '--script', 'res://check.gd'],
-                       check=True)
+        result = subprocess.run([GODOT, '--headless', '--path', temp, '--script', 'res://check.gd'],
+                                check=True, text=True, capture_output=True)
+        output = result.stdout + result.stderr
+        if 'SCRIPT ERROR' in output or 'PACKAGED NANA RULES:' not in output or ' passed' not in output:
+            raise RuntimeError('Packaged rule check did not complete successfully:\n' + output)
+        print(output.strip())
 
 
 if __name__ == '__main__':

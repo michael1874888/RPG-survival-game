@@ -3,6 +3,7 @@ extends RefCounted
 
 const NanaCombat := preload("res://scripts/nana_combat.gd")
 const NanaEncounters := preload("res://scripts/nana_encounters.gd")
+const NanaExperiment := preload("res://scripts/nana_experiment.gd")
 
 const DURATION: float = 180.0
 const WORLD := Vector2(2600, 1900)
@@ -63,6 +64,9 @@ const SCENARIOS := {
 	"nana_pressure_standard": {"name": "原本密度", "duration": 90.0, "hint": "固定能力 · 90 秒"},
 	"nana_pressure_dense": {"name": "新版怪潮", "duration": 90.0, "hint": "固定能力 · 90 秒"},
 	"nana_growth": {"name": "成長挑戰", "duration": 240.0, "hint": "升級 · 專精 · 精英"},
+	"nana_build_e1": {"name": "清路", "duration": 60.0, "hint": "追逐者群 · 60 秒"},
+	"nana_build_e2": {"name": "混合威脅", "duration": 60.0, "hint": "混合敵人 · 60 秒"},
+	"nana_build_e3": {"name": "強敵帶支援", "duration": 60.0, "hint": "精英與追兵 · 60 秒"},
 	"nana_compare_group": {"name": "追逐者群", "duration": 180.0, "hint": "環掃與包圍"},
 	"nana_compare_thrower": {"name": "投擲者混合", "duration": 180.0, "hint": "接近遠距威脅"},
 	"nana_compare_guard": {"name": "守衛者", "duration": 180.0, "hint": "收招與反擊"},
@@ -104,6 +108,7 @@ var combat_metrics: Dictionary = {}
 var view_size := Vector2(1280, 720)
 var nana = NanaCombat.new()
 var encounters = NanaEncounters.new()
+var experiment = NanaExperiment.new()
 var fixed_abilities: bool = false
 var drop_xp: bool = true
 var enemy_profile: String = "legacy"
@@ -118,7 +123,8 @@ func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 	hunt_variant = "fast"
 	character_id = animal if CHARACTERS.has(animal) else "hedgehog"
 	mode_id = mode if character_id == "hedgehog" and RUN_MODES.has(mode) else "standard"
-	scenario_id = scenario if SCENARIOS.has(scenario) and ((character_id == "nana" and (scenario == "normal" or scenario == "nana_growth" or scenario.begins_with("nana_pressure_") or NanaEncounters.ENCOUNTERS.has(scenario))) or (mode_id != "standard" and scenario in ["normal", "surround", "queue"])) else "normal"
+	scenario_id = scenario if SCENARIOS.has(scenario) and ((character_id == "nana" and (scenario == "normal" or scenario == "nana_growth" or scenario.begins_with("nana_pressure_") or scenario.begins_with("nana_build_") or NanaEncounters.ENCOUNTERS.has(scenario))) or (mode_id != "standard" and scenario in ["normal", "surround", "queue"])) else "normal"
+	experiment = NanaExperiment.new()
 	fixed_abilities = (character_id == "nana" and scenario_id != "nana_growth") or (character_id != "nana" and scenario_id != "normal")
 	drop_xp = not fixed_abilities
 	enemy_profile = "practice" if character_id == "nana" else "legacy"
@@ -215,10 +221,25 @@ func melee_half_angle() -> float:
 func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> void:
 	if state != "playing":
 		return
+	if experiment.active and experiment.hitstop > 0.0:
+		var frozen: float = minf(delta, experiment.hitstop)
+		experiment.hitstop -= frozen
+		experiment.hitstop_seconds += frozen
+		delta -= frozen
+		if delta <= 0.000001:
+			return
 	elapsed += delta
 	invulnerability = maxf(0.0, invulnerability - delta)
+	var previous_position: Vector2 = player
 	player = (player + movement.limit_length() * move_speed() * delta).clamp(
 		Vector2.ONE * 30.0, WORLD - Vector2.ONE * 30.0)
+	var displacement: float = previous_position.distance_to(player)
+	if experiment.active and "b" in experiment.abilities and not firing and movement.length_squared() > 0.0:
+		var was_ready: bool = nana.movement_charge >= 260.0
+		nana.movement_charge = minf(260.0, nana.movement_charge + displacement)
+		if not was_ready and nana.movement_charge >= 260.0:
+			experiment.note(self, "charge_ready", {"engaged": experiment.engaged(self)})
+			events.append({"kind": "nana_ready", "pos": player})
 	if character_id == "nana":
 		nana.advance(self, delta)
 	if direction.length_squared() > 0.01:
@@ -230,7 +251,9 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 		else:
 			fire()
 			shot_timer = shot_interval()
-	if scenario_id == "normal":
+	if experiment.active:
+		experiment.update_schedule(self, delta)
+	elif scenario_id == "normal":
 		spawn_timer -= delta
 		if spawn_timer <= 0.0:
 			var breathing: bool = fmod(elapsed, 40.0) > 32.0
@@ -243,22 +266,30 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 		encounters.update_legacy_growth(self, delta)
 	elif not NanaEncounters.ENCOUNTERS.has(scenario_id):
 		_update_scenario(delta)
-	if NanaEncounters.ENCOUNTERS.has(scenario_id) or scenario_id == "nana_growth" or scenario_id.begins_with("nana_pressure_"):
+	if experiment.active or NanaEncounters.ENCOUNTERS.has(scenario_id) or scenario_id == "nana_growth" or scenario_id.begins_with("nana_pressure_"):
 		encounters.update(self, delta)
 	else:
 		update_enemies(delta)
 	update_projectiles(delta)
 	collect_pickups(delta)
+	if experiment.active:
+		experiment.observe(self, delta, movement, firing, displacement)
 	if hp <= 0.0:
 		state = "lost"
 		offers.clear()
+	elif experiment.active and experiment.all_finished() and enemies.is_empty():
+		state = "won"
 	elif NanaEncounters.ENCOUNTERS.has(scenario_id) and enemies.is_empty():
 		state = "won"
 		offers.clear()
 	elif elapsed >= duration():
 		elapsed = duration()
-		state = "lost" if NanaEncounters.ENCOUNTERS.has(scenario_id) or (scenario_id == "nana_growth" and not encounters.elite_defeated) else "won"
+		state = "unfinished" if experiment.active else ("lost" if NanaEncounters.ENCOUNTERS.has(scenario_id) or (scenario_id == "nana_growth" and not encounters.elite_defeated) else "won")
 		offers.clear()
+	if experiment.active and state in ["won", "lost", "unfinished"]:
+		nana.pending_shadows.clear()
+		nana.pending_bite.clear()
+		experiment.hitstop = 0.0
 
 
 func fire() -> void:
@@ -310,15 +341,21 @@ func damage_enemy(enemy: Dictionary, amount: float, source: String = "other") ->
 		return
 	var previous_hp: float = float(enemy["hp"])
 	enemy["hp"] = float(enemy["hp"]) - amount * (1.2 if float(enemy.get("vulnerable", 0.0)) > 0.0 else 1.0)
+	if experiment.active:
+		experiment.note(self, "damage", {"target": int(enemy.id), "enemy_kind": enemy.kind, "source": source, "amount": minf(previous_hp, previous_hp - float(enemy.hp)), "hp_before": previous_hp, "hp_after": maxf(0.0, float(enemy.hp))})
 	if character_id == "nana":
 		var damage: Dictionary = combat_metrics["damage"]
 		damage[source] = float(damage.get(source, 0.0)) + minf(previous_hp, previous_hp - float(enemy["hp"]))
 	enemy["flash"] = 0.10
 	events.append({"kind": "hit", "pos": enemy["pos"]})
 	if float(enemy["hp"]) <= 0.0:
+		if experiment.active and int(enemy.id) == nana.prey_id:
+			experiment.note(self, "mark_target_died", {"target": nana.prey_id})
+			nana.prey_id = -1
+			nana.prey_remaining = 0.0
 		kills += 1
 		if character_id == "nana":
-			combat_metrics["defeats"].append({"kind": enemy["kind"], "time": elapsed})
+			combat_metrics["defeats"].append({"kind": enemy["kind"], "time": elapsed, "id": enemy.id, "born_at": enemy.get("born_at", 0.0)})
 		if enemy["kind"] == "elite":
 			encounters.elite_defeated = true
 			hp = minf(max_hp, hp + 20.0)
@@ -419,7 +456,7 @@ func update_enemies(delta: float) -> void:
 
 
 func apply_heavy_hit(enemy: Dictionary) -> void:
-	if NanaEncounters.ENCOUNTERS.has(scenario_id) or scenario_id == "nana_growth" or scenario_id.begins_with("nana_pressure_"):
+	if experiment.active or NanaEncounters.ENCOUNTERS.has(scenario_id) or scenario_id == "nana_growth" or scenario_id.begins_with("nana_pressure_"):
 		encounters.heavy_hit(enemy)
 
 
@@ -559,9 +596,13 @@ func choose_upgrade(id: String) -> bool:
 
 func pause() -> void:
 	if state == "playing":
+		if experiment.active:
+			experiment.pause_clock()
 		state = "paused"
 
 
 func resume() -> void:
 	if state == "paused":
+		if experiment.active:
+			experiment.resume_clock()
 		state = "playing"

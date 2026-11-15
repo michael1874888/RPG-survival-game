@@ -2,6 +2,8 @@
 
 日期：2026-11-14。**狀態：研究與方向評估，尚未批准為正式設計；沒有修改遊戲規則、製作新模式或匯出 APK。**
 
+程式行號連結固定指向 v0.9 提交 `0bc6f12`，避免後續程式變更使歷史參照移位。
+
 問題：能否讓每局隨機得到的機會，影響玩家選擇攻擊方式，而不是先決定掃群／狩獵，再沿固定路線升級？若可行，應融入目前成長模式，還是另做新模式？
 
 ## 1. 結論
@@ -58,7 +60,7 @@ Brotato 的波間商店、20 Minutes 的主攻加召喚／狀態等案例，亦�
 
 ## 4. 我們現在已有隨機升級，為什麼還不像這種玩法？
 
-現行一般升級會從有效項目抽三張；升級與敵人使用分開的亂數串流。但從 Lv.4 起，只要尚未選主專精，就固定提供掃群／狩獵／共通強化；選定後排除另一專精。來源：[隨機種子與串流](../../game/scripts/run_model.gd:117)、[升級抽選](../../game/scripts/run_model.gd:515)、[升級池](../../game/scripts/run_model.gd:193)。
+現行一般升級會從有效項目抽三張；升級與敵人使用分開的亂數串流。但從 Lv.4 起，只要尚未選主專精，就固定提供掃群／狩獵／共通強化；選定後排除另一專精。來源：[隨機種子與串流](https://github.com/michael1874888/RPG-survival-game/blob/0bc6f12272cff475d647155531c8ed1c56203cc2/game/scripts/run_model.gd#L117)、[升級抽選](https://github.com/michael1874888/RPG-survival-game/blob/0bc6f12272cff475d647155531c8ed1c56203cc2/game/scripts/run_model.gd#L515)、[升級池](https://github.com/michael1874888/RPG-survival-game/blob/0bc6f12272cff475d647155531c8ed1c56203cc2/game/scripts/run_model.gd#L193)。
 
 目前較接近「自己選定主打法，再由隨機升級調整強弱」，還缺少下列結構：
 

@@ -3,5 +3,23 @@ set -euo pipefail
 BRAMBLE_ROOT="$(cd -- "$(dirname -- "$0")/.." && pwd)"
 BRAMBLE_GODOT="${BRAMBLE_GODOT_BIN:-/Applications/Godot.app/Contents/MacOS/Godot}"
 "$BRAMBLE_GODOT" --headless --path "$BRAMBLE_ROOT/game" --editor --import --quit
-"$BRAMBLE_GODOT" --headless --path "$BRAMBLE_ROOT/game" --script res://tests/run_tests.gd
-"$BRAMBLE_GODOT" --headless --path "$BRAMBLE_ROOT/game" --script res://tests/scene_flow.gd
+
+run_checks() {
+  local script="$1"
+  local marker="$2"
+  local output
+  output="$(mktemp -t bramble-test)"
+  if ! "$BRAMBLE_GODOT" --headless --path "$BRAMBLE_ROOT/game" --script "$script" 2>&1 | tee "$output"; then
+    rm -f "$output"
+    return 1
+  fi
+  if grep -q 'SCRIPT ERROR' "$output" || ! grep -Eq "$marker" "$output"; then
+    rm -f "$output"
+    return 1
+  fi
+  rm -f "$output"
+}
+
+run_checks res://tests/run_tests.gd '^RESULT: [0-9]+ checks, 0 failures$'
+run_checks res://tests/nana_build_tests.gd '^BUILD EXPERIMENT: [0-9]+ checks, 0 failures$'
+run_checks res://tests/scene_flow.gd '^SCENE RESULT: [0-9]+ checks, 0 failures$'
