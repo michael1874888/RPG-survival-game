@@ -1,20 +1,20 @@
 # Android 原型安裝與第一輪測試
 
-更新：2026-11-15。Bramble v0.13.0，單人離線、ARM64 debug APK。正式遊戲名稱尚未決定。本輪重點是 [奈奈構築發展試玩](nana-v0.13-practice.md)。
+更新：2026-11-15。Bramble v0.16.0，單人離線、ARM64 debug APK。正式遊戲名稱尚未決定。本輪重點是 [奈奈森林短局](nana-v0.16-practice.md)。
 
 ## 檔案
 
 APK 位於核准 SSD：
 
 ```text
-/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/builds/android/bramble-v0.13-debug.apk
+/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/builds/android/bramble-v0.16-debug.apk
 ```
 
 最新大小、SHA-256 及獨立簽署、Manifest 驗證結果見 [建置收據](../../tools/android-build.json)。支援目標為 ARM64、Android 7.0／API 24 或以上、OpenGL ES 3.0；實際設備相容性仍需安裝後確認。
 
-目前已確認：org.bramble.prototype、版本 0.13.0／versionCode 13、橫向主畫面、v2／v3 簽章、沒有要求任何 Android 權限。沿用既有套件 ID 與除錯簽署身分，用於更新原型。2026-11-15 使用者確認在 Android 手機試玩 v0.10，回饋整體體感 OK；機型、Android 版本及效能量測未提供。
+目前已確認：org.bramble.prototype、版本 0.16.0／versionCode 16、橫向主畫面、v2／v3 簽章、沒有要求任何 Android 權限。沿用既有套件 ID 與除錯簽署身分，用於更新原型。2026-11-15 使用者確認在 Android 手機試玩 v0.10，回饋整體體感 OK；機型、Android 版本及效能量測未提供。
 
-v0.13 使用既有除錯簽署憑證，獨立驗證指紋與先前版本相同；實際更新是否成功仍以手機安裝結果為準。v0.9 至 v0.12 APK 仍保留在同一 SSD 專案目錄。v0.12 已收到三連戰體感回饋；v0.13 尚未在手機安裝或試玩。
+v0.16 使用既有除錯簽署憑證，獨立驗證指紋與先前版本相同；實際更新是否成功仍以手機安裝結果為準。v0.9 至 v0.15 APK 仍保留在同一 SSD 專案目錄。已收到 v0.16 實玩回饋，本次設備與安裝方式未提供。
 
 ## 兩種安裝方式
 
@@ -24,13 +24,13 @@ v0.13 使用既有除錯簽署憑證，獨立驗證指紋與先前版本相同�
 
 v0.10 已由使用者在 Android 手機實際試玩。開發端當時 adb 未偵測到連線裝置，未代為安裝；具體機型、安裝方式與更新流程未記錄。
 
-## v0.13 這次玩什麼
+## v0.16 這次玩什麼
 
-主畫面選「三連戰 · 段間構築」，選一個開局能力開始。每段後可發展原能力、加裝新能力，或在兩格已滿時替換；段間保留生命及大絕冷卻。[v0.13 試玩說明](nana-v0.13-practice.md)包含三種 Lv.2、B＋C 的互動與對照方式。原本「選擇能力與情境」入口保留單場比較。
+主畫面選「森林短局 · 四段冒險」，選一個開局能力。本版加入疾追者；詳見 [v0.16 試玩說明](nana-v0.16-practice.md)。
 
 ## 首次安裝或操作回歸檢查
 
-本輪目標與最小試玩方式見 [奈奈 v0.13 試玩說明](nana-v0.13-practice.md)。
+本輪目標與最小試玩方式見 [奈奈 v0.16 試玩說明](nana-v0.16-practice.md)。
 
 1. 橫向開啟遊戲，確認文字與按鈕沒有被瀏海或螢幕邊界擋住。
 2. 左手移動、右手拖曳瞄準攻擊；輪流抬起一根手指，另一根的操作應保持獨立。

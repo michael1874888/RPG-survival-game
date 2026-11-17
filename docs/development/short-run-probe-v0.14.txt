@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+open=a choices=[{"id":"a","kind":"upgrade"},{"id":"b","kind":"add","remove":""},{"id":"b","kind":"upgrade","remove":""}] | E1:won 48.0s hp100->100 levels={"a":1} cash=0 ult=0 / E2:won 48.6s hp100->76 levels={"a":2} cash=0 ult=0 / E3:won 49.1s hp100->76 levels={"a":2,"b":1} cash=0 ult=0 / E4:won 57.3s hp100->80 levels={"a":2,"b":2} cash=0 ult=1 | total 203.0s
+open=b choices=[{"id":"b","kind":"upgrade"},{"id":"a","kind":"add","remove":""},{"id":"a","kind":"upgrade","remove":""}] | E1:won 49.7s hp100->100 levels={"b":1} cash=0 ult=0 / E2:won 48.9s hp100->88 levels={"b":2} cash=0 ult=0 / E3:won 49.4s hp100->76 levels={"a":1,"b":2} cash=0 ult=0 / E4:won 56.7s hp100->80 levels={"a":2,"b":2} cash=0 ult=1 | total 204.6s
+open=c choices=[{"id":"c","kind":"upgrade"},{"id":"a","kind":"add","remove":""},{"id":"a","kind":"upgrade","remove":""}] | E1:won 48.3s hp100->100 levels={"c":1} cash=0 ult=0 / E2:won 48.5s hp100->76 levels={"c":2} cash=0 ult=0 / E3:won 48.5s hp100->88 levels={"a":1,"c":2} cash=0 ult=0 / E4:won 52.8s hp100->80 levels={"a":2,"c":2} cash=1 ult=1 | total 198.1s
+SHORT V014: completed=3 stopped=0 integrity_failures=0

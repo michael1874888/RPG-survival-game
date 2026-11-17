@@ -82,6 +82,43 @@ func _initialize() -> void:
 	check(series.advance(run, {"kind": "add", "id": "c"}) and run.experiment.levels == {"a": 2, "c": 1}, "A later add preserves the developed ability")
 	series.begin(run, "a")
 	check(series.results.is_empty() and run.hp == 100.0 and run.nana.cooldown == 0.0 and run.nana.bite_charge == 0, "Restart clears carryover and returns to the first stage")
+	check(series.begin(run, "b", true) and run.scenario_id == "nana_build_s1" and series.stages().size() == 4, "Short run starts independently in its first stage")
+	for stage_index in 4:
+		check(run.scenario_id == Series.SHORT_STAGES[stage_index] and run.experiment.schedule.any(func(e): return e.at == 36.0), "Short stage has the expected scenario and late wave")
+		if stage_index == 1:
+			check(run.experiment.schedule.any(func(e): return e.kind == "thrower" and e.at == 4.0) and run.experiment.schedule.any(func(e): return e.kind == "charger" and e.at == 12.0), "Mixed stage introduces remote and rush threats")
+		if stage_index == 2:
+			for step in 60: run.tick(1.0 / 30.0, Vector2.ZERO, Vector2.RIGHT, false)
+			check(run.enemies.any(func(e): return e.kind == "chaser" and e.max_hp == 32.0), "Short stage three spawns chasers that survive a fresh 22 damage charged claw")
+		if stage_index == 3:
+			check(run.experiment.schedule.any(func(e): return e.kind == "elite" and e.at == 10.0), "The finale introduces the elite during the encounter")
+		finish_fixture(run)
+		record(series, run)
+		if stage_index < 3:
+			check(series.between and series.advance(run, series.choices()[0]), "Short run continues through each intermission")
+	check(series.finished and series.results.size() == 4 and not series.between, "The fourth win finishes the short run")
+	var short_data = JSON.parse_string(FileAccess.get_file_as_string(run.experiment.saved_path))
+	check(short_data.context.mode == "short_run" and short_data.context.decisions.size() == 3, "Short-run record contains all three choices")
+	series.begin(run, "a")
+	check(not series.short_run and run.scenario_id == "nana_build_e1", "The original three-stage mode remains available")
+	run.reset(0, "nana", "standard", "nana_chasers")
+	run.enemies.clear()
+	run.player = Vector2(1600, 900)
+	run.encounters.add_enemy(run, "pursuer", run.player + Vector2(150, 0))
+	var pursuer: Dictionary = run.enemies[0]
+	var start_distance: float = Vector2(pursuer.pos).distance_to(run.player)
+	for step in 60: run.tick(1.0 / 30.0, Vector2.LEFT, Vector2.RIGHT, false)
+	check(Vector2(pursuer.pos).distance_to(run.player) < start_distance - 30.0 and run.player.x > 30.0, "Fast pursuer closes on a full-speed retreat away from world boundaries")
+	run.reset(0, "nana", "standard", "nana_build_s1")
+	run.experiment.configure(run, ["b"], {"levels": {"b": 2}})
+	run.encounters.add_enemy(run, "pursuer", run.player + Vector2(150, 0))
+	pursuer = run.enemies[0]
+	var initial_x: float = pursuer.pos.x
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	check(is_equal_approx(pursuer.hp, 26.0) and pursuer.pos.x > initial_x + 60.0, "B's charged claw pushes a surviving pursuer")
+	var pushed_x: float = pursuer.pos.x
+	check(run.nana.activate_ultimate(run) and pursuer.pos.x > pushed_x + 70.0, "Ultimate pushes a surviving nearby pursuer")
 	for path in paths: DirAccess.remove_absolute(path)
 	print("SERIES RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

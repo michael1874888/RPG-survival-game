@@ -178,7 +178,7 @@ func attack(run) -> float:
 			marker_remaining = 1.0
 		var claw_damage: float = ((21.0 if run.hunt_variant == "heavy" else 14.0) if hunting else 10.0) + (12.0 if charged else 0.0)
 		run.damage_enemy(enemy, claw_damage * damage_multiplier, "ring" if ring else "claw")
-		if float(enemy["hp"]) > 0.0 and enemy["kind"] == "chaser":
+		if float(enemy["hp"]) > 0.0 and enemy["kind"] in ["chaser", "pursuer"]:
 			var offset: Vector2 = Vector2(enemy["pos"]) - run.player
 			var push: Vector2 = offset.normalized() if offset.length_squared() > 0.01 else run.aim
 			enemy["pos"] = (Vector2(enemy["pos"]) + push * (24.0 if ring else 12.0)).clamp(Vector2.ONE * 20.0, run.WORLD - Vector2.ONE * 20.0)
@@ -252,7 +252,7 @@ func activate_ultimate(run) -> bool:
 		if offset.length() > ULTIMATE_RADIUS + float(enemy["radius"]):
 			continue
 		run.damage_enemy(enemy, 15.0 * (1.0 + 0.15 * int(run.upgrades["damage"]) + 0.03 * int(run.upgrades["micro_damage"])), "ultimate")
-		if float(enemy["hp"]) > 0.0 and enemy["kind"] == "chaser":
+		if float(enemy["hp"]) > 0.0 and enemy["kind"] in ["chaser", "pursuer"]:
 			var push: Vector2 = offset.normalized() if offset.length_squared() > 0.01 else run.aim
 			enemy["pos"] = (Vector2(enemy["pos"]) + push * 80.0).clamp(Vector2.ONE * 20.0, run.WORLD - Vector2.ONE * 20.0)
 	run.events.append({"kind": "nana_ultimate", "pos": run.player, "radius": ULTIMATE_RADIUS})

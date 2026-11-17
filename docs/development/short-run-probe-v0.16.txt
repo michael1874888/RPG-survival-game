@@ -1,0 +1,17 @@
+Fixed nearest-enemy controller; B charges on a timer; no invulnerability. Not a player test.
+
+MODE: no ultimate
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+open=a choices=[{"id":"a","kind":"upgrade"},{"id":"b","kind":"add","remove":""},{"id":"b","kind":"upgrade","remove":""}] | E1:won 39.7s hp100->84 levels={"a":1} cash=0 ult=0 / E2:won 39.7s hp100->72 levels={"a":2} cash=0 ult=0 / E3:won 42.6s hp97->29 levels={"a":2,"b":1} cash=0 ult=0 / E4:lost 31.2s hp54->0 levels={"a":2,"b":2} cash=0 ult=0 | total 153.3s
+open=b choices=[{"id":"b","kind":"upgrade"},{"id":"a","kind":"add","remove":""},{"id":"a","kind":"upgrade","remove":""}] | E1:won 39.7s hp100->68 levels={"b":1} cash=0 ult=0 / E2:won 40.2s hp93->45 levels={"b":2} cash=0 ult=0 / E3:won 44.6s hp70->22 levels={"a":1,"b":2} cash=0 ult=0 / E4:lost 18.1s hp47->0 levels={"a":2,"b":2} cash=0 ult=0 | total 142.6s
+open=c choices=[{"id":"c","kind":"upgrade"},{"id":"a","kind":"add","remove":""},{"id":"a","kind":"upgrade","remove":""}] | E1:won 40.3s hp100->52 levels={"c":1} cash=0 ult=0 / E2:won 39.7s hp77->21 levels={"c":2} cash=1 ult=0 / E3:won 41.4s hp46->2 levels={"a":1,"c":2} cash=0 ult=0 / E4:lost 15.9s hp27->0 levels={"a":2,"c":2} cash=1 ult=0 | total 137.4s
+SHORT V016: completed=0 stopped=3 integrity_failures=0
+
+MODE: HP <= 60 ultimate
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+open=a choices=[{"id":"a","kind":"upgrade"},{"id":"b","kind":"add","remove":""},{"id":"b","kind":"upgrade","remove":""}] | E1:won 39.7s hp100->84 levels={"a":1} cash=0 ult=0 / E2:won 39.7s hp100->72 levels={"a":2} cash=0 ult=0 / E3:won 40.2s hp97->21 levels={"a":2,"b":1} cash=0 ult=1 / E4:won 42.6s hp46->26 levels={"a":2,"b":2} cash=0 ult=1 | total 162.2s
+open=b choices=[{"id":"b","kind":"upgrade"},{"id":"a","kind":"add","remove":""},{"id":"a","kind":"upgrade","remove":""}] | E1:won 39.7s hp100->68 levels={"b":1} cash=0 ult=0 / E2:won 40.9s hp93->57 levels={"b":2} cash=0 ult=1 / E3:won 42.7s hp82->50 levels={"a":1,"b":2} cash=0 ult=1 / E4:won 42.7s hp75->35 levels={"a":2,"b":2} cash=0 ult=1 | total 165.9s
+open=c choices=[{"id":"c","kind":"upgrade"},{"id":"a","kind":"add","remove":""},{"id":"a","kind":"upgrade","remove":""}] | E1:won 39.8s hp100->52 levels={"c":1} cash=0 ult=1 / E2:won 39.6s hp77->33 levels={"c":2} cash=0 ult=1 / E3:won 39.8s hp58->10 levels={"a":1,"c":2} cash=1 ult=1 / E4:lost 15.2s hp35->0 levels={"a":2,"c":2} cash=1 ult=0 | total 134.5s
+SHORT V016: completed=2 stopped=1 integrity_failures=0

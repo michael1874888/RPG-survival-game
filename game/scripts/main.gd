@@ -466,7 +466,8 @@ func _show_title() -> void:
 	column.add_child(_label("BRAMBLE", 38))
 	column.add_child(_label("奈奈 · 構築實驗", 25, GOLD))
 	column.add_child(_label("選擇能力，試試不同的戰鬥方式。", 18, MUTED))
-	column.add_child(_button("三連戰 · 段間構築", _show_series_setup, true))
+	column.add_child(_button("森林短局 · 四段冒險", _show_series_setup.bind(true), true))
+	column.add_child(_button("三連戰 · 段間構築", _show_series_setup.bind(false)))
 	column.add_child(_button("選擇能力與情境", _show_build_experiment))
 	column.add_child(_label("手機：左側移動，右側瞄準並攻擊；點擊按鈕釋放大絕。\n電腦：WASD／方向鍵移動，按住滑鼠攻擊，空白鍵釋放大絕。", 15, MUTED))
 	column.add_child(_label("M 靜音 / P 暫停", 14, MUTED))
@@ -502,7 +503,7 @@ func _show_result() -> void:
 		if not run.experiment.logged:
 			column.add_child(_label("本局觀察紀錄無法儲存", 15, Color("ffb58e")))
 		var injuries: Array[String] = []
-		var injury_names := {"chaser": "追逐者", "charger": "衝撞者", "guard": "守衛", "elite": "精英", "thrower_projectile": "投擲物", "unknown": "其他"}
+		var injury_names := {"chaser": "追逐者", "pursuer": "疾追者", "charger": "衝撞者", "guard": "守衛", "elite": "精英", "thrower_projectile": "投擲物", "unknown": "其他"}
 		for source in run.combat_metrics.damage_taken:
 			injuries.append("%s %d" % [injury_names.get(source, source), int(run.combat_metrics.damage_taken[source])])
 		column.add_child(_label("受傷來源：" + ("、".join(injuries) if not injuries.is_empty() else "無"), 15, MUTED))
@@ -515,7 +516,7 @@ func _show_result() -> void:
 
 
 func _add_build_recap(column: VBoxContainer) -> void:
-	column.add_child(_label("三連戰 · 第 %d / 3 段" % (series.stage + 1) if series.active else "奈奈構築實驗 · 固定能力", 18, GOLD))
+	column.add_child(_label("%s · 第 %d / %d 段" % ["森林短局" if series.short_run else "三連戰", series.stage + 1, series.stages().size()] if series.active else "奈奈構築實驗 · 固定能力", 18, GOLD))
 	column.add_child(_label("能力：" + (_ability_names(run.experiment.abilities, run.experiment.levels) if not run.experiment.abilities.is_empty() else "基礎"), 16, MUTED))
 
 
@@ -534,10 +535,11 @@ func _ability_names(ids: Array, levels: Dictionary = {}) -> String:
 	return "＋".join(names)
 
 
-func _show_series_setup() -> void:
+func _show_series_setup(short_mode := false) -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
 	series.active = false
+	series.short_run = short_mode
 	screen = "title"
 	touch.clear()
 	ultimate_touches.clear()
@@ -545,9 +547,9 @@ func _show_series_setup() -> void:
 	pause_button.hide()
 	ultimate_button.hide()
 	var column: VBoxContainer = _make_overlay(940)
-	column.add_child(_label("奈奈 · 三連戰", 32))
-	column.add_child(_label("清路 → 混合威脅 → 強敵帶支援", 22, GOLD))
-	column.add_child(_label("選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。", 17, MUTED))
+	column.add_child(_label("奈奈 · 森林短局" if short_mode else "奈奈 · 三連戰", 32))
+	column.add_child(_label("開路 → 混合威脅 → 厚血追兵 → 精英終戰" if short_mode else "清路 → 混合威脅 → 強敵帶支援", 22, GOLD))
+	column.add_child(_label("選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。\n紅色尖耳是疾追者，移動較快且較耐打。" if short_mode else "選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。", 17, MUTED))
 	for item in [["a", "穿影爪 · 連續命中，長條穿透"], ["b", "游走蓄勢 · 停手移動，換取爆發"], ["c", "獵痕重咬 · 追擊獵物，再咬兌現"]]:
 		column.add_child(_button("以「%s」開始" % item[1], _start_series.bind(str(item[0]))))
 	column.add_child(_button("回到起點", _show_title))
@@ -556,7 +558,7 @@ func _show_series_setup() -> void:
 func _start_series(ability: String) -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
-	if not series.begin(run, ability):
+	if not series.begin(run, ability, series.short_run):
 		return
 	effects.clear()
 	hurt_flash = 0.0
@@ -574,9 +576,10 @@ func _show_series_between() -> void:
 	var column: VBoxContainer = _make_overlay(960)
 	column.add_theme_constant_override("separation", 10)
 	column.add_child(_label("第 %d 段完成" % (series.stage + 1), 30))
-	var next_id: String = Series.STAGES[series.stage + 1]
+	var next_id: String = series.stages()[series.stage + 1]
 	column.add_child(_label("下一段：" + str(Run.SCENARIOS[next_id].name), 22, GOLD))
-	column.add_child(_label("追逐者、投擲者、衝撞者與守衛" if series.stage == 0 else "精英與持續追加的追逐者", 16, MUTED))
+	var next_hint: String = {"nana_build_s2": "疾追者、投擲者與衝撞者", "nana_build_s3": "疾追者、厚血追兵與守衛", "nana_build_s4": "疾追者、精英與投擲者", "nana_build_e2": "追逐者、投擲者、衝撞者與守衛", "nana_build_e3": "精英與持續追加的追逐者"}.get(next_id, "")
+	column.add_child(_label(next_hint, 16, MUTED))
 	column.add_child(_label("目前：" + _ability_names(run.experiment.abilities, series.levels), 16, MUTED))
 	column.add_child(_label("生命 %d → %d / 100　·　大絕冷卻 %.1f 秒" % [int(run.hp), int(series.snapshot.hp), run.nana.cooldown], 18))
 	column.add_child(_label("選擇期間不計時；進入下一段才恢復戰鬥。", 16, MUTED))
@@ -616,15 +619,15 @@ func _advance_series(choice: Dictionary) -> void:
 
 func _show_series_result() -> void:
 	var column: VBoxContainer = _make_overlay(970)
-	column.add_child(_label("三連戰完成！" if run.state == "won" else ("本段時間到，三連戰結束" if run.state == "unfinished" else "這次先到這裡"), 32))
-	column.add_child(_label("累計戰鬥 %.1f 秒　·　完成 %d / 3 段" % [series.total_seconds(), series.results.filter(func(row): return row.result == "won").size()], 21, GOLD))
+	column.add_child(_label(("森林短局完成！" if series.short_run else "三連戰完成！") if run.state == "won" else ("本段時間到，本輪結束" if run.state == "unfinished" else "這次先到這裡"), 32))
+	column.add_child(_label("累計戰鬥 %.1f 秒　·　完成 %d / %d 段" % [series.total_seconds(), series.results.filter(func(row): return row.result == "won").size(), series.stages().size()], 21, GOLD))
 	for row in series.results:
 		var result_name: String = {"won": "完成", "lost": "失敗", "unfinished": "未完成"}[row.result]
-		column.add_child(_label("第 %d 段 %s · %s\n%.1f 秒 · 剩餘生命 %d · %s" % [row.stage, result_name, _ability_names(row.abilities, row.levels), row.time, int(row.hp), "獵痕兌現 %d 次" % int(row.counts.cash)], 16, MUTED))
+		column.add_child(_label("第 %d 段 %s · %s · %.1f 秒 · 生命 %d" % [row.stage, result_name, _ability_names(row.abilities, row.levels), row.time, int(row.hp)], 16, MUTED))
 	if series.save_failures > 0:
 		column.add_child(_label("有 %d 段觀察紀錄無法儲存" % series.save_failures, 15, Color("ffb58e")))
-	column.add_child(_button("同開局，再挑戰三連戰", _start_series.bind(series.opening), true))
-	column.add_child(_button("更換開局能力", _show_series_setup))
+	column.add_child(_button("同開局，再挑戰" if series.short_run else "同開局，再挑戰三連戰", _start_series.bind(series.opening), true))
+	column.add_child(_button("更換開局能力", _show_series_setup.bind(series.short_run)))
 	column.add_child(_button("回到起點", _show_title))
 
 
@@ -786,7 +789,7 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 		return
 	var radius: float = enemy["radius"]
 	var charger: bool = enemy["kind"] == "charger"
-	var body := Color("edac64") if charger else (Color("70b6bc") if enemy["kind"] == "thrower" else (Color("bc827c") if enemy["kind"] in ["guard", "elite"] else Color("ac9acc")))
+	var body := Color("edac64") if charger else (Color("e87574") if enemy["kind"] == "pursuer" else (Color("70b6bc") if enemy["kind"] == "thrower" else (Color("bc827c") if enemy["kind"] in ["guard", "elite"] else Color("ac9acc"))))
 	if float(enemy["flash"]) > 0.0:
 		body = CREAM
 	if enemy["phase"] == "windup":
@@ -800,6 +803,9 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 			draw_line(pos, end, Color(1.0, 0.63, 0.29, 0.18), 24.0, true)
 			draw_line(pos, end, Color(1.0, 0.77, 0.46, 0.8), 2.0, true)
 		draw_arc(pos, radius + 8.0, 0, TAU, 24, GOLD, 2.5, true)
+	elif enemy["phase"] == "recover" and enemy["kind"] in ["charger", "guard", "elite"]:
+		draw_arc(pos, radius + 8.0, 0, TAU, 24, Color("9deaff"), 3.0, true)
+		draw_string(bold_font, pos + Vector2(-18, -radius - 15), "空檔", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("9deaff"))
 	draw_circle(pos + Vector2(0, 10), radius, Color(0.05, 0.1, 0.07, 0.25))
 	draw_circle(pos, radius + sin(clock * 4.0 + int(enemy["id"])) * 1.2, body)
 	if int(enemy["id"]) == run.nana.marked_target_id:
@@ -818,6 +824,10 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 		draw_arc(pos, radius + 6.0, 0.0, TAU, 32, GOLD, 3.0, true)
 		if enemy["phase"] == "second_wait":
 			draw_string(bold_font, pos + Vector2(-12, -radius - 15), "Ⅱ", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, GOLD)
+	if enemy["kind"] == "pursuer":
+		draw_arc(pos, radius + 5.0, -PI * 0.85, -PI * 0.15, 18, Color("ffe3a1"), 3.0, true)
+		draw_colored_polygon(PackedVector2Array([pos + Vector2(-12, -12), pos + Vector2(-12, -26), pos + Vector2(-2, -16)]), Color("a84950"))
+		draw_colored_polygon(PackedVector2Array([pos + Vector2(12, -12), pos + Vector2(12, -26), pos + Vector2(2, -16)]), Color("a84950"))
 	draw_circle(pos + Vector2(-6, -2), 2.2, INK)
 	draw_circle(pos + Vector2(6, -2), 2.2, INK)
 	if charger:
@@ -855,7 +865,7 @@ func _draw_hud() -> void:
 				draw_string(font, Vector2(40, 214), "獵痕 Lv.%d：%s" % [run.experiment.levels.get("c", 1), "追蹤中" if run.nana.has_prey() else "等待重咬"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ff9eac"))
 			if "b" in run.experiment.abilities and "c" in run.experiment.abilities:
 				draw_string(font, Vector2(40, 238), "蓄勢命中獵痕可蓄滿重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, GOLD)
-			draw_string(font, Vector2(size.x * 0.5 - 105, size.y - 35), "三連戰 · 第 %d / 3 段" % (series.stage + 1) if series.active else "構築實驗 · 固定能力", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, MUTED)
+			draw_string(font, Vector2(size.x * 0.5 - 105, size.y - 35), "%s · 第 %d / %d 段" % ["森林短局" if series.short_run else "三連戰", series.stage + 1, series.stages().size()] if series.active else "構築實驗 · 固定能力", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, MUTED)
 			return
 		if int(run.upgrades.get("sweep", 0)) > 0:
 			draw_string(font, Vector2(40, 165), "環掃：下一擊！" if run.nana.sweep_count == 2 else "環掃準備 %d / 3" % run.nana.sweep_count, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)

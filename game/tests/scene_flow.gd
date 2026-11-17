@@ -108,6 +108,24 @@ func exercise_scene() -> void:
 	check(scene.series.stage == 0 and model.hp == 100.0 and model.experiment.abilities == ["b"], "Result retry restarts at E1 with the same opening")
 	scene._pause_run()
 	check(find_button(scene.overlay, "從第一段重新挑戰") != null, "Pause makes series restart scope explicit")
+	scene._show_title()
+	var short_entry: Button = find_button(scene.overlay, "森林短局")
+	check(short_entry != null, "The title exposes the short run")
+	short_entry.pressed.emit()
+	find_button(scene.overlay, "游走蓄勢").pressed.emit()
+	check(scene.series.short_run and model.scenario_id == "nana_build_s1", "Short-run setup starts the first short scenario")
+	for stage_index in 4:
+		model.state = "won"
+		model.enemies.clear()
+		for event in model.experiment.schedule: event.state = "born"
+		scene._sync_screen()
+		series_paths.append(model.experiment.saved_path)
+		if stage_index < 3:
+			check(scene.screen == "between", "Each short-run stage opens its intermission")
+			scene._advance_series(scene.series.choices()[0])
+	check(scene.series.finished and contains_label(scene.overlay, "完成 4 / 4 段"), "Fourth short-run victory reaches the final summary")
+	find_button(scene.overlay, "同開局，再挑戰").pressed.emit()
+	check(scene.series.short_run and model.scenario_id == "nana_build_s1", "Short-run retry preserves its mode")
 	for path in series_paths:
 		if not path.is_empty(): DirAccess.remove_absolute(path)
 	print("SCENE RESULT: %d checks, %d failures" % [checks, failures])

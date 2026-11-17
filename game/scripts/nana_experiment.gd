@@ -1,7 +1,7 @@
 extends RefCounted
 ## Isolated encounter schedule and observations for Nana's build experiment.
 
-const VERSION := "nana-build-v3.0"
+const VERSION := "nana-build-v3.2"
 const LIMIT := 45
 const WARNING := 1.0
 const SAFE_DISTANCE := 320.0
@@ -82,6 +82,42 @@ func configure(run, selected: Array, options: Dictionary = {}) -> void:
 			_add_wave(0.0, "chaser", 3, -1)
 			for t in [2, 6, 10, 14, 18, 22, 26, 30, 34, 38]:
 				_add_wave(float(t), "chaser", 3, 1 if int(t) % 4 == 2 else -1, true)
+		"nana_build_s1":
+			_add_wave(0.0, "chaser", 8, 0)
+			for t in [6, 12, 20, 28, 36]:
+				_add_wave(float(t), "chaser", 6, 1 if int(t) % 4 == 0 else -1)
+			for t in [12, 28]: _add_wave(float(t), "charger", 1, -1)
+			for t in [12, 28]:
+				_add_wave(float(t), "pursuer", 1, 1)
+				_add_wave(float(t), "pursuer", 1, -1)
+		"nana_build_s2":
+			_add_wave(0.0, "chaser", 8, 0)
+			for t in [7, 14, 21, 28, 36]:
+				_add_wave(float(t), "chaser", 6, -1 if int(t) % 2 == 0 else 1)
+			for t in [4, 18, 31]: _add_wave(float(t), "thrower", 1, -1)
+			for t in [12, 26]: _add_wave(float(t), "charger", 1, 1)
+			for t in [7, 24]:
+				_add_wave(float(t), "pursuer", 1, 1)
+				_add_wave(float(t), "pursuer", 1, -1)
+		"nana_build_s3":
+			_add_wave(0.0, "chaser", 7, 0)
+			for t in [7, 14, 21, 28, 36]:
+				_add_wave(float(t), "chaser", 7, 1 if int(t) % 2 == 0 else -1)
+			for t in [5, 23]: _add_wave(float(t), "thrower", 1, -1)
+			_add_wave(13.0, "guard", 1, 1)
+			_add_wave(29.0, "charger", 1, 1)
+			for t in [7, 21]:
+				_add_wave(float(t), "pursuer", 1, 1)
+				_add_wave(float(t), "pursuer", 1, -1)
+		"nana_build_s4":
+			_add_wave(0.0, "chaser", 8, 0)
+			for t in [7, 14, 21, 28, 36]:
+				_add_wave(float(t), "chaser", 6, 1 if int(t) % 2 == 0 else -1)
+			_add_wave(10.0, "elite", 1, 1)
+			_add_wave(22.0, "thrower", 1, -1)
+			for t in [6, 20]:
+				_add_wave(float(t), "pursuer", 1, 1)
+				_add_wave(float(t), "pursuer", 1, -1)
 	note(run, "start", {"abilities": abilities.duplicate(), "scenario": run.scenario_id})
 
 
@@ -139,6 +175,9 @@ func update_schedule(run, delta: float) -> void:
 			if float(entry.timer) <= 0.0:
 				if Vector2(entry.pos).distance_to(run.player) >= SAFE_DISTANCE:
 					run.encounters.add_enemy(run, entry.kind, entry.pos)
+					if entry.kind == "chaser" and run.scenario_id in ["nana_build_s3", "nana_build_s4"]:
+						run.enemies[-1].hp = 32.0 if run.scenario_id == "nana_build_s3" else 26.0
+						run.enemies[-1].max_hp = run.enemies[-1].hp
 					if run.scenario_id == "nana_build_e3" and entry.kind == "elite":
 						run.enemies[-1].hp = 320.0
 						run.enemies[-1].max_hp = 320.0

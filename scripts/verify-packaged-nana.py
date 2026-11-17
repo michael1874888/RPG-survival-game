@@ -125,6 +125,37 @@ func _initialize():
  if not series.advance(run, {"kind": "upgrade", "id": "b"}) or int(run.experiment.levels.b) != 2: quit(1); return
  if not record_path.is_empty(): DirAccess.remove_absolute(record_path)
  if not record_path2.is_empty(): DirAccess.remove_absolute(record_path2)
+ if not series.begin(run, "b", true) or run.scenario_id != "nana_build_s1" or series.stages().size() != 4: quit(1); return
+ for stage in 4:
+  if run.scenario_id != series.stages()[stage]: quit(1); return
+  if stage == 2:
+   for step in 60: run.tick(1.0 / 30.0, Vector2.ZERO, Vector2.RIGHT, false)
+   if not run.enemies.any(func(e): return e.kind == "chaser" and e.max_hp == 32.0): quit(1); return
+  if stage == 1 and not run.experiment.schedule.any(func(e): return e.kind == "thrower" and e.at == 4.0): quit(1); return
+  if stage == 3 and not run.experiment.schedule.any(func(e): return e.kind == "elite" and e.at == 10.0): quit(1); return
+  run.state = "won"
+  if not series.collect(run): quit(1); return
+  if not run.experiment.saved_path.is_empty(): DirAccess.remove_absolute(run.experiment.saved_path)
+  if stage < 3 and not series.advance(run, series.choices()[0]): quit(1); return
+ if not series.finished or series.results.size() != 4: quit(1); return
+ run.reset(0, "nana", "standard", "nana_chasers")
+ run.enemies.clear()
+ run.player = Vector2(1600, 900)
+ run.encounters.add_enemy(run, "pursuer", run.player + Vector2(150, 0))
+ var pursuer = run.enemies[0]
+ var start_distance = Vector2(pursuer.pos).distance_to(run.player)
+ for step in 60: run.tick(1.0 / 30.0, Vector2.LEFT, Vector2.RIGHT, false)
+ if Vector2(pursuer.pos).distance_to(run.player) >= start_distance - 30.0 or run.player.x <= 30.0: quit(1); return
+ run.reset(0, "nana", "standard", "nana_build_s1")
+ run.experiment.configure(run, ["b"], {"levels": {"b": 2}})
+ run.encounters.add_enemy(run, "pursuer", run.player + Vector2(150, 0))
+ pursuer = run.enemies[0]
+ var initial_x = pursuer.pos.x
+ run.nana.movement_charge = 260.0
+ run.nana.attack(run)
+ if not is_equal_approx(pursuer.hp, 26.0) or pursuer.pos.x <= initial_x + 60.0: quit(1); return
+ var pushed_x = pursuer.pos.x
+ if not run.nana.activate_ultimate(run) or pursuer.pos.x <= pushed_x + 70.0: quit(1); return
  run.reset(99, "nana", "standard", "nana_build_e3")
  run.experiment.configure(run, ["b", "c"])
  run.encounters.add_enemy(run, "guard", run.player + Vector2(100, 0))
@@ -140,7 +171,7 @@ func _initialize():
  run.nana.attack(run)
  run.nana.advance(run, 0.11)
  if run.experiment.counts.cash != 1: quit(1); return
- print("PACKAGED NANA RULES: rectangle shadow, bite preview, upgrades, persistent mark and B+C passed")
+ print("PACKAGED NANA RULES: combat, four-stage short run and pursuer chase/push passed")
  quit(0)
 '''
 

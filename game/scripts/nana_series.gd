@@ -2,8 +2,9 @@ extends RefCounted
 ## Three fixed encounters, with explicit choices and combat state carried between them.
 
 const STAGES := ["nana_build_e1", "nana_build_e2", "nana_build_e3"]
+const SHORT_STAGES := ["nana_build_s1", "nana_build_s2", "nana_build_s3", "nana_build_s4"]
 const HEAL := 25.0
-const VERSION := "nana-series-v2"
+const VERSION := "nana-series-v4"
 var active := false
 var between := false
 var finished := false
@@ -15,11 +16,16 @@ var snapshot: Dictionary = {}
 var save_failures := 0
 var levels: Dictionary = {}
 var decisions: Array[Dictionary] = []
+var short_run := false
 
-func begin(run, ability: String) -> bool:
+func stages() -> Array:
+	return SHORT_STAGES if short_run else STAGES
+
+func begin(run, ability: String, short_mode := false) -> bool:
 	if ability not in ["a", "b", "c"]:
 		return false
 	active = true
+	short_run = short_mode
 	between = false
 	finished = false
 	stage = 0
@@ -34,7 +40,7 @@ func begin(run, ability: String) -> bool:
 	return true
 
 func _load_stage(run, abilities: Array) -> void:
-	run.reset(0, "nana", "standard", STAGES[stage])
+	run.reset(0, "nana", "standard", stages()[stage])
 	run.experiment.configure(run, abilities, {"levels": levels})
 	if not snapshot.is_empty():
 		run.hp = float(snapshot.hp)
@@ -47,7 +53,7 @@ func _load_stage(run, abilities: Array) -> void:
 			run.nana.shadow_last_hit = -(1.2 - float(snapshot.shadow_remaining))
 		if "b" in abilities and "b" in snapshot.abilities:
 			run.nana.movement_charge = float(snapshot.movement_charge)
-	run.experiment.context = {"mode": "series", "rules": VERSION, "series_id": series_id, "stage": stage + 1,
+	run.experiment.context = {"mode": "short_run" if short_run else "series", "rules": VERSION, "series_id": series_id, "stage": stage + 1,
 		"starting_hp": run.hp, "starting_cooldown": run.nana.cooldown,
 		"previous_results": results.duplicate(true), "decisions": decisions.duplicate(true)}
 	run.experiment.note(run, "series_stage_start", run.experiment.context)
@@ -61,7 +67,7 @@ func collect(run) -> bool:
 	run.experiment.context["results"] = results.duplicate(true)
 	if run.experiment.save(run, run.state).is_empty():
 		save_failures += 1
-	between = run.state == "won" and stage < STAGES.size() - 1
+	between = run.state == "won" and stage < stages().size() - 1
 	finished = not between
 	if between:
 		snapshot = {"hp": minf(run.max_hp, run.hp + HEAL), "cooldown": run.nana.cooldown,

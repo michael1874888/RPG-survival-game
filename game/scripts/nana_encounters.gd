@@ -5,6 +5,7 @@ const CombatGeometry := preload("res://scripts/combat_geometry.gd")
 
 const DEFINITIONS := {
 	"chaser": {"hp": 18.0, "speed": 90.0, "radius": 17.0, "damage": 8.0},
+	"pursuer": {"hp": 48.0, "speed": 280.0, "radius": 18.0, "damage": 8.0},
 	"charger": {"hp": 40.0, "speed": 100.0, "radius": 22.0, "damage": 16.0},
 	"thrower": {"hp": 26.0, "speed": 85.0, "radius": 19.0, "damage": 12.0},
 	"guard": {"hp": 90.0, "speed": 65.0, "radius": 28.0, "damage": 20.0},
@@ -231,7 +232,7 @@ func update(run, delta: float) -> void:
 		var kind: String = e.kind
 		var visible := Rect2(run.camera_origin(), run.view_size).has_point(pos)
 		e.visible_time = float(e.get("visible_time", 0.0)) + delta if visible else 0.0
-		if kind == "chaser":
+		if kind in ["chaser", "pursuer"]:
 			var separation := Vector2.ZERO
 			if run.experiment.active or run.scenario_id == "nana_growth" or run.scenario_id.begins_with("nana_pressure_"):
 				for other: Dictionary in run.enemies:
