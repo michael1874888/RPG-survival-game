@@ -9,6 +9,10 @@ const SAFE_DISTANCE := 320.0
 var active := false
 var abilities: Array[String] = []
 var levels: Dictionary = {}
+var growth_mode := false
+var guardian_thresholds: Array[float] = []
+var last_guardian_wave_at := -100.0
+var guardian_first_warning := -1.0
 var legacy_c := false
 var timed_mark := false
 var charged_mark_bonus := true
@@ -34,6 +38,10 @@ var context: Dictionary = {}
 
 func configure(run, selected: Array, options: Dictionary = {}) -> void:
 	active = true
+	growth_mode = bool(options.get("growth_mode", false))
+	guardian_thresholds.clear()
+	last_guardian_wave_at = -100.0
+	guardian_first_warning = -1.0
 	abilities.clear()
 	for id in selected:
 		if id in ["a", "b", "c"] and id not in abilities and abilities.size() < 2:
@@ -41,7 +49,7 @@ func configure(run, selected: Array, options: Dictionary = {}) -> void:
 	levels.clear()
 	var requested: Dictionary = options.get("levels", {})
 	for id: String in abilities:
-		levels[id] = clampi(int(requested.get(id, 1)), 1, 2)
+		levels[id] = clampi(int(requested.get(id, 1)), 1, 3 if growth_mode else 2)
 	legacy_c = bool(options.get("legacy_c", false))
 	timed_mark = bool(options.get("timed_mark", legacy_c))
 	charged_mark_bonus = bool(options.get("charged_mark_bonus", not legacy_c))
@@ -110,15 +118,36 @@ func configure(run, selected: Array, options: Dictionary = {}) -> void:
 				_add_wave(float(t), "pursuer", 1, 1)
 				_add_wave(float(t), "pursuer", 1, -1)
 		"nana_build_s4":
-			_add_wave(0.0, "chaser", 8, 0)
-			for t in [7, 14, 21, 28, 36]:
-				_add_wave(float(t), "chaser", 6, 1 if int(t) % 2 == 0 else -1)
-			_add_wave(10.0, "elite", 1, 1)
-			_add_wave(22.0, "thrower", 1, -1)
-			for t in [6, 20]:
-				_add_wave(float(t), "pursuer", 1, 1)
-				_add_wave(float(t), "pursuer", 1, -1)
+			if growth_mode:
+				_add_wave(0.0, "elite", 1, 1)
+				_add_wave(0.0, "chaser", 6, 0)
+				_add_wave(6.0, "thrower", 1, -1)
+			else:
+				_add_wave(0.0, "chaser", 8, 0)
+				for t in [7, 14, 21, 28, 36]:
+					_add_wave(float(t), "chaser", 6, 1 if int(t) % 2 == 0 else -1)
+				_add_wave(10.0, "elite", 1, 1)
+				_add_wave(22.0, "thrower", 1, -1)
+				for t in [6, 20]:
+					_add_wave(float(t), "pursuer", 1, 1)
+					_add_wave(float(t), "pursuer", 1, -1)
 	note(run, "start", {"abilities": abilities.duplicate(), "scenario": run.scenario_id})
+
+
+func guardian_damaged(run, before: float, after: float, maximum: float) -> void:
+	for threshold: float in [0.66, 0.33]:
+		if threshold not in guardian_thresholds and before > maximum * threshold and after <= maximum * threshold:
+			guardian_thresholds.append(threshold)
+			var at: float = maxf(run.elapsed, last_guardian_wave_at + 2.0)
+			last_guardian_wave_at = at
+			var first_index: int = schedule.size()
+			_add_wave(at, "pursuer", 1, 1)
+			_add_wave(at, "pursuer", 1, -1)
+			_add_wave(at, "chaser", 4, 0)
+			for index in range(first_index, schedule.size()):
+				schedule[index]["guardian_phase"] = guardian_thresholds.size()
+			note(run, "guardian_wave", {"threshold": threshold, "at": at})
+			run.events.append({"kind": "guardian_wave", "pos": run.player})
 
 
 func _add_wave(at: float, kind: String, amount: int, side: int, conditional: bool = false) -> void:
@@ -166,6 +195,8 @@ func update_schedule(run, delta: float) -> void:
 	for entry: Dictionary in schedule:
 		if entry.state in ["born", "cancelled"]:
 			continue
+		if int(entry.get("guardian_phase", 0)) == 2 and (guardian_first_warning < 0.0 or run.elapsed - guardian_first_warning < 2.0):
+			continue
 		if bool(entry.conditional) and run.encounters.elite_defeated and not bool(entry.warned_once):
 			entry.state = "cancelled"
 			note(run, "spawn_cancelled", {"event_id": entry.id, "reason": "elite_defeated"})
@@ -175,9 +206,12 @@ func update_schedule(run, delta: float) -> void:
 			if float(entry.timer) <= 0.0:
 				if Vector2(entry.pos).distance_to(run.player) >= SAFE_DISTANCE:
 					run.encounters.add_enemy(run, entry.kind, entry.pos)
-					if entry.kind == "chaser" and run.scenario_id in ["nana_build_s3", "nana_build_s4"]:
+					if not growth_mode and entry.kind == "chaser" and run.scenario_id in ["nana_build_s3", "nana_build_s4"]:
 						run.enemies[-1].hp = 32.0 if run.scenario_id == "nana_build_s3" else 26.0
 						run.enemies[-1].max_hp = run.enemies[-1].hp
+					if growth_mode and run.scenario_id == "nana_build_s4" and entry.kind == "elite":
+						run.enemies[-1].hp = 900.0
+						run.enemies[-1].max_hp = 900.0
 					if run.scenario_id == "nana_build_e3" and entry.kind == "elite":
 						run.enemies[-1].hp = 320.0
 						run.enemies[-1].max_hp = 320.0
@@ -201,6 +235,8 @@ func update_schedule(run, delta: float) -> void:
 			continue
 		entry.pos = point
 		entry.state = "warning"
+		if int(entry.get("guardian_phase", 0)) == 1 and guardian_first_warning < 0.0:
+			guardian_first_warning = run.elapsed
 		entry.warned_once = true
 		entry.timer = WARNING
 		note(run, "spawn_warning", {"event_id": entry.id, "enemy_kind": entry.kind, "pos": [point.x, point.y]})

@@ -4,6 +4,7 @@ extends RefCounted
 const NanaCombat := preload("res://scripts/nana_combat.gd")
 const NanaEncounters := preload("res://scripts/nana_encounters.gd")
 const NanaExperiment := preload("res://scripts/nana_experiment.gd")
+const GrowthRun := preload("res://scripts/nana_growth_run.gd")
 
 const DURATION: float = 180.0
 const WORLD := Vector2(2600, 1900)
@@ -113,6 +114,7 @@ var view_size := Vector2(1280, 720)
 var nana = NanaCombat.new()
 var encounters = NanaEncounters.new()
 var experiment = NanaExperiment.new()
+var growth = null
 var fixed_abilities: bool = false
 var drop_xp: bool = true
 var enemy_profile: String = "legacy"
@@ -125,6 +127,7 @@ func _init(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 
 func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "standard", scenario: String = "normal") -> void:
 	hunt_variant = "fast"
+	growth = null
 	character_id = animal if CHARACTERS.has(animal) else "hedgehog"
 	mode_id = mode if character_id == "hedgehog" and RUN_MODES.has(mode) else "standard"
 	scenario_id = scenario if SCENARIOS.has(scenario) and ((character_id == "nana" and (scenario == "normal" or scenario == "nana_growth" or scenario.begins_with("nana_pressure_") or scenario.begins_with("nana_build_") or NanaEncounters.ENCOUNTERS.has(scenario))) or (mode_id != "standard" and scenario in ["normal", "surround", "queue"])) else "normal"
@@ -182,6 +185,7 @@ func camera_origin() -> Vector2:
 
 
 func required_xp() -> int:
+	if growth != null: return growth.required(level)
 	return 5 + (level - 1) * 3
 
 
@@ -240,7 +244,7 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	var displacement: float = previous_position.distance_to(player)
 	if experiment.active and "b" in experiment.abilities and not firing and movement.length_squared() > 0.0:
 		var was_ready: bool = nana.movement_charge >= 260.0
-		nana.movement_charge = minf(260.0, nana.movement_charge + displacement)
+		nana.movement_charge = minf(520.0 if growth != null and int(experiment.levels.get("b", 1)) >= 3 else 260.0, nana.movement_charge + displacement)
 		if not was_ready and nana.movement_charge >= 260.0:
 			experiment.note(self, "charge_ready", {"engaged": experiment.engaged(self)})
 			events.append({"kind": "nana_ready", "pos": player})
@@ -249,7 +253,7 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	if direction.length_squared() > 0.01:
 		aim = direction.normalized()
 	if experiment.active:
-		nana.update_bite_target(self, nana.BITE_REACH * (1.4 if nana.ultimate_remaining > 0.0 else 1.0), nana.BITE_HALF_ANGLE)
+		nana.update_bite_target(self, nana.BITE_REACH * (1.4 if nana.ultimate_remaining > 0.0 else 1.0) * (1.0 + 0.1 * int(growth.common.reach) if growth != null else 1.0), nana.BITE_HALF_ANGLE)
 	shot_timer -= delta
 	if firing and shot_timer <= 0.0:
 		if character_id == "nana":
@@ -258,7 +262,8 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 			fire()
 			shot_timer = shot_interval()
 	if experiment.active:
-		experiment.update_schedule(self, delta)
+		if not (growth != null and scenario_id == "nana_build_s4" and encounters.elite_defeated):
+			experiment.update_schedule(self, delta)
 	elif scenario_id == "normal":
 		spawn_timer -= delta
 		if spawn_timer <= 0.0:
@@ -283,12 +288,29 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	if hp <= 0.0:
 		state = "lost"
 		offers.clear()
-	elif experiment.active and experiment.all_finished() and enemies.is_empty():
+	elif growth != null and scenario_id == "nana_build_s4" and encounters.elite_defeated:
+		for entry: Dictionary in experiment.schedule:
+			if entry.state not in ["born", "cancelled"]:
+				entry.state = "cancelled"
+				experiment.note(self, "spawn_cancelled", {"event_id": entry.id, "reason": "guardian_defeated"})
 		state = "won"
+	elif experiment.active and experiment.all_finished() and enemies.is_empty():
+		if growth != null and scenario_id != "nana_build_s4":
+			for pickup: Dictionary in pickups:
+				xp += int(pickup.value)
+				growth.total_xp += int(pickup.value)
+			pickups.clear()
+			growth.stage_complete_pending = true
+			if state == "playing": maybe_level_up()
+			if state == "playing":
+				growth.stage_complete_pending = false
+				state = "won"
+		else:
+			state = "won"
 	elif NanaEncounters.ENCOUNTERS.has(scenario_id) and enemies.is_empty():
 		state = "won"
 		offers.clear()
-	elif elapsed >= duration():
+	elif state == "playing" and elapsed >= duration():
 		elapsed = duration()
 		state = "unfinished" if experiment.active else ("lost" if NanaEncounters.ENCOUNTERS.has(scenario_id) or (scenario_id == "nana_growth" and not encounters.elite_defeated) else "won")
 		offers.clear()
@@ -342,11 +364,15 @@ func swing() -> void:
 	events.append({"kind": "swipe", "pos": player, "dir": aim, "reach": reach, "half_angle": half_angle})
 
 
-func damage_enemy(enemy: Dictionary, amount: float, source: String = "other") -> void:
+func damage_enemy(enemy: Dictionary, amount: float, source: String = "other", apply_growth: bool = true) -> void:
 	if float(enemy["hp"]) <= 0.0:
 		return
 	var previous_hp: float = float(enemy["hp"])
+	if growth != null and apply_growth:
+		amount *= 1.0 + 0.1 * int(growth.common.power)
 	enemy["hp"] = float(enemy["hp"]) - amount * (1.2 if float(enemy.get("vulnerable", 0.0)) > 0.0 else 1.0)
+	if growth != null and scenario_id == "nana_build_s4" and enemy.kind == "elite" and float(enemy.hp) > 0.0:
+		experiment.guardian_damaged(self, previous_hp, float(enemy.hp), float(enemy.max_hp))
 	if experiment.active:
 		experiment.note(self, "damage", {"target": int(enemy.id), "enemy_kind": enemy.kind, "source": source, "amount": minf(previous_hp, previous_hp - float(enemy.hp)), "hp_before": previous_hp, "hp_after": maxf(0.0, float(enemy.hp))})
 	if character_id == "nana":
@@ -366,7 +392,7 @@ func damage_enemy(enemy: Dictionary, amount: float, source: String = "other") ->
 			encounters.elite_defeated = true
 			hp = minf(max_hp, hp + 20.0)
 		if drop_xp:
-			var value: int = (8 if enemy["kind"] == "elite" else (2 if enemy["kind"] in ["charger", "thrower", "guard"] else 1)) if scenario_id == "nana_growth" else (2 if enemy["kind"] == "charger" else 1)
+			var value: int = (3 if enemy.kind == "pursuer" else (4 if enemy.kind in ["charger", "thrower"] else (6 if enemy.kind == "guard" else 1))) if growth != null else ((8 if enemy["kind"] == "elite" else (2 if enemy["kind"] in ["charger", "thrower", "guard"] else 1)) if scenario_id == "nana_growth" else (2 if enemy["kind"] == "charger" else 1))
 			pickups.append({"pos": enemy["pos"], "value": value})
 		events.append({"kind": "defeat", "pos": enemy["pos"]})
 
@@ -471,6 +497,10 @@ func take_damage(amount: float, source: String = "unknown") -> void:
 		return
 	var previous_hp: float = hp
 	hp = maxf(0.0, hp - amount)
+	if growth != null and hp < previous_hp and int(experiment.levels.get("a", 0)) >= 2:
+		nana.shadow_count = 0
+		nana.shadow_power = 0
+		nana.shadow_last_hit = -100.0
 	if character_id == "nana":
 		var taken: Dictionary = combat_metrics["damage_taken"]
 		taken[source] = float(taken.get(source, 0.0)) + previous_hp - hp
@@ -542,12 +572,21 @@ func collect_pickups(delta: float) -> void:
 			pickup["pos"] = Vector2(pickup["pos"]).move_toward(player, 420.0 * delta)
 		if Vector2(pickup["pos"]).distance_to(player) < 24.0:
 			xp += int(pickup["value"])
+			if growth != null: growth.total_xp += int(pickup["value"])
 			pickups.remove_at(index)
 			events.append({"kind": "pickup", "pos": player})
 	maybe_level_up()
 
 
 func maybe_level_up() -> void:
+	if growth != null:
+		if state == "playing" and hp > 0.0 and level < 7 and xp >= required_xp():
+			xp -= required_xp()
+			level += 1
+			state = "upgrade"
+			offers.assign(growth.make_offers(level))
+			experiment.note(self, "growth_offers", {"level": level, "offered": offers.duplicate()})
+		return
 	if not fixed_abilities and state == "playing" and hp > 0.0 and xp >= required_xp():
 		xp -= required_xp()
 		level += 1
@@ -582,6 +621,7 @@ func make_offers() -> void:
 
 
 func choose_upgrade(id: String) -> bool:
+	if growth != null: return growth.choose(self, id)
 	if state != "upgrade" or id not in offers:
 		return false
 	upgrades[id] = int(upgrades[id]) + 1

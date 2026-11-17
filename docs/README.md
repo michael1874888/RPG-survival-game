@@ -4,11 +4,11 @@
 
 目前優先工作：[第一版單一角色與敵人戰鬥設計](design/first-version-combat-plan.md)。主角已選定為寵物黑貓「奈奈」，先完成牠的攻擊與機制，再完成敵人設計，之後接續其他部分；保留其他角色的擴充空間。
 
-[奈奈與第一版敵人戰鬥設計草案 v1.1](design/nana-combat-design-v1.md) 含角色與敵人機制、成長、節奏與分段交付計畫；目前可玩範圍見 [奈奈 v0.16 追擊與夾擊](development/nana-v0.16-practice.md)。前版方向盤點見 [v0.9 設計 review](design/nana-v0.9-design-audit-2026-11-14.md)。
+[奈奈與第一版敵人戰鬥設計草案 v1.1](design/nana-combat-design-v1.md) 含角色與敵人機制、成長、節奏與分段交付計畫；目前可玩範圍見 [奈奈 v0.17 成長短局](development/nana-v0.17-practice.md)。前版方向盤點見 [v0.9 設計 review](design/nana-v0.9-design-audit-2026-11-14.md)。
 
-新 session 先讀根目錄 [交接文件](../HANDOFF.md)。先前的 [Balatro 式隨機構築研究](research/random-driven-combat-mode-feasibility-2026-11-14.md) 為後續選擇提供依據，隨機構築尚未實作。
+新 session 先讀根目錄 [交接文件](../HANDOFF.md)。先前的 [Balatro 式隨機構築研究](research/random-driven-combat-mode-feasibility-2026-11-14.md) 為後續選擇提供依據；v0.17 已實作小型受限隨機候選。
 
-v0.16 的疾追者已收到正向威脅感回饋，但使用者仍覺得缺少目標、成就感、回饋與重玩吸引力。下一步為 [v0.17 局內成長與構築回報提案](design/nana-growth-run-proposal-v0.17.md) 的設計 review；待確認後才實作，目前沒有新版 APK。
+v0.16 疾追者已有正向威脅感回饋，但整局重玩與成就感不足；v0.17 已實作經核准的局內成長與守關規則，待使用者試玩。
 
 ## 建議閱讀順序
 
@@ -27,6 +27,7 @@ v0.16 的疾追者已收到正向威脅感回饋，但使用者仍覺得缺少�
 | v0.2 | [角色對照](design/animal-attacks-poc-v0.2.md)：刺蝟遠距尖刺與小熊近距揮擊 |
 | v0.3 | [構築比較](design/build-comparison-poc-v0.3.md)：散射＋反彈與穿透＋攻速；含固定靶群分析 |
 | v0.4 | [陣形比較及收斂](design/formation-comparison-poc-v0.4.md)：包圍／隊列各 45 秒；近期保留反彈，穿透暫緩深化 |
+| v0.17 | [奈奈成長短局](development/nana-v0.17-practice.md)：經驗升級、核心成形與守關；待真人試玩 |
 | v0.16 | [奈奈追擊與夾擊](development/nana-v0.16-practice.md)：疾追者與多方向威脅；已收到實玩回饋 |
 | v0.15 | [奈奈戰鬥決策](development/nana-v0.15-practice.md)：遭遇與收招提示；已收到實玩回饋 |
 | v0.14 | [奈奈森林短局](development/nana-v0.14-practice.md)：四段戰鬥、段間選擇與精英終戰；已收到實玩回饋 |
@@ -40,7 +41,7 @@ v0.16 的疾追者已收到正向威脅感回饋，但使用者仍覺得缺少�
 | v0.6 | [奈奈戰鬥練習](development/nana-v0.6-practice.md)：追加重咬與四種普通敵人短情境 |
 | v0.5 | [奈奈手感試玩](development/nana-v0.5-practice.md)：連抓、重咬、主動大絕與追逐敵人 |
 
-v0.16 有 310 項規則與場景檢查通過；這與玩家爽感、平衡、設備相容性及完整階段驗收是不同層面的證據。使用者已提供的主觀回饋保留在各輪紀錄，不推論尚未提供的設備、場次或量測結果。
+v0.17 有 345 項規則與場景檢查通過；這與玩家爽感、平衡、設備相容性及完整階段驗收是不同層面的證據。使用者已提供的主觀回饋保留在各輪紀錄，不推論尚未提供的設備、場次或量測結果。
 
 ## 其他入口
 

@@ -171,7 +171,16 @@ func _initialize():
  run.nana.attack(run)
  run.nana.advance(run, 0.11)
  if run.experiment.counts.cash != 1: quit(1); return
- print("PACKAGED NANA RULES: combat, four-stage short run and pursuer chase/push passed")
+ if not series.begin(run, "a", true, true) or run.growth == null or not run.drop_xp: quit(1); return
+ run.xp = 32
+ run.maybe_level_up()
+ if run.state != "upgrade" or "a" not in run.offers or not run.choose_upgrade("a"): quit(1); return
+ if run.level != 3 or run.state != "upgrade" or not run.choose_upgrade(run.offers[0]): quit(1); return
+ if run.state != "playing" or run.growth.decisions.size() != 2: quit(1); return
+ run.state = "won"
+ if not series.collect(run) or not series.advance_growth(run) or run.level != 3: quit(1); return
+ if not run.experiment.saved_path.is_empty(): DirAccess.remove_absolute(run.experiment.saved_path)
+ print("PACKAGED NANA RULES: combat, legacy short run, growth XP and cross-stage progress passed")
  quit(0)
 '''
 
@@ -199,6 +208,7 @@ def main():
             for name in ('run_model.gdc', 'run_model.gd.remap',
                          'nana_experiment.gdc', 'nana_experiment.gd.remap',
                          'nana_series.gdc', 'nana_series.gd.remap',
+                         'nana_growth_run.gdc', 'nana_growth_run.gd.remap',
                          'nana_combat.gdc', 'nana_combat.gd.remap',
                          'nana_encounters.gdc', 'nana_encounters.gd.remap',
                          'combat_geometry.gdc', 'combat_geometry.gd.remap'):

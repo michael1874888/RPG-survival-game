@@ -113,7 +113,22 @@ func exercise_scene() -> void:
 	check(short_entry != null, "The title exposes the short run")
 	short_entry.pressed.emit()
 	find_button(scene.overlay, "游走蓄勢").pressed.emit()
-	check(scene.series.short_run and model.scenario_id == "nana_build_s1", "Short-run setup starts the first short scenario")
+	check(scene.series.short_run and scene.series.growth_mode and model.scenario_id == "nana_build_s1", "Short-run setup starts the growth scenario")
+	scene.touch.move_id = 51
+	scene.touch.aim_id = 52
+	model.xp = 12
+	model.maybe_level_up()
+	scene._sync_screen()
+	check(scene.screen == "upgrade" and find_button(scene.overlay, model.growth.label(model.offers[0]).split("\n")[0]) != null, "Growth XP opens real upgrade menu")
+	check(scene.touch.move_id == -1 and scene.touch.aim_id == -1, "Upgrade clears both active touch controls")
+	var selection: String = model.offers[0]
+	find_button(scene.overlay, model.growth.label(selection).split("\n")[0]).pressed.emit()
+	check(scene.screen == "playing" and model.level == 2, "Selecting a real card resumes play")
+	var stale_drag := InputEventScreenDrag.new()
+	stale_drag.index = 51
+	stale_drag.position = Vector2(150, 500)
+	scene.touch.handle(stale_drag, scene.size)
+	check(scene.touch.move_id == -1 and scene.touch.movement() == Vector2.ZERO, "Old finger drag cannot resume movement after upgrade")
 	for stage_index in 4:
 		model.state = "won"
 		model.enemies.clear()
@@ -122,7 +137,7 @@ func exercise_scene() -> void:
 		series_paths.append(model.experiment.saved_path)
 		if stage_index < 3:
 			check(scene.screen == "between", "Each short-run stage opens its intermission")
-			scene._advance_series(scene.series.choices()[0])
+			scene._advance_growth()
 	check(scene.series.finished and contains_label(scene.overlay, "完成 4 / 4 段"), "Fourth short-run victory reaches the final summary")
 	find_button(scene.overlay, "同開局，再挑戰").pressed.emit()
 	check(scene.series.short_run and model.scenario_id == "nana_build_s1", "Short-run retry preserves its mode")

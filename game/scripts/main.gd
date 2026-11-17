@@ -24,11 +24,13 @@ var pause_button: Button
 var ultimate_button: Button
 var ultimate_touches: Dictionary = {}
 var mouse_held: bool = false
+var keyboard_released: bool = true
 var mouse_position := Vector2.ZERO
 var effects: Array[Dictionary] = []
 var decorations: Array[Dictionary] = []
 var clock: float = 0.0
 var hurt_flash: float = 0.0
+var guardian_notice: float = 0.0
 var audio_player: AudioStreamPlayer
 var audio_buffer: AudioStreamGeneratorPlayback
 var audio_phase: float = 0.0
@@ -128,7 +130,8 @@ func _physics_process(delta: float) -> void:
 		var keyboard := Vector2(
 			float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
 			float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
-		if keyboard.length_squared() > 0.0:
+		if keyboard.length_squared() == 0.0: keyboard_released = true
+		if keyboard.length_squared() > 0.0 and keyboard_released:
 			movement = keyboard.normalized()
 		var direction: Vector2 = touch.aim_direction()
 		var firing: bool = touch.firing()
@@ -145,6 +148,7 @@ func _process(delta: float) -> void:
 	if run.experiment.active:
 		run.experiment.clock(delta, run.state)
 	hurt_flash = maxf(0.0, hurt_flash - delta)
+	guardian_notice = maxf(0.0, guardian_notice - delta)
 	for i in range(effects.size() - 1, -1, -1):
 		effects[i]["life"] = float(effects[i]["life"]) - delta
 		if float(effects[i]["life"]) <= 0.0:
@@ -166,6 +170,13 @@ func _consume_events() -> void:
 		if kind == "hurt":
 			hurt_flash = 0.20
 			tone_frequency = 170.0
+			tone_remaining = 0.12
+		elif kind == "guardian_wave":
+			guardian_notice = 1.8
+			tone_frequency = 300.0
+			tone_remaining = 0.18
+		elif kind == "growth_choice":
+			tone_frequency = 780.0
 			tone_remaining = 0.12
 		elif kind == "pickup":
 			tone_frequency = 960.0 + run.xp * 25.0
@@ -364,6 +375,7 @@ func _sync_screen() -> void:
 	if screen == run.state:
 		return
 	screen = run.state
+	keyboard_released = false
 	touch.clear()
 	ultimate_touches.clear()
 	mouse_held = false
@@ -372,6 +384,7 @@ func _sync_screen() -> void:
 	ultimate_button.visible = screen == "playing" and run.character_id == "nana"
 	match screen:
 		"paused": _show_pause()
+		"upgrade": _show_growth_upgrade()
 		"won", "lost", "unfinished":
 			if run.experiment.active:
 				run.experiment.save(run, screen)
@@ -548,8 +561,9 @@ func _show_series_setup(short_mode := false) -> void:
 	ultimate_button.hide()
 	var column: VBoxContainer = _make_overlay(940)
 	column.add_child(_label("奈奈 · 森林短局" if short_mode else "奈奈 · 三連戰", 32))
-	column.add_child(_label("開路 → 混合威脅 → 厚血追兵 → 精英終戰" if short_mode else "清路 → 混合威脅 → 強敵帶支援", 22, GOLD))
-	column.add_child(_label("選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。\n紅色尖耳是疾追者，移動較快且較耐打。" if short_mode else "選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。", 17, MUTED))
+	column.add_child(_label("清路 → 成長 → 追擊 → 擊敗守關者" if short_mode else "清路 → 混合威脅 → 強敵帶支援", 22, GOLD))
+	column.add_child(_label("選一個起手能力；打怪拾取經驗，升級選擇強化。\n最多兩個核心、一個三級；段間回復生命。\n擊敗守關者完成冒險。" if short_mode else "選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。", 17, MUTED))
+	if short_mode: column.add_child(_label("穿影：連擊更寬 · 游走：推開並存兩發 · 獵痕：持續追咬強敵", 15, GOLD))
 	for item in [["a", "穿影爪 · 連續命中，長條穿透"], ["b", "游走蓄勢 · 停手移動，換取爆發"], ["c", "獵痕重咬 · 追擊獵物，再咬兌現"]]:
 		column.add_child(_button("以「%s」開始" % item[1], _start_series.bind(str(item[0]))))
 	column.add_child(_button("回到起點", _show_title))
@@ -558,7 +572,7 @@ func _show_series_setup(short_mode := false) -> void:
 func _start_series(ability: String) -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
-	if not series.begin(run, ability, series.short_run):
+	if not series.begin(run, ability, series.short_run, series.short_run):
 		return
 	effects.clear()
 	hurt_flash = 0.0
@@ -577,12 +591,18 @@ func _show_series_between() -> void:
 	column.add_theme_constant_override("separation", 10)
 	column.add_child(_label("第 %d 段完成" % (series.stage + 1), 30))
 	var next_id: String = series.stages()[series.stage + 1]
-	column.add_child(_label("下一段：" + str(Run.SCENARIOS[next_id].name), 22, GOLD))
+	column.add_child(_label("下一段：" + ("追擊與清路" if series.growth_mode and next_id == "nana_build_s3" else str(Run.SCENARIOS[next_id].name)), 22, GOLD))
 	var next_hint: String = {"nana_build_s2": "疾追者、投擲者與衝撞者", "nana_build_s3": "疾追者、厚血追兵與守衛", "nana_build_s4": "疾追者、精英與投擲者", "nana_build_e2": "追逐者、投擲者、衝撞者與守衛", "nana_build_e3": "精英與持續追加的追逐者"}.get(next_id, "")
+	if series.growth_mode and next_id == "nana_build_s3": next_hint = "疾追者、追兵與守衛"
+	if series.growth_mode and next_id == "nana_build_s4": next_hint = "守關者與血量階段支援"
 	column.add_child(_label(next_hint, 16, MUTED))
 	column.add_child(_label("目前：" + _ability_names(run.experiment.abilities, series.levels), 16, MUTED))
-	column.add_child(_label("生命 %d → %d / 100　·　大絕冷卻 %.1f 秒" % [int(run.hp), int(series.snapshot.hp), run.nana.cooldown], 18))
+	column.add_child(_label("生命 %d → %d / %d　·　大絕冷卻 %.1f 秒" % [int(run.hp), int(series.snapshot.hp), int(run.max_hp), run.nana.cooldown], 18))
 	column.add_child(_label("選擇期間不計時；進入下一段才恢復戰鬥。", 16, MUTED))
+	if series.growth_mode:
+		column.add_child(_button("繼續冒險", _advance_growth, true))
+		column.add_child(_button("結束本輪，回到起點", _show_title))
+		return
 	column.add_child(_label("選一項：發展、加裝或替換", 18, GOLD))
 	var descriptions := {"a": "爪影也向身後延伸", "b": "蓄勢推開非獵痕敵人", "c": "兌現波及附近敵人"}
 	var cards := GridContainer.new()
@@ -608,6 +628,43 @@ func _show_series_between() -> void:
 	column.add_child(_button("結束本輪，回到起點", _show_title))
 
 
+func _advance_growth() -> void:
+	if not series.advance_growth(run): return
+	effects.clear()
+	hurt_flash = 0.0
+	screen = ""
+	_sync_screen()
+
+
+func _show_growth_upgrade() -> void:
+	if run.growth == null: return
+	var column: VBoxContainer = _make_overlay(980)
+	column.add_child(_label("成長！選擇一項", 30, GOLD))
+	column.add_child(_label("Lv.%d · 最多兩個核心，其中一個可升到三級" % run.level, 17, MUTED))
+	for id: String in run.offers:
+		var card := _button(run.growth.label(id), _choose_growth.bind(id))
+		card.add_theme_font_size_override("font_size", 18)
+		column.add_child(card)
+	column.add_child(_button("查看核心後續", _show_growth_details))
+	column.add_child(_label("選擇期間戰鬥暫停。選定後重新觸碰移動與攻擊。", 15, MUTED))
+
+
+func _show_growth_details() -> void:
+	var column: VBoxContainer = _make_overlay(980)
+	column.add_child(_label("核心發展", 30, GOLD))
+	column.add_child(_label("穿影爪：連擊提升爪影 → 滿連擊爪影變寬", 18))
+	column.add_child(_label("游走蓄勢：蓄勢爪推開敵人 → 最多儲存兩發", 18))
+	column.add_child(_label("獵痕重咬：兌現波及周圍 → 強敵存活時保留獵痕", 18))
+	column.add_child(_label("最多裝兩個核心；其中一個可升到三級。", 17, MUTED))
+	column.add_child(_button("返回選擇", _show_growth_upgrade, true))
+
+
+func _choose_growth(id: String) -> void:
+	if not run.choose_upgrade(id): return
+	screen = ""
+	_sync_screen()
+
+
 func _advance_series(choice: Dictionary) -> void:
 	if not series.advance(run, choice):
 		return
@@ -624,6 +681,16 @@ func _show_series_result() -> void:
 	for row in series.results:
 		var result_name: String = {"won": "完成", "lost": "失敗", "unfinished": "未完成"}[row.result]
 		column.add_child(_label("第 %d 段 %s · %s · %.1f 秒 · 生命 %d" % [row.stage, result_name, _ability_names(row.abilities, row.levels), row.time, int(row.hp)], 16, MUTED))
+	if series.growth_mode and run.growth != null:
+		var c: Dictionary = {"shadow": 0, "charged": 0, "cash": 0}
+		for row in series.results:
+			for key in c: c[key] += int(row.counts.get(key, 0))
+		column.add_child(_label("本局：爪影 %d 次 · 蓄勢命中 %d 次 · 獵痕兌現 %d 次" % [c.shadow, c.charged, c.cash], 15, GOLD))
+		column.add_child(_label("利爪 %d · 伸展 %d · 護身 %d" % [run.growth.common.power, run.growth.common.reach, run.growth.common.vitality], 15, MUTED))
+		var choices: Array[String] = []
+		for decision: Dictionary in run.growth.decisions:
+			choices.append({"a": "穿影", "b": "游走", "c": "獵痕", "power": "利爪", "reach": "伸展", "vitality": "護身"}.get(decision.id, decision.id))
+		column.add_child(_label("成長順序：" + (" → ".join(choices) if not choices.is_empty() else "尚未升級"), 14, MUTED))
 	if series.save_failures > 0:
 		column.add_child(_label("有 %d 段觀察紀錄無法儲存" % series.save_failures, 15, Color("ffb58e")))
 	column.add_child(_button("同開局，再挑戰" if series.short_run else "同開局，再挑戰三連戰", _start_series.bind(series.opening), true))
@@ -850,17 +917,32 @@ func _draw_hud() -> void:
 	var trial: bool = run.scenario_id != "normal"
 	var timer: float = ceilf(maxf(0.0, run.duration() - run.elapsed)) if trial else run.elapsed
 	draw_string(bold_font, Vector2(size.x * 0.5 - 42, 49), _format_time(timer), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, CREAM)
-	draw_string(font, Vector2(size.x * 0.5 - 65, 72), "存活並擊敗精英" if run.scenario_id == "nana_growth" else (("生存挑戰 · 剩餘時間" if run.scenario_id.begins_with("nana_pressure_") else "清除敵人 · 剩餘時間") if trial and run.character_id == "nana" else ("情境剩餘時間" if trial else "存活目標 03:00")), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, MUTED)
+	draw_string(font, Vector2(size.x * 0.5 - 65, 72), "擊敗守關者" if run.growth != null and run.scenario_id == "nana_build_s4" else "存活並擊敗精英" if run.scenario_id == "nana_growth" else (("生存挑戰 · 剩餘時間" if run.scenario_id.begins_with("nana_pressure_") else "清除敵人 · 剩餘時間") if trial and run.character_id == "nana" else ("情境剩餘時間" if trial else "存活目標 03:00")), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, MUTED)
+	if run.growth != null and run.scenario_id == "nana_build_s4":
+		if guardian_notice > 0.0: draw_string(bold_font, Vector2(size.x * 0.5 - 65, 140), "敵人支援即將到來！", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, GOLD)
+		for enemy: Dictionary in run.enemies:
+			if enemy.kind == "elite" and float(enemy.hp) > 0.0:
+				draw_string(bold_font, Vector2(size.x * 0.5 - 150, 96), "守關者", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, GOLD)
+				draw_rect(Rect2(size.x * 0.5 - 150, 103, 300, 9), Color("452d31"))
+				draw_rect(Rect2(size.x * 0.5 - 150, 103, 300 * float(enemy.hp) / float(enemy.max_hp), 9), Color("e37b76"))
+				for threshold in [0.33, 0.66]: draw_line(Vector2(size.x * 0.5 - 150 + 300 * threshold, 101), Vector2(size.x * 0.5 - 150 + 300 * threshold, 114), CREAM, 2)
+				break
 	var score: String = "擊敗 %d" % run.kills if run.character_id == "nana" else "擊敗 %d  ·  Lv.%d" % [run.kills, run.level]
 	draw_string(font, Vector2(size.x - 302, 53), score, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, CREAM)
 	if run.character_id == "nana":
 		draw_string(font, Vector2(40, 118), "重咬準備 %d / 3" % run.nana.bite_charge, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, GOLD)
-		draw_string(font, Vector2(40, 142), "Lv.%d  經驗 %d / %d" % [run.level, run.xp, run.required_xp()] if run.scenario_id == "nana_growth" else "連抓命中累積 · 朝目標重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, CREAM)
+		draw_string(font, Vector2(40, 142), ("構築完成 · Lv.7" if run.level >= 7 else "Lv.%d  經驗 %d / %d" % [run.level, run.xp, run.required_xp()]) if run.growth != null or run.scenario_id == "nana_growth" else "連抓命中累積 · 朝目標重咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, CREAM)
+		if run.growth != null and run.level < 7:
+			draw_rect(Rect2(40, 146, 200, 6), Color("345b47"))
+			draw_rect(Rect2(40, 146, 200 * minf(1.0, float(run.xp) / run.required_xp()), 6), GOLD)
 		if run.experiment.active:
 			if "a" in run.experiment.abilities:
-				draw_string(font, Vector2(40, 166), "穿影 Lv.%d ◇ %d / 3" % [run.experiment.levels.get("a", 1), run.nana.shadow_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("9deaff"))
+				draw_string(font, Vector2(40, 166), "穿影 Lv.%d ◇ %d / 3 · 威力 %d" % [run.experiment.levels.get("a", 1), run.nana.shadow_count, run.nana.shadow_power] if run.growth != null else "穿影 Lv.%d ◇ %d / 3" % [run.experiment.levels.get("a", 1), run.nana.shadow_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("9deaff"))
 			if "b" in run.experiment.abilities:
-				draw_string(font, Vector2(40, 190), "蓄勢 Lv.%d %d%%" % [run.experiment.levels.get("b", 1), int(100.0 * run.nana.movement_charge / 260.0)], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
+				var charge_label: String = "蓄勢 Lv.%d %d%%" % [run.experiment.levels.get("b", 1), int(100.0 * run.nana.movement_charge / 260.0)]
+				if run.growth != null and int(run.experiment.levels.get("b", 1)) >= 3:
+					charge_label = "蓄勢 Lv.3　%d / 2 發 · %d%%" % [int(run.nana.movement_charge / 260.0), int(fmod(run.nana.movement_charge, 260.0) / 260.0 * 100.0)]
+				draw_string(font, Vector2(40, 190), charge_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
 			if "c" in run.experiment.abilities:
 				draw_string(font, Vector2(40, 214), "獵痕 Lv.%d：%s" % [run.experiment.levels.get("c", 1), "追蹤中" if run.nana.has_prey() else "等待重咬"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ff9eac"))
 			if "b" in run.experiment.abilities and "c" in run.experiment.abilities:

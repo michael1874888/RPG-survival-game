@@ -25,6 +25,7 @@ var sweep_count: int = 0
 var marked_target_id: int = -1
 var marker_remaining: float = 0.0
 var shadow_count: int = 0
+var shadow_power: int = 0
 var shadow_last_hit: float = -100.0
 var pending_shadows: Array[Dictionary] = []
 var movement_charge: float = 0.0
@@ -43,6 +44,7 @@ func reset() -> void:
 	marked_target_id = -1
 	marker_remaining = 0.0
 	shadow_count = 0
+	shadow_power = 0
 	shadow_last_hit = -100.0
 	pending_shadows.clear()
 	movement_charge = 0.0
@@ -53,8 +55,9 @@ func reset() -> void:
 
 func advance(run, delta: float) -> void:
 	if run.experiment.active:
-		if shadow_count > 0 and run.elapsed - shadow_last_hit > 1.2:
+		if (shadow_count > 0 or shadow_power > 0) and run.elapsed - shadow_last_hit > 1.2:
 			shadow_count = 0
+			shadow_power = 0
 		if prey_remaining > 0.0:
 			prey_remaining = maxf(0.0, prey_remaining - delta)
 			if prey_remaining <= 0.0:
@@ -66,16 +69,18 @@ func advance(run, delta: float) -> void:
 			if float(shadow.remaining) <= 0.0:
 				var hits := 0
 				var directions: Array[Vector2] = [shadow.dir]
-				if int(run.experiment.levels.get("a", 1)) >= 2:
+				if run.growth == null and int(run.experiment.levels.get("a", 1)) >= 2:
 					directions.append(-Vector2(shadow.dir))
 				var seen: Dictionary = {}
+				var shadow_length: float = float(shadow.get("length", SHADOW_LENGTH))
+				var shadow_width: float = float(shadow.get("width", SHADOW_WIDTH))
 				for direction: Vector2 in directions:
 					for enemy: Dictionary in run.enemies:
-						if float(enemy.hp) > 0.0 and not seen.has(int(enemy.id)) and CombatGeometry.rectangle_circle(shadow.pos, direction, enemy.pos, float(enemy.radius), SHADOW_LENGTH, SHADOW_WIDTH):
+						if float(enemy.hp) > 0.0 and not seen.has(int(enemy.id)) and CombatGeometry.rectangle_circle(shadow.pos, direction, enemy.pos, float(enemy.radius), shadow_length, shadow_width):
 							seen[int(enemy.id)] = true
-							run.damage_enemy(enemy, 8.0, "shadow")
+							run.damage_enemy(enemy, float(shadow.get("damage", 8.0)), "shadow", run.growth == null)
 							hits += 1
-					run.events.append({"kind": "nana_shadow", "pos": shadow.pos, "dir": direction, "reach": SHADOW_LENGTH, "width": SHADOW_WIDTH})
+					run.events.append({"kind": "nana_shadow", "pos": shadow.pos, "dir": direction, "reach": shadow_length, "width": shadow_width})
 				run.experiment.counts.shadow_hits += hits
 				run.experiment.note(run, "shadow_resolved", {"hits": hits})
 				pending_shadows.remove_at(i)
@@ -110,6 +115,9 @@ func advance(run, delta: float) -> void:
 				if is_prey:
 					run.experiment.counts.cash += 1
 					run.experiment.note(run, "mark_cash", {"target": int(enemy.id)})
+					if run.growth != null and int(run.experiment.levels.get("c", 1)) >= 3 and float(enemy.hp) > 0.0:
+						prey_id = int(enemy.id)
+						prey_remaining = -1.0
 					if int(run.experiment.levels.get("c", 1)) >= 2:
 						var wave_hits := 0
 						for other: Dictionary in run.enemies:
@@ -137,7 +145,7 @@ func attack(run) -> float:
 	var sweeping: bool = int(run.upgrades["sweep"]) > 0
 	var hunting: bool = int(run.upgrades["hunt"]) > 0
 	var empowered: bool = ultimate_remaining > 0.0
-	var reach_multiplier: float = 1.4 if empowered else 1.0
+	var reach_multiplier: float = (1.4 if empowered else 1.0) * (1.0 + 0.1 * int(run.growth.common.reach) if run.growth != null else 1.0)
 	var damage_multiplier: float = (1.5 if empowered else 1.0) * (1.0 + 0.15 * int(run.upgrades["damage"]) + 0.03 * int(run.upgrades["micro_damage"]))
 	var reach: float = (175.0 if hunting else CLAW_REACH) * reach_multiplier * (1.0 + 0.1 * int(run.upgrades["reach"]))
 	var half_angle: float = (BITE_HALF_ANGLE if hunting else (deg_to_rad(70.0) if sweeping else CLAW_HALF_ANGLE)) + deg_to_rad(7.5 * int(run.upgrades["wide"]))
@@ -189,7 +197,7 @@ func attack(run) -> float:
 	last_attack_was_bite = false
 	if run.experiment.active and charged:
 		if hit_any:
-			movement_charge = 0.0
+			movement_charge = maxf(0.0, movement_charge - 260.0) if run.growth != null else 0.0
 			run.experiment.counts.charged += 1
 			run.experiment.counts.charged_hits += claw_targets.size()
 			run.experiment.note(run, "charged_hit", {"hits": claw_targets.size(), "engaged": engaged_before})
@@ -200,11 +208,20 @@ func attack(run) -> float:
 	if run.experiment.active and "a" in run.experiment.abilities and hit_any:
 		if run.elapsed - shadow_last_hit > 1.2:
 			shadow_count = 0
+			shadow_power = 0
 		shadow_last_hit = run.elapsed
 		shadow_count += 1
 		if shadow_count == 3:
 			shadow_count = 0
-			pending_shadows.append({"remaining": 0.12, "pos": run.player, "dir": run.aim})
+			var shadow: Dictionary = {"remaining": 0.12, "pos": run.player, "dir": run.aim}
+			if run.growth != null:
+				if int(run.experiment.levels.get("a", 1)) >= 2:
+					shadow_power = mini(3, shadow_power + 1)
+				else: shadow_power = 1
+				shadow["damage"] = (8.0 + 4.0 * float(shadow_power - 1)) * (1.0 + 0.1 * int(run.growth.common.power))
+				shadow["width"] = 180.0 if int(run.experiment.levels.get("a", 1)) >= 3 and shadow_power == 3 else SHADOW_WIDTH
+				shadow["length"] = SHADOW_LENGTH * (1.0 + 0.1 * int(run.growth.common.reach))
+			pending_shadows.append(shadow)
 			run.experiment.counts.shadow += 1
 			run.experiment.note(run, "shadow_trigger")
 	if bite_charge == 3 and pending_bite.is_empty():
