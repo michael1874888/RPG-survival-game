@@ -113,6 +113,13 @@ func _setup_audio() -> void:
 	audio_buffer = audio_player.get_stream_playback() as AudioStreamGeneratorPlayback
 
 
+func _exit_tree() -> void:
+	if is_instance_valid(audio_player):
+		audio_player.stop()
+		audio_player.stream = null
+	audio_buffer = null
+
+
 func _audio_tick(delta: float) -> void:
 	if audio_buffer == null:
 		return
@@ -801,7 +808,7 @@ func _draw() -> void:
 	var camera: Vector2 = run.camera_origin()
 	build_preview_id = -1
 	if run.experiment.active:
-		var bite_reach: float = run.nana.BITE_REACH * (1.4 if run.nana.ultimate_remaining > 0.0 else 1.0)
+		var bite_reach: float = run.nana.BITE_REACH * (1.4 if run.nana.ultimate_remaining > 0.0 else 1.0) * (1.0 + 0.1 * int(run.growth.common.reach) if run.growth != null else 1.0)
 		var preview: Dictionary = run.nana.bite_target(run, bite_reach, run.nana.BITE_HALF_ANGLE)
 		if not preview.is_empty():
 			build_preview_id = int(preview.id)
@@ -841,7 +848,7 @@ func _draw() -> void:
 		draw_circle(pos, 8.0, Color("f07870"))
 		draw_arc(pos, 11.0, 0.0, TAU, 20, CREAM, 2.0, true)
 	_draw_nana(run.player - camera)
-	if run.experiment.active and run.nana.movement_charge >= 260.0:
+	if run.experiment.active and run.nana.movement_charge >= (run.growth.charge_cost() if run.r1 != null else 260.0):
 		draw_arc(run.player - camera, 32.0, -PI * 0.35, PI * 0.35, 18, GOLD, 4.0, true)
 	for effect: Dictionary in effects:
 		var progress: float = 1.0 - float(effect["life"]) / float(effect["max_life"])

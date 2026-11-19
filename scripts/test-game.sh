@@ -26,3 +26,6 @@ run_checks res://tests/nana_series_tests.gd '^SERIES RESULT: [0-9]+ checks, 0 fa
 run_checks res://tests/nana_growth_tests.gd '^GROWTH RESULT: [0-9]+ checks, 0 failures$'
 run_checks res://tests/treasure_tests.gd '^TREASURE RESULT: [0-9]+ checks, 0 failures$'
 run_checks res://tests/scene_flow.gd '^SCENE RESULT: [0-9]+ checks, 0 failures$'
+run_checks res://tests/r1_tests.gd '^R1 RESULT: [0-9]+ checks, 0 failures$'
+run_checks res://tests/r1_mechanics.gd '^R1 MECHANICS: [0-9]+ checks, 0 failures$'
+run_checks res://tests/r1_scene_flow.gd '^R1 SCENE RESULT: [0-9]+ checks, 0 failures$'

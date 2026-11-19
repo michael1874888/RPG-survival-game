@@ -115,6 +115,7 @@ var nana = NanaCombat.new()
 var encounters = NanaEncounters.new()
 var experiment = NanaExperiment.new()
 var growth = null
+var r1 = null
 var fixed_abilities: bool = false
 var drop_xp: bool = true
 var enemy_profile: String = "legacy"
@@ -128,6 +129,7 @@ func _init(seed_value: int = 0, animal: String = "hedgehog", mode: String = "sta
 func reset(seed_value: int = 0, animal: String = "hedgehog", mode: String = "standard", scenario: String = "normal") -> void:
 	hunt_variant = "fast"
 	growth = null
+	r1 = null
 	character_id = animal if CHARACTERS.has(animal) else "hedgehog"
 	mode_id = mode if character_id == "hedgehog" and RUN_MODES.has(mode) else "standard"
 	scenario_id = scenario if SCENARIOS.has(scenario) and ((character_id == "nana" and (scenario == "normal" or scenario == "nana_growth" or scenario.begins_with("nana_pressure_") or scenario.begins_with("nana_build_") or NanaEncounters.ENCOUNTERS.has(scenario))) or (mode_id != "standard" and scenario in ["normal", "surround", "queue"])) else "normal"
@@ -191,6 +193,9 @@ func required_xp() -> int:
 
 func move_speed() -> float:
 	if character_id == "nana":
+		if r1 != null:
+			var bonus: float = 0.06 * int(growth.common.speed) + (0.05 if r1.charm == "U02" else 0.0)
+			return 260.0 * (1.0 + minf(0.25, bonus))
 		return 260.0 * (1.0 + 0.08 * int(upgrades["speed"]))
 	return minf(490.0, 245.0 * (1.0 + 0.10 * int(upgrades["speed"])))
 
@@ -243,9 +248,11 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 		Vector2.ONE * 30.0, WORLD - Vector2.ONE * 30.0)
 	var displacement: float = previous_position.distance_to(player)
 	if experiment.active and "b" in experiment.abilities and not firing and movement.length_squared() > 0.0:
-		var was_ready: bool = nana.movement_charge >= 260.0
-		nana.movement_charge = minf(520.0 if growth != null and int(experiment.levels.get("b", 1)) >= 3 and growth.b_branch == "double" else 260.0, nana.movement_charge + displacement)
-		if not was_ready and nana.movement_charge >= 260.0:
+		var charge_cost: float = growth.charge_cost() if r1 != null else 260.0
+		var charge_limit: float = growth.charge_limit() if r1 != null else (520.0 if growth != null and int(experiment.levels.get("b", 1)) >= 3 and growth.b_branch == "double" else 260.0)
+		var was_ready: bool = nana.movement_charge >= charge_cost
+		nana.movement_charge = minf(charge_limit, nana.movement_charge + displacement)
+		if not was_ready and nana.movement_charge >= charge_cost:
 			experiment.note(self, "charge_ready", {"engaged": experiment.engaged(self)})
 			events.append({"kind": "nana_ready", "pos": player})
 	if character_id == "nana":
@@ -261,6 +268,12 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 		else:
 			fire()
 			shot_timer = shot_interval()
+	if r1 != null and experiment.boss_defeated:
+		# Boss death wins before surviving enemy attacks in the same simulation step.
+		enemies.clear()
+		encounters.enemy_projectiles.clear()
+		state = "won"
+		return
 	if experiment.active:
 		if not (growth != null and scenario_id == "nana_build_s4" and encounters.elite_defeated):
 			experiment.update_schedule(self, delta)
@@ -282,6 +295,8 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	else:
 		update_enemies(delta)
 	update_projectiles(delta)
+	if r1 != null:
+		r1.resolve_damage(self)
 	collect_pickups(delta)
 	if experiment.active:
 		experiment.observe(self, delta, movement, firing, displacement)
@@ -310,7 +325,7 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	elif NanaEncounters.ENCOUNTERS.has(scenario_id) and enemies.is_empty():
 		state = "won"
 		offers.clear()
-	elif state == "playing" and elapsed >= duration():
+	elif r1 == null and state == "playing" and elapsed >= duration():
 		elapsed = duration()
 		state = "unfinished" if experiment.active else ("lost" if NanaEncounters.ENCOUNTERS.has(scenario_id) or (scenario_id == "nana_growth" and not encounters.elite_defeated) else "won")
 		offers.clear()
@@ -371,6 +386,8 @@ func damage_enemy(enemy: Dictionary, amount: float, source: String = "other", ap
 	if growth != null and apply_growth:
 		amount *= 1.0 + 0.1 * int(growth.common.power)
 	enemy["hp"] = float(enemy["hp"]) - amount * (1.2 if float(enemy.get("vulnerable", 0.0)) > 0.0 else 1.0)
+	if r1 != null:
+		experiment.on_enemy_damage(self, enemy, previous_hp)
 	if growth != null and scenario_id == "nana_build_s4" and enemy.kind == "elite" and float(enemy.hp) > 0.0:
 		experiment.guardian_damaged(self, previous_hp, float(enemy.hp), float(enemy.max_hp))
 	if experiment.active:
@@ -391,12 +408,12 @@ func damage_enemy(enemy: Dictionary, amount: float, source: String = "other", ap
 		kills += 1
 		if character_id == "nana":
 			combat_metrics["defeats"].append({"kind": enemy["kind"], "time": elapsed, "id": enemy.id, "born_at": enemy.get("born_at", 0.0)})
-		if enemy["kind"] == "elite":
+		if enemy["kind"] == "elite" and r1 == null:
 			encounters.elite_defeated = true
 			hp = minf(max_hp, hp + 20.0)
 		if drop_xp:
-			var value: int = (3 if enemy.kind == "pursuer" else (4 if enemy.kind in ["charger", "thrower"] else (6 if enemy.kind == "guard" else 1))) if growth != null else ((8 if enemy["kind"] == "elite" else (2 if enemy["kind"] in ["charger", "thrower", "guard"] else 1)) if scenario_id == "nana_growth" else (2 if enemy["kind"] == "charger" else 1))
-			pickups.append({"pos": enemy["pos"], "value": value})
+			var value: int = int(enemy.get("xp_value", 0)) if r1 != null else ((3 if enemy.kind == "pursuer" else (4 if enemy.kind in ["charger", "thrower"] else (6 if enemy.kind == "guard" else 1))) if growth != null else ((8 if enemy["kind"] == "elite" else (2 if enemy["kind"] in ["charger", "thrower", "guard"] else 1)) if scenario_id == "nana_growth" else (2 if enemy["kind"] == "charger" else 1)))
+			if value > 0: pickups.append({"pos": enemy["pos"], "value": value})
 		events.append({"kind": "defeat", "pos": enemy["pos"]})
 
 
@@ -498,9 +515,18 @@ func apply_heavy_hit(enemy: Dictionary) -> void:
 func take_damage(amount: float, source: String = "unknown") -> void:
 	if state != "playing" or invulnerability > 0.0:
 		return
+	if r1 != null:
+		r1.queue_damage(amount, source)
+		return
+	apply_damage_now(amount, source)
+
+
+func apply_damage_now(amount: float, source: String = "unknown") -> void:
+	if state != "playing" or invulnerability > 0.0:
+		return
 	var previous_hp: float = hp
 	hp = maxf(0.0, hp - amount)
-	if growth != null and hp < previous_hp and int(experiment.levels.get("a", 0)) >= 2:
+	if growth != null and hp < previous_hp and int(experiment.levels.get("a", 0)) >= (1 if r1 != null else 2):
 		nana.shadow_count = 0
 		nana.shadow_power = 0
 		nana.shadow_last_hit = -100.0
@@ -571,9 +597,9 @@ func collect_pickups(delta: float) -> void:
 	for index in range(pickups.size() - 1, -1, -1):
 		var pickup: Dictionary = pickups[index]
 		var distance: float = Vector2(pickup["pos"]).distance_to(player)
-		if distance < 100.0:
+		if distance < (160.0 if r1 != null and r1.charm == "U03" else 100.0):
 			pickup["pos"] = Vector2(pickup["pos"]).move_toward(player, 420.0 * delta)
-		if Vector2(pickup["pos"]).distance_to(player) < 24.0:
+		if Vector2(pickup["pos"]).distance_to(player) < (20.0 if r1 != null else 24.0):
 			xp += int(pickup["value"])
 			if growth != null: growth.total_xp += int(pickup["value"])
 			pickups.remove_at(index)
@@ -583,7 +609,7 @@ func collect_pickups(delta: float) -> void:
 
 func maybe_level_up() -> void:
 	if growth != null:
-		if state == "playing" and hp > 0.0 and level < 7 and xp >= required_xp():
+		if state == "playing" and hp > 0.0 and level < (11 if r1 != null else 7) and xp >= required_xp():
 			xp -= required_xp()
 			level += 1
 			state = "upgrade"

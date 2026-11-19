@@ -1,12 +1,14 @@
 # RPG-survival-game：下一個 session 交接
 
-更新：2026-11-19。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`，分支 `main`。
+更新：2026-11-20。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`。v0.20 從 `fb44f07` 的 `main` 開發，整理於 `feature/nana-v0.20-r1`；接手前重新查 `git status --short --branch` 和遠端分支狀態。
 
 **開發取捨（使用者確認）：**優先沿主線以小里程碑推進；不影響當前方向的問題先記錄，留待相關階段處理，避免發散。可能改變核心玩法、操作或構築方向，或阻礙下一里程碑的問題，先釐清。具體方向見 [開發路線](docs/design/development-roadmap.md)。
 
-**最新進度（2026-11-18，v0.19）：**已依使用者確認實作回身鈴鐺；完成第三段取得並永久收藏，下局可選裝備，B2 提前追咬並鎖定成形路線。裝鈴鐺時共通強化最多三級，以維持合法候選；不裝備時保留原有 B3 分支。APK 與驗證見 [v0.19 試玩說明](docs/development/nana-v0.19-practice.md)，真人手機試玩待進行。修改尚未提交。
+**最新工作（2026-11-20，v0.20 / D1 R1）：**玩家回報 v0.19 感受改善、想試新取得裝備，先要求完整設計、確認後實作，隨後明確說「好 開始實作」。目前已實作首章九戰、六成形、15 天賦、六件首章寶物、六路線事件、收藏／續玩／練習／結果及 Android 試玩包。[主設計](docs/design/nana-full-version-design-v1.md)、[內容表](docs/design/nana-full-version-content-v1.md)、[製作／試玩／發布門檻](docs/design/nana-full-version-release-plan-v1.md)、[v0.20 試玩說明](docs/development/nana-v0.20-practice.md)。R1 真人和手機驗收尚未完成，R2 完整首發內容與 R3 發布候選尚未完成。
 
-**先前進度（2026-11-18，v0.18）：**依使用者確認實作 B 三級兩條分支。成長選 B3 時可選雙發蓄勢或回身追咬，後者在成功推開存活目標後標記 2 秒，下一爪命中追加傷害。v0.18 Android debug APK 已建置並驗簽，最新匯出位於 SSD。玩家覺得回身追咬打最後守關者較輕鬆，雙發蓄勢在一般戰況較輕鬆。願意試不同路線，玩完後再開一局的意願仍不強。完整自動測試 356 項及封裝後分支規則通過；自動對照都在守關失敗，非真人勝率。詳細見 [v0.18 試玩紀錄](docs/development/nana-v0.18-practice.md)。版本修改尚未提交。
+**先前進度（2026-11-19，v0.19）：**回身鈴鐺已實作、匯出並推送至 `main`，提交 `fb44f07`。完成第三段取得並永久收藏，下局可選裝備，B2 提前追咬並鎖定成形路線；該版與 v0.20 的共通成長上限不同。已收到上述整體體感與首次試用動機回饋；設備、存檔細項與跨日重玩尚未提供。APK 與開發驗證見 [v0.19 試玩說明](docs/development/nana-v0.19-practice.md)。
+
+**先前進度（2026-11-18，v0.18）：**依使用者確認實作 B 三級兩條分支。成長選 B3 時可選雙發蓄勢或回身追咬，後者在成功推開存活目標後標記 2 秒，下一爪命中追加傷害。v0.18 Android debug APK 已建置並驗簽。玩家覺得回身追咬打最後守關者較輕鬆，雙發蓄勢在一般戰況較輕鬆。願意試不同路線，玩完後再開一局的意願仍不強。完整自動測試 356 項及封裝後分支規則通過；自動對照都在守關失敗，非真人勝率。詳細見 [v0.18 試玩紀錄](docs/development/nana-v0.18-practice.md)。相關原始碼已隨 v0.19 整理推送。
 
 **先前進度（2026-11-18，v0.17）：**v0.17 R1 已完成、整理並推送至 `main`；成長短局、受限選項、三級能力、守關支援及 Android APK 已交付，已收到[首輪回饋](docs/design/poc-feedback-and-followups.md#v017-成長與重玩回饋2026-11-18)：A／B 會改變打法，能力在守關有用，紅怪追擊壓力最明顯，中途較少想停，但持續重玩意願普通。[試玩說明](docs/development/nana-v0.17-practice.md)／[設計規格](docs/design/nana-growth-run-proposal-v0.17.md)。自動控制器無無敵的三次開局均在守關失敗，受保護版本能完成；不能由自動結果推論真人勝率或樂趣。
 
@@ -18,18 +20,18 @@
 
 使用者追加確認「操作順，但敵人太好處理，沒什麼需要判斷」，並指示開始 v0.15。已調整遭遇與決策提示；不是基礎攻擊已完整驗收。
 
-**最新可玩版本為 v0.19.0：回身鈴鐺收藏與裝備已實作，待真人手機試玩。** [v0.19 試玩說明](docs/development/nana-v0.19-practice.md)。
+**最新可玩版本為 v0.20.0 R1：首章完整循環已交付供試玩，尚未達首發／上架候選。** [v0.20 試玩說明](docs/development/nana-v0.20-practice.md)。`v1.0` 是三章及發布品質全部完成後的目標。
 
 ## 1. 接手後先做什麼
 
-**v0.19 優先入口：**先讀 [v0.19 試玩說明](docs/development/nana-v0.19-practice.md) 與 [鈴鐺設計](docs/design/nana-treasure-proposal-v0.19.md)，確認手機試玩和收藏動機回饋。v0.18 分支回饋與開發證據見[回饋紀錄](docs/design/poc-feedback-and-followups.md)及[交接](docs/development/handoff-v0.18.md)。
+**目前優先入口：**先讀 [v0.20 試玩說明](docs/development/nana-v0.20-practice.md)、D1 三份文件及[最新回饋](docs/design/poc-feedback-and-followups.md)。使用者已授權開始實作；優先收集 R1 真正遊玩的手感、取捨及重玩感受。v0.19 規則以其歷史文件為準，不拿新版數值解讀舊 APK。
 
-1. 先讀 [v0.17 試玩說明](docs/development/nana-v0.17-practice.md) 與 [成長短局規格](docs/design/nana-growth-run-proposal-v0.17.md)。接續首輪回饋討論同一起手的打法分歧與跨局收藏，下一版範圍待定。
-2. 查看 [v0.17 固定控制器紀錄](docs/development/short-run-probe-v0.17.txt)：無無敵 A／B／C 都在終段失敗，測試專用無敵時完成；不是玩家勝率。
-3. v0.17 原始碼與文件已提交並推送；用 `git log -1` 和 `git status --short --branch` 確認目前工作樹及遠端狀態。
-4. 舊版 [v0.12 三連戰](docs/development/nana-v0.12-practice.md)和獨立固定能力實驗仍保留，作為開發比較；APK 保存位置見 [建置收據](tools/android-build.json)。
+1. 試玩首局、自然決定是否換裝再出發；觀察戰鬥是否需要判斷、至少兩次升級取捨及取得裝備後的自主目標。
+2. 核對手機安裝更新、雙手操作、切背景與存檔；本機 adb 沒有偵測到裝置。iOS 的早期檢查因只有 Command Line Tools、沒有可用 Xcode 而阻塞。
+3. 固定控制器在三個起手各跑一次，戰鬥時間約 148–165 秒、瞬間瞄準且跳過獎勵，不代表真人；與 8–10 分鐘設計假設差距大，是要請玩家觀察的節奏風險。
+4. 用 `git log -1` 和 `git status --short --branch` 確認目前提交與工作樹；APK 路徑與雜湊見 [建置收據](tools/android-build.json)。
 
-**授權界線：**使用者已確認實作 v0.17 R1；局外養成、商店、正式十分鐘與新 Boss 未在本輪範圍。
+**授權與範圍：**使用者已確認 D1 後說「好 開始實作」；本輪完成首章 R1 可玩包，不宣稱 R2／R3 或商店發布完成。依已確認計畫先實玩並修正 R1，再推進其餘首發工作。
 
 ## 2. 已確認的方向與合作方式
 
@@ -53,13 +55,15 @@
 
 v0.9 回饋未提供比較的是狩獵原版、快攻或重擊，也未完整提供設備、升級選擇與擊殺／受傷量測；保留這些未知。
 
-最新研究推薦：隨機提供可理解的機會，玩家選擇投入、保持彈性或付出代價轉向；能力圍繞共用的命中、連擊、移動、重咬、擊殺等機制形成組合。v0.17 已在短局實作小範圍候選選擇；完整隨機池、商店及重抽仍未實作，應先依試玩確認成長與構築回報，再決定是否擴大。
+研究建議以可理解的隨機機會支援投入、保持彈性或付出代價轉向；能力圍繞命中、連擊、移動、重咬和擊殺形成組合。v0.20 R1 已加入受限候選與有限刷新，完整 24 天賦池仍待 R2；先依實玩確認成長與構築回報。
 
 11/15 流程 review 曾將實驗順序細分：先驗證自由搭配的能力差異，再評估三連戰的段間選擇，之後研究受限隨機與整局節奏。三連戰已在 v0.12 作為固定選擇試驗交付；v0.17 已把小範圍受限選擇接入短局，完整隨機構築仍待後續試玩決策。
 
 這仍是推薦，沒有已定案的牌池、卡片名稱、機率、經濟或技能樹。第一次實驗宜共用目前角色與敵人；比較隨機／可規劃選擇時，兩邊使用同樣能力和遭遇，避免把新增招式的效果誤當隨機性的效果。
 
 ## 4. 已實作範圍
+
+- v0.20／D1 R1：首章九戰、三核心六成形、15 天賦、六寶物、六事件、兩精英與一守關者、輔助、定向尋寶、練習、存檔與續玩；入口 [r1_main.gd](game/scripts/r1_main.gd)、[r1_expedition.gd](game/scripts/r1_expedition.gd)。首章沿用同一基本開闊場地，EV03 守關招式以文字預覽，並非完整首發的多張場地與動畫示範。
 
 - v0.17：四段短局接回經驗拾取、受限選項與三級核心，守關者血量觸發支援；[試玩說明](docs/development/nana-v0.17-practice.md)。
 
@@ -84,7 +88,7 @@ v0.9 回饋未提供比較的是狩獵原版、快攻或重擊，也未完整提
 - 怪潮／狩獵比較：固定能力、生存 90 秒；原密度／新怪潮，掃群／狩獵原版／快攻／重擊。狩獵爪擊分別為 14/0.42 秒、14/0.28 秒、21/0.42 秒；成長採快攻。
 - 主畫面已移除舊角色及成長、專精、怪潮比較等入口與專用 UI；相關底層規則仍供歷史探針使用，原 v0.9 版本可由 Git 歷史取得。
 
-完整十分鐘、結尾 Boss、後續子分支與隨機構築模式仍未完成；草案中的這些內容不可視為目前遊戲規則。
+首章已有九戰與守關者、有限隨機構築；設計目標局長及更多章節、敵人與其他首發內容仍待驗證或實作。
 
 ## 5. 接手時要留意的設計與規格落差
 
@@ -100,6 +104,8 @@ v0.9 回饋未提供比較的是狩獵原版、快攻或重擊，也未完整提
 
 | 工作內容 | 檔案 |
 | --- | --- |
+| v0.20 首章入口、遠征、成長與收藏 | [r1_main.gd](game/scripts/r1_main.gd)、[r1_expedition.gd](game/scripts/r1_expedition.gd)、[r1_growth.gd](game/scripts/r1_growth.gd)、[r1_profile.gd](game/scripts/r1_profile.gd) |
+| v0.20 波次、敵人與戰鬥 | [r1_waves.gd](game/scripts/r1_waves.gd)、[r1_encounters.gd](game/scripts/r1_encounters.gd)、[r1_combat.gd](game/scripts/r1_combat.gd) |
 | 角色攻擊、連段、重咬、大絕 | [nana_combat.gd](game/scripts/nana_combat.gd) |
 | 敵人 AI、固定情境、新舊怪潮 | [nana_encounters.gd](game/scripts/nana_encounters.gd) |
 | 構築實驗固定事件、取樣與紀錄 | [nana_experiment.gd](game/scripts/nana_experiment.gd) |
@@ -122,13 +128,13 @@ bash scripts/test-game.sh
 python3 -B scripts/verify-packaged-nana.py
 ```
 
-v0.17 既有規則 176 項、實驗規則 55 項、跨段規則 44 項、成長規則 31 項及場景流程 39 項，共 345 項通過；[先前 v0.10 驗證紀錄](docs/development/test-results-v0.10.txt)記錄的是整理前版本。測試專用無敵和自動輸入不在正式遊戲中，也不代表樂趣、真人勝率或手機效能已驗證。
+v0.20 完整測試包含舊版 377 項回歸、R1 九節點受控流程、80 組各十次成長選擇、成形／事件／存檔以及場景流程；最新精確數量見 [v0.20 試玩說明](docs/development/nana-v0.20-practice.md)。測試專用無敵和自動輸入不在正式遊戲中，也不代表樂趣、真人勝率或手機效能已驗證。
 
 設計盤點另有 [受控靶群探針](scripts/research/probe-nana-design-audit.gd)：固定靶、完美瞄準、無敵人反擊；只能說明當時攻擊規則的差異。其他 `scripts/research/probe-*` 有歷史版本界線，先讀註解再解讀輸出。
 
 ## 8. APK、儲存與版本管理
 
-最新 Android 建置為 v0.19.0／versionCode 19、ARM64 debug；獨立簽章、Manifest 與封裝後收藏、裝備及 B2 追咬規則已驗證。完整自動測試 377 項通過。真人設備試玩待進行；自動驗證不代表實機存檔、畫面與手感已驗收。
+最新 Android 建置為 v0.20.0／versionCode 20、ARM64 debug；獨立簽章、Manifest、啟動畫面打包、封裝後 R1 規則與存檔均已驗證。保留 v0.19 相同 package 與簽章；手機實際更新與舊資料遷移尚未實機驗證。v0.19 APK 保留於同目錄。
 
 APK 仍在本機核准 SSD，並未隨 Git push；確切位置、大小與 SHA-256 以 [tools/android-build.json](tools/android-build.json) 為準，安裝方式見 [Android 安裝說明](docs/development/android-install.md)。SDK、競品原始包、擷取大量資料與私鑰亦不在 Git。
 
@@ -140,4 +146,4 @@ Git HTTPS CLI 在本次交接環境沒有登入；已連接的 GitHub 工具可�
 
 ## 9. 新 session 可直接使用的起始訊息
 
-> 請先讀 HANDOFF.md、docs/development/nana-v0.19-practice.md。v0.19 回身鈴鐺已實作並匯出 Android 測試版，等待手機試玩；記錄收藏流程、B2 提前追咬及試用後的再玩意願。其他問題依主線優先級處理。
+> 請先讀 HANDOFF.md、docs/development/nana-v0.20-practice.md 與 D1 三份設計文件。使用者已確認開始實作；v0.20 是 R1 首章循環試玩版，先依手機實玩回饋修正節奏、構築及重玩動機，之後按既定計畫完成 R2 首發內容與 R3 發布候選。不要把受控探針當玩家體感或商店驗收。

@@ -4,6 +4,7 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import zipfile
@@ -16,6 +17,8 @@ CHECK = '''extends SceneTree
 const Run = preload("res://scripts/run_model.gd")
 const Series = preload("res://scripts/nana_series.gd")
 const Treasure = preload("res://scripts/treasure_collection.gd")
+const ExpeditionR1 = preload("res://scripts/r1_expedition.gd")
+const ProfileR1 = preload("res://scripts/r1_profile.gd")
 
 func _initialize():
  var run = Run.new(99, "nana")
@@ -218,7 +221,30 @@ func _initialize():
  run.nana.movement_charge = 260.0
  run.nana.attack(run)
  if run.nana.follow_target_id != follow_target.id: quit(1); return
- print("PACKAGED NANA RULES: combat, growth, cross-stage, B3 branch and persistent B2 bell passed")
+ var r1 = ExpeditionR1.new()
+ var current = Run.new()
+ r1.begin(current, "b", 99, "H03", "U01", false)
+ if current.experiment.schedule.size() != 18 or current.growth.formed("b"): quit(1); return
+ current.state = "upgrade"
+ current.growth.offers.assign(["b", "power", "reach"])
+ current.offers.assign(current.growth.offers)
+ if not current.choose_upgrade("b") or not current.growth.formed("b"): quit(1); return
+ current.encounters.add_enemy(current, "guard", current.player + Vector2(70, 0))
+ var r1_target = current.enemies[0]
+ r1_target.hp = 200.0
+ current.aim = Vector2.RIGHT
+ current.nana.movement_charge = 260.0
+ current.nana.attack(current)
+ if current.nana.follow_target_id != r1_target.id: quit(1); return
+ var saved = r1.snapshot(current)
+ var resumed = ExpeditionR1.new()
+ var resumed_run = Run.new()
+ if not resumed.restore(resumed_run, saved) or resumed_run.state != "paused" or not resumed_run.growth.formed("b"): quit(1); return
+ var profile_path = "user://packaged-r1-test-%d" % Time.get_ticks_usec()
+ var profile = ProfileR1.new(profile_path, profile_path + ".legacy")
+ if not profile.acquire("H03", saved) or not ProfileR1.new(profile_path, profile_path + ".legacy").data.owned.has("H03"): quit(1); return
+ for suffix in ["", ".bak", ".tmp", ".bak.tmp"]: DirAccess.remove_absolute(ProjectSettings.globalize_path(profile_path + suffix))
+ print("PACKAGED NANA RULES: legacy combat and R1 expedition, early bell, snapshot and collection passed")
  quit(0)
 '''
 
@@ -243,6 +269,10 @@ def main():
         (temp / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="APK check"\n')
         (temp / 'check.gd').write_text(CHECK)
         with zipfile.ZipFile(apk) as archive:
+            remap = re.search(r'^path="res://([^"]+)"$', archive.read('assets/r1_main.tscn.remap').decode(), re.M)
+            if (not remap or 'assets/' + remap.group(1) not in archive.namelist()
+                    or b'res://r1_main.tscn' not in archive.read('assets/project.binary')):
+                raise RuntimeError('The R1 startup scene or its remap is missing from the APK')
             for name in ('run_model.gdc', 'run_model.gd.remap',
                          'nana_experiment.gdc', 'nana_experiment.gd.remap',
                          'nana_series.gdc', 'nana_series.gd.remap',
@@ -250,6 +280,12 @@ def main():
                          'treasure_collection.gdc', 'treasure_collection.gd.remap',
                          'nana_combat.gdc', 'nana_combat.gd.remap',
                          'nana_encounters.gdc', 'nana_encounters.gd.remap',
+                         'r1_growth.gdc', 'r1_growth.gd.remap',
+                         'r1_profile.gdc', 'r1_profile.gd.remap',
+                         'r1_waves.gdc', 'r1_waves.gd.remap',
+                         'r1_combat.gdc', 'r1_combat.gd.remap',
+                         'r1_encounters.gdc', 'r1_encounters.gd.remap',
+                         'r1_expedition.gdc', 'r1_expedition.gd.remap',
                          'combat_geometry.gdc', 'combat_geometry.gd.remap'):
                 (temp / 'scripts' / name).write_bytes(archive.read('assets/scripts/' + name))
         result = subprocess.run([GODOT, '--headless', '--path', temp, '--script', 'res://check.gd'],
