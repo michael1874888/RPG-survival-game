@@ -244,7 +244,7 @@ func tick(delta: float, movement: Vector2, direction: Vector2, firing: bool) -> 
 	var displacement: float = previous_position.distance_to(player)
 	if experiment.active and "b" in experiment.abilities and not firing and movement.length_squared() > 0.0:
 		var was_ready: bool = nana.movement_charge >= 260.0
-		nana.movement_charge = minf(520.0 if growth != null and int(experiment.levels.get("b", 1)) >= 3 else 260.0, nana.movement_charge + displacement)
+		nana.movement_charge = minf(520.0 if growth != null and int(experiment.levels.get("b", 1)) >= 3 and growth.b_branch == "double" else 260.0, nana.movement_charge + displacement)
 		if not was_ready and nana.movement_charge >= 260.0:
 			experiment.note(self, "charge_ready", {"engaged": experiment.engaged(self)})
 			events.append({"kind": "nana_ready", "pos": player})
@@ -381,6 +381,9 @@ func damage_enemy(enemy: Dictionary, amount: float, source: String = "other", ap
 	enemy["flash"] = 0.10
 	events.append({"kind": "hit", "pos": enemy["pos"]})
 	if float(enemy["hp"]) <= 0.0:
+		if int(enemy.id) == nana.follow_target_id:
+			nana.follow_target_id = -1
+			nana.follow_remaining = 0.0
 		if experiment.active and int(enemy.id) == nana.prey_id:
 			experiment.note(self, "mark_target_died", {"target": nana.prey_id})
 			nana.prey_id = -1

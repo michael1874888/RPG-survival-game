@@ -1,10 +1,14 @@
 # RPG-survival-game：下一個 session 交接
 
-更新：2026-11-18。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`，分支 `main`。
+更新：2026-11-19。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`，分支 `main`。
 
 **開發取捨（使用者確認）：**優先沿主線以小里程碑推進；不影響當前方向的問題先記錄，留待相關階段處理，避免發散。可能改變核心玩法、操作或構築方向，或阻礙下一里程碑的問題，先釐清。具體方向見 [開發路線](docs/design/development-roadmap.md)。
 
-**最新進度（2026-11-18）：**v0.17 R1 已完成、整理並推送至 `main`；成長短局、受限選項、三級能力、守關支援及 Android APK 已交付，尚未收到 v0.17 真人試玩回饋。[試玩說明](docs/development/nana-v0.17-practice.md)／[設計規格](docs/design/nana-growth-run-proposal-v0.17.md)。自動控制器無無敵的三次開局均在守關失敗，受保護版本能完成；不能由自動結果推論真人勝率或樂趣。
+**最新進度（2026-11-18，v0.19）：**已依使用者確認實作回身鈴鐺；完成第三段取得並永久收藏，下局可選裝備，B2 提前追咬並鎖定成形路線。裝鈴鐺時共通強化最多三級，以維持合法候選；不裝備時保留原有 B3 分支。APK 與驗證見 [v0.19 試玩說明](docs/development/nana-v0.19-practice.md)，真人手機試玩待進行。修改尚未提交。
+
+**先前進度（2026-11-18，v0.18）：**依使用者確認實作 B 三級兩條分支。成長選 B3 時可選雙發蓄勢或回身追咬，後者在成功推開存活目標後標記 2 秒，下一爪命中追加傷害。v0.18 Android debug APK 已建置並驗簽，最新匯出位於 SSD。玩家覺得回身追咬打最後守關者較輕鬆，雙發蓄勢在一般戰況較輕鬆。願意試不同路線，玩完後再開一局的意願仍不強。完整自動測試 356 項及封裝後分支規則通過；自動對照都在守關失敗，非真人勝率。詳細見 [v0.18 試玩紀錄](docs/development/nana-v0.18-practice.md)。版本修改尚未提交。
+
+**先前進度（2026-11-18，v0.17）：**v0.17 R1 已完成、整理並推送至 `main`；成長短局、受限選項、三級能力、守關支援及 Android APK 已交付，已收到[首輪回饋](docs/design/poc-feedback-and-followups.md#v017-成長與重玩回饋2026-11-18)：A／B 會改變打法，能力在守關有用，紅怪追擊壓力最明顯，中途較少想停，但持續重玩意願普通。[試玩說明](docs/development/nana-v0.17-practice.md)／[設計規格](docs/design/nana-growth-run-proposal-v0.17.md)。自動控制器無無敵的三次開局均在守關失敗，受保護版本能完成；不能由自動結果推論真人勝率或樂趣。
 
 **v0.16 實玩：**使用者表示疾追者較有威脅性，需要走位和開大絕；其後補充上述整局回饋。未提供能力配置、終局結果；不推論平衡或完整核心循環驗收通過。暫停單獨追擊校準，轉向整局成長與回報的設計 review。[回饋紀錄](docs/design/poc-feedback-and-followups.md#v016-追擊試玩回饋2026-11-17)。
 
@@ -14,11 +18,13 @@
 
 使用者追加確認「操作順，但敵人太好處理，沒什麼需要判斷」，並指示開始 v0.15。已調整遭遇與決策提示；不是基礎攻擊已完整驗收。
 
-**最新可玩版本為 v0.17.0：成長短局與守關已實作，待真人試玩。** [v0.17 試玩說明](docs/development/nana-v0.17-practice.md)。
+**最新可玩版本為 v0.19.0：回身鈴鐺收藏與裝備已實作，待真人手機試玩。** [v0.19 試玩說明](docs/development/nana-v0.19-practice.md)。
 
 ## 1. 接手後先做什麼
 
-1. 先讀 [v0.17 試玩說明](docs/development/nana-v0.17-practice.md) 與 [成長短局規格](docs/design/nana-growth-run-proposal-v0.17.md)。使用者需觀察成長期待、取得後是否有感、守關與重玩意願；不要推論已驗收。
+**v0.19 優先入口：**先讀 [v0.19 試玩說明](docs/development/nana-v0.19-practice.md) 與 [鈴鐺設計](docs/design/nana-treasure-proposal-v0.19.md)，確認手機試玩和收藏動機回饋。v0.18 分支回饋與開發證據見[回饋紀錄](docs/design/poc-feedback-and-followups.md)及[交接](docs/development/handoff-v0.18.md)。
+
+1. 先讀 [v0.17 試玩說明](docs/development/nana-v0.17-practice.md) 與 [成長短局規格](docs/design/nana-growth-run-proposal-v0.17.md)。接續首輪回饋討論同一起手的打法分歧與跨局收藏，下一版範圍待定。
 2. 查看 [v0.17 固定控制器紀錄](docs/development/short-run-probe-v0.17.txt)：無無敵 A／B／C 都在終段失敗，測試專用無敵時完成；不是玩家勝率。
 3. v0.17 原始碼與文件已提交並推送；用 `git log -1` 和 `git status --short --branch` 確認目前工作樹及遠端狀態。
 4. 舊版 [v0.12 三連戰](docs/development/nana-v0.12-practice.md)和獨立固定能力實驗仍保留，作為開發比較；APK 保存位置見 [建置收據](tools/android-build.json)。
@@ -122,7 +128,7 @@ v0.17 既有規則 176 項、實驗規則 55 項、跨段規則 44 項、成長�
 
 ## 8. APK、儲存與版本管理
 
-最新 Android 建置為 v0.17.0／versionCode 17、ARM64 debug；獨立簽章、Manifest 與封裝後成長及跨段規則已驗證。v0.17 尚未經真人設備試玩；v0.16 APK 保留在 SSD 且雜湊已確認未變。
+最新 Android 建置為 v0.19.0／versionCode 19、ARM64 debug；獨立簽章、Manifest 與封裝後收藏、裝備及 B2 追咬規則已驗證。完整自動測試 377 項通過。真人設備試玩待進行；自動驗證不代表實機存檔、畫面與手感已驗收。
 
 APK 仍在本機核准 SSD，並未隨 Git push；確切位置、大小與 SHA-256 以 [tools/android-build.json](tools/android-build.json) 為準，安裝方式見 [Android 安裝說明](docs/development/android-install.md)。SDK、競品原始包、擷取大量資料與私鑰亦不在 Git。
 
@@ -134,4 +140,4 @@ Git HTTPS CLI 在本次交接環境沒有登入；已連接的 GitHub 工具可�
 
 ## 9. 新 session 可直接使用的起始訊息
 
-> 請先讀 HANDOFF.md、docs/development/nana-v0.17-practice.md。v0.17 成長短局與守關已完成，等待使用者試玩。依使用者回饋判斷局內成長、操作、守關與重玩意願；其他問題依主線優先級處理。
+> 請先讀 HANDOFF.md、docs/development/nana-v0.19-practice.md。v0.19 回身鈴鐺已實作並匯出 Android 測試版，等待手機試玩；記錄收藏流程、B2 提前追咬及試用後的再玩意願。其他問題依主線優先級處理。

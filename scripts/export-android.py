@@ -14,8 +14,8 @@ import xml.etree.ElementTree as ET
 PROJECT = Path(__file__).resolve().parent.parent
 GODOT = Path('/Applications/Godot.app/Contents/MacOS/Godot')
 CONTROLLER = '/Users/junming/AI-Setup/storage/storagectl.py'
-VERSION = '0.17.0'
-VERSION_CODE = 17
+VERSION = '0.19.0'
+VERSION_CODE = 19
 
 
 def run(args, env=None):
@@ -97,7 +97,7 @@ def main():
     configure_editor(java, sdk, key)
     destination = root / 'builds/android'
     destination.mkdir(parents=True, exist_ok=True)
-    apk = destination / 'bramble-v0.17-debug.apk'
+    apk = destination / 'bramble-v0.19-debug.apk'
 
     preset = '''[preset.0]
 name="Android"
@@ -149,7 +149,7 @@ permissions/internet=false
             raise RuntimeError('Test harness accidentally included in APK.')
         if 'assets/assets/fonts/OFL.txt' not in archive.namelist():
             raise RuntimeError('Bundled font license is missing.')
-        for script in ('run_model', 'nana_combat', 'nana_encounters', 'nana_experiment', 'nana_series', 'nana_growth_run', 'main'):
+        for script in ('run_model', 'nana_combat', 'nana_encounters', 'nana_experiment', 'nana_series', 'nana_growth_run', 'treasure_collection', 'main'):
             if 'assets/scripts/' + script + '.gdc' not in archive.namelist():
                 raise RuntimeError('Compiled game script is missing: ' + script)
     # The vendor apkanalyzer shell launcher splits SDK paths containing spaces.

@@ -3,6 +3,7 @@ extends Control
 const Run := preload("res://scripts/run_model.gd")
 const Touch := preload("res://scripts/touch_controls.gd")
 const Series := preload("res://scripts/nana_series.gd")
+const Treasure := preload("res://scripts/treasure_collection.gd")
 const CREAM := Color("fff2d4")
 const MUTED := Color("a9c9ae")
 const GOLD := Color("ffd479")
@@ -10,6 +11,11 @@ const INK := Color("17362d")
 
 var run = Run.new()
 var series = Series.new()
+var treasure = null
+var treasure_new_this_run := false
+var treasure_save_failed := false
+var observation_path := "user://treasure-observations.jsonl"
+var previous_series_id := ""
 var touch = Touch.new()
 var font: Font
 var bold_font: Font
@@ -40,6 +46,7 @@ var sound_on: bool = true
 
 
 func _ready() -> void:
+	if treasure == null: treasure = Treasure.new()
 	var base_font: Font = load("res://assets/fonts/NotoSansTC.ttf") as Font
 	var regular := FontVariation.new()
 	regular.base_font = base_font
@@ -367,7 +374,9 @@ func _show_build_experiment() -> void:
 
 func _sync_screen() -> void:
 	if series.active and run.state in ["won", "lost", "unfinished"]:
-		series.collect(run)
+		var collected: bool = series.collect(run)
+		if collected and series.growth_mode and series.stage == 2 and run.state == "won" and not treasure.owned:
+			_acquire_treasure()
 		if series.between:
 			if screen != "between":
 				_show_series_between()
@@ -548,6 +557,44 @@ func _ability_names(ids: Array, levels: Dictionary = {}) -> String:
 	return "＋".join(names)
 
 
+func _treasure_note(kind: String, details: Dictionary = {}) -> void:
+	var file := FileAccess.open(observation_path, FileAccess.READ_WRITE) if FileAccess.file_exists(observation_path) else FileAccess.open(observation_path, FileAccess.WRITE)
+	if file == null: return
+	file.seek_end()
+	file.store_line(JSON.stringify({"event": kind, "series_id": series.series_id, "time": Time.get_datetime_string_from_system(), "details": details}))
+	file.close()
+
+
+func _acquire_treasure() -> void:
+	if treasure.acquire():
+		treasure_new_this_run = true
+		treasure_save_failed = false
+		_treasure_note("acquired")
+	else:
+		treasure_save_failed = true
+		_treasure_note("acquire_failed")
+
+
+func _retry_treasure() -> void:
+	_acquire_treasure()
+	_show_series_between()
+
+
+func _toggle_treasure() -> void:
+	var wanted: bool = not treasure.equipped
+	if treasure.set_equipped(wanted):
+		treasure_save_failed = false
+		_treasure_note("equip" if wanted else "unequip")
+	else:
+		treasure_save_failed = true
+	_show_series_setup(true)
+
+
+func _return_to_short_setup(action: String) -> void:
+	_treasure_note("result_choice", {"choice": action, "outcome": run.state, "completed_run": run.state == "won"})
+	_show_series_setup(true)
+
+
 func _show_series_setup(short_mode := false) -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
@@ -560,10 +607,20 @@ func _show_series_setup(short_mode := false) -> void:
 	pause_button.hide()
 	ultimate_button.hide()
 	var column: VBoxContainer = _make_overlay(940)
+	if short_mode: column.add_theme_constant_override("separation", 5)
 	column.add_child(_label("奈奈 · 森林短局" if short_mode else "奈奈 · 三連戰", 32))
 	column.add_child(_label("清路 → 成長 → 追擊 → 擊敗守關者" if short_mode else "清路 → 混合威脅 → 強敵帶支援", 22, GOLD))
 	column.add_child(_label("選一個起手能力；打怪拾取經驗，升級選擇強化。\n最多兩個核心、一個三級；段間回復生命。\n擊敗守關者完成冒險。" if short_mode else "選一個開局能力；每段之後可升級、加裝或替換。\n最多裝兩個；段間恢復 25 生命，生命與大絕冷卻保留。", 17, MUTED))
-	if short_mode: column.add_child(_label("穿影：連擊更寬 · 游走：推開並存兩發 · 獵痕：持續追咬強敵", 15, GOLD))
+	if short_mode:
+		column.add_child(_label("穿影：連擊更寬 · 游走：推開後選擇打法 · 獵痕：持續追咬強敵", 15, GOLD))
+		if treasure.load_failed:
+			column.add_child(_label("寶物存檔讀取失敗，請先檢查裝置儲存空間。", 15, Color("ffb58e")))
+		elif treasure.owned:
+			column.add_child(_button("寶物：%s回身鈴鐺（點擊切換）" % ("已裝備 · " if treasure.equipped else "未裝備 · "), _toggle_treasure))
+			column.add_child(_label("僅 B 起手生效：B2 追咬，鎖定追咬路線；其他核心不能三級。\n共通強化可升至三級；A／C 起手不裝備。", 14, MUTED))
+		else:
+			column.add_child(_label("寶物：尚無", 15, MUTED))
+		if treasure_save_failed: column.add_child(_label("寶物設定未儲存，請再試一次。", 15, Color("ffb58e")))
 	for item in [["a", "穿影爪 · 連續命中，長條穿透"], ["b", "游走蓄勢 · 停手移動，換取爆發"], ["c", "獵痕重咬 · 追擊獵物，再咬兌現"]]:
 		column.add_child(_button("以「%s」開始" % item[1], _start_series.bind(str(item[0]))))
 	column.add_child(_button("回到起點", _show_title))
@@ -572,8 +629,13 @@ func _show_series_setup(short_mode := false) -> void:
 func _start_series(ability: String) -> void:
 	if run.experiment.active and not run.experiment.logged:
 		run.experiment.save(run, "abandoned")
-	if not series.begin(run, ability, series.short_run, series.short_run):
+	previous_series_id = series.series_id
+	var use_bell: bool = series.short_run and ability == "b" and treasure.owned and treasure.equipped
+	if not series.begin(run, ability, series.short_run, series.short_run, 0, use_bell):
 		return
+	treasure_new_this_run = false
+	treasure_save_failed = false
+	if series.short_run: _treasure_note("run_started", {"opening": ability, "bell_equipped": use_bell, "previous_series_id": previous_series_id})
 	effects.clear()
 	hurt_flash = 0.0
 	screen = ""
@@ -590,6 +652,13 @@ func _show_series_between() -> void:
 	var column: VBoxContainer = _make_overlay(960)
 	column.add_theme_constant_override("separation", 10)
 	column.add_child(_label("第 %d 段完成" % (series.stage + 1), 30))
+	if series.growth_mode and series.stage == 2:
+		if treasure_new_this_run:
+			column.add_child(_label("✦ 獲得回身鈴鐺！已收藏，下局可裝備 ✦", 20, GOLD))
+			column.add_child(_label("B2 提早追咬；本局能力維持原樣。", 15, MUTED))
+		elif treasure_save_failed:
+			column.add_child(_label("本次收藏未儲存，請重試。", 16, Color("ffb58e")))
+			column.add_child(_button("重試保存鈴鐺", _retry_treasure))
 	var next_id: String = series.stages()[series.stage + 1]
 	column.add_child(_label("下一段：" + ("追擊與清路" if series.growth_mode and next_id == "nana_build_s3" else str(Run.SCENARIOS[next_id].name)), 22, GOLD))
 	var next_hint: String = {"nana_build_s2": "疾追者、投擲者與衝撞者", "nana_build_s3": "疾追者、厚血追兵與守衛", "nana_build_s4": "疾追者、精英與投擲者", "nana_build_e2": "追逐者、投擲者、衝撞者與守衛", "nana_build_e3": "精英與持續追加的追逐者"}.get(next_id, "")
@@ -640,7 +709,7 @@ func _show_growth_upgrade() -> void:
 	if run.growth == null: return
 	var column: VBoxContainer = _make_overlay(980)
 	column.add_child(_label("成長！選擇一項", 30, GOLD))
-	column.add_child(_label("Lv.%d · 最多兩個核心，其中一個可升到三級" % run.level, 17, MUTED))
+	column.add_child(_label("Lv.%d · 鈴鐺預留成形給 B，共通強化最多三級" % run.level if run.growth.bell_equipped else "Lv.%d · 最多兩個核心，其中一個可升到三級" % run.level, 17, MUTED))
 	for id: String in run.offers:
 		var card := _button(run.growth.label(id), _choose_growth.bind(id))
 		card.add_theme_font_size_override("font_size", 18)
@@ -653,16 +722,28 @@ func _show_growth_details() -> void:
 	var column: VBoxContainer = _make_overlay(980)
 	column.add_child(_label("核心發展", 30, GOLD))
 	column.add_child(_label("穿影爪：連擊提升爪影 → 滿連擊爪影變寬", 18))
-	column.add_child(_label("游走蓄勢：蓄勢爪推開敵人 → 最多儲存兩發", 18))
+	column.add_child(_label("游走蓄勢：推開敵人 → 雙發蓄勢或回身追咬", 18))
 	column.add_child(_label("獵痕重咬：兌現波及周圍 → 強敵存活時保留獵痕", 18))
-	column.add_child(_label("最多裝兩個核心；其中一個可升到三級。", 17, MUTED))
+	column.add_child(_label("鈴鐺本局固定追咬，其他核心不能升三級。" if run.growth.bell_equipped else "最多裝兩個核心；其中一個可升到三級。", 17, MUTED))
 	column.add_child(_button("返回選擇", _show_growth_upgrade, true))
 
 
 func _choose_growth(id: String) -> void:
+	if id == "b" and int(run.growth.levels.get("b", 0)) == 2:
+		_show_b_branch()
+		return
 	if not run.choose_upgrade(id): return
 	screen = ""
 	_sync_screen()
+
+
+func _show_b_branch() -> void:
+	var column: VBoxContainer = _make_overlay(980)
+	column.add_child(_label("游走蓄勢 Lv.3", 30, GOLD))
+	column.add_child(_label("選擇一種打法，消耗本次升級", 17, MUTED))
+	column.add_child(_button("雙發蓄勢\n最多儲存兩次蓄勢爪", _choose_growth.bind("b_double")))
+	column.add_child(_button("回身追咬\n推開敵人後，2 秒內下一爪命中可追加咬傷", _choose_growth.bind("b_follow")))
+	column.add_child(_button("返回選擇", _show_growth_upgrade, true))
 
 
 func _advance_series(choice: Dictionary) -> void:
@@ -676,6 +757,7 @@ func _advance_series(choice: Dictionary) -> void:
 
 func _show_series_result() -> void:
 	var column: VBoxContainer = _make_overlay(970)
+	column.add_theme_constant_override("separation", 5)
 	column.add_child(_label(("森林短局完成！" if series.short_run else "三連戰完成！") if run.state == "won" else ("本段時間到，本輪結束" if run.state == "unfinished" else "這次先到這裡"), 32))
 	column.add_child(_label("累計戰鬥 %.1f 秒　·　完成 %d / %d 段" % [series.total_seconds(), series.results.filter(func(row): return row.result == "won").size(), series.stages().size()], 21, GOLD))
 	for row in series.results:
@@ -686,6 +768,10 @@ func _show_series_result() -> void:
 		for row in series.results:
 			for key in c: c[key] += int(row.counts.get(key, 0))
 		column.add_child(_label("本局：爪影 %d 次 · 蓄勢命中 %d 次 · 獵痕兌現 %d 次" % [c.shadow, c.charged, c.cash], 15, GOLD))
+		if run.growth.bell_equipped and int(run.growth.levels.get("b", 0)) >= 2:
+			column.add_child(_label("游走：追咬成形（鈴鐺）", 15, GOLD))
+		if int(run.growth.levels.get("b", 0)) >= 3:
+			column.add_child(_label("游走 Lv.3：" + ("回身追咬" if run.growth.b_branch == "follow" else "雙發蓄勢"), 15, GOLD))
 		column.add_child(_label("利爪 %d · 伸展 %d · 護身 %d" % [run.growth.common.power, run.growth.common.reach, run.growth.common.vitality], 15, MUTED))
 		var choices: Array[String] = []
 		for decision: Dictionary in run.growth.decisions:
@@ -693,9 +779,18 @@ func _show_series_result() -> void:
 		column.add_child(_label("成長順序：" + (" → ".join(choices) if not choices.is_empty() else "尚未升級"), 14, MUTED))
 	if series.save_failures > 0:
 		column.add_child(_label("有 %d 段觀察紀錄無法儲存" % series.save_failures, 15, Color("ffb58e")))
-	column.add_child(_button("同開局，再挑戰" if series.short_run else "同開局，再挑戰三連戰", _start_series.bind(series.opening), true))
-	column.add_child(_button("更換開局能力", _show_series_setup.bind(series.short_run)))
-	column.add_child(_button("回到起點", _show_title))
+	if series.short_run:
+		if treasure_new_this_run: column.add_child(_label("本局新收藏：回身鈴鐺", 16, GOLD))
+		column.add_child(_button("再挑戰 · 選擇裝備", _return_to_short_setup.bind("retry"), true))
+	else:
+		column.add_child(_button("同開局，再挑戰三連戰", _start_series.bind(series.opening), true))
+	column.add_child(_button("更換開局能力", _return_to_short_setup.bind("change_opening") if series.short_run else _show_series_setup.bind(false)))
+	column.add_child(_button("回到起點", _leave_series_result if series.short_run else _show_title))
+
+
+func _leave_series_result() -> void:
+	_treasure_note("result_choice", {"choice": "title", "outcome": run.state, "completed_run": run.state == "won"})
+	_show_title()
 
 
 func _format_time(seconds: float) -> String:
@@ -881,6 +976,9 @@ func _draw_enemy(enemy: Dictionary, camera: Vector2) -> void:
 		if int(enemy.id) == run.nana.prey_id and run.nana.has_prey():
 			draw_arc(pos, radius + 15.0, 0.0, TAU, 28, Color("ff9eac"), 3.0, true)
 			draw_string(bold_font, pos + Vector2(-7, -radius - 20), "◆", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("ff9eac"))
+		if int(enemy.id) == run.nana.follow_target_id and run.nana.follow_remaining > 0.0:
+			draw_arc(pos, radius + 25.0, -PI * 0.5, -PI * 0.5 + TAU * run.nana.follow_remaining / 2.0, 28, Color("f9e071"), 4.0, true)
+			draw_string(bold_font, pos + Vector2(-8, -radius - 35), "咬", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("f9e071"))
 		if build_preview_id == int(enemy.id):
 			var opacity: float = 1.0 if run.nana.bite_charge == 3 or not run.nana.pending_bite.is_empty() else 0.7
 			draw_arc(pos, radius + 21.0, -PI * 0.8, PI * 0.8, 24, Color(0.65, 0.95, 1.0, opacity), 4.0, true)
@@ -940,8 +1038,10 @@ func _draw_hud() -> void:
 				draw_string(font, Vector2(40, 166), "穿影 Lv.%d ◇ %d / 3 · 威力 %d" % [run.experiment.levels.get("a", 1), run.nana.shadow_count, run.nana.shadow_power] if run.growth != null else "穿影 Lv.%d ◇ %d / 3" % [run.experiment.levels.get("a", 1), run.nana.shadow_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("9deaff"))
 			if "b" in run.experiment.abilities:
 				var charge_label: String = "蓄勢 Lv.%d %d%%" % [run.experiment.levels.get("b", 1), int(100.0 * run.nana.movement_charge / 260.0)]
-				if run.growth != null and int(run.experiment.levels.get("b", 1)) >= 3:
+				if run.growth != null and int(run.experiment.levels.get("b", 1)) >= 3 and run.growth.b_branch == "double":
 					charge_label = "蓄勢 Lv.3　%d / 2 發 · %d%%" % [int(run.nana.movement_charge / 260.0), int(fmod(run.nana.movement_charge, 260.0) / 260.0 * 100.0)]
+				if run.growth != null and run.growth.b_branch == "follow" and int(run.experiment.levels.get("b", 1)) >= (2 if run.growth.bell_equipped else 3):
+					charge_label = "追咬%s 蓄勢 %d%%" % ["（鈴鐺）" if run.growth.bell_equipped else " Lv.3", int(100.0 * run.nana.movement_charge / 260.0)]
 				draw_string(font, Vector2(40, 190), charge_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GOLD)
 			if "c" in run.experiment.abilities:
 				draw_string(font, Vector2(40, 214), "獵痕 Lv.%d：%s" % [run.experiment.levels.get("c", 1), "追蹤中" if run.nana.has_prey() else "等待重咬"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ff9eac"))

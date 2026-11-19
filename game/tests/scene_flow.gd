@@ -17,6 +17,9 @@ func check(condition: bool, message: String) -> void:
 
 func exercise_scene() -> void:
 	var scene = load("res://main.tscn").instantiate()
+	var test_base := "user://treasure-scene-test-%d" % Time.get_ticks_usec()
+	scene.treasure = load("res://scripts/treasure_collection.gd").new(test_base + ".json")
+	scene.observation_path = test_base + ".jsonl"
 	root.add_child(scene)
 	await process_frame
 	check(scene.screen == "title" and scene.overlay != null, "Real scene opens at title")
@@ -114,6 +117,11 @@ func exercise_scene() -> void:
 	short_entry.pressed.emit()
 	find_button(scene.overlay, "游走蓄勢").pressed.emit()
 	check(scene.series.short_run and scene.series.growth_mode and model.scenario_id == "nana_build_s1", "Short-run setup starts the growth scenario")
+	model.state = "lost"
+	scene._sync_screen()
+	check(not scene.treasure.owned, "Loss before third stage does not unlock bell")
+	find_button(scene.overlay, "再挑戰 · 選擇裝備").pressed.emit()
+	find_button(scene.overlay, "游走蓄勢").pressed.emit()
 	scene.touch.move_id = 51
 	scene.touch.aim_id = 52
 	model.xp = 12
@@ -124,6 +132,17 @@ func exercise_scene() -> void:
 	var selection: String = model.offers[0]
 	find_button(scene.overlay, model.growth.label(selection).split("\n")[0]).pressed.emit()
 	check(scene.screen == "playing" and model.level == 2, "Selecting a real card resumes play")
+	model.growth.levels["b"] = 2
+	model.experiment.levels["b"] = 2
+	model.state = "upgrade"
+	model.growth.offers.assign(["b", "power", "reach"])
+	model.offers.assign(model.growth.offers)
+	scene.screen = ""
+	scene._sync_screen()
+	find_button(scene.overlay, "游走蓄勢 Lv.3").pressed.emit()
+	check(find_button(scene.overlay, "雙發蓄勢") != null and find_button(scene.overlay, "回身追咬") != null, "B3 displays both branches")
+	find_button(scene.overlay, "回身追咬").pressed.emit()
+	check(model.growth.b_branch == "follow" and model.growth.levels.b == 3 and scene.screen == "playing", "B3 branch selection resumes battle")
 	var stale_drag := InputEventScreenDrag.new()
 	stale_drag.index = 51
 	stale_drag.position = Vector2(150, 500)
@@ -139,8 +158,23 @@ func exercise_scene() -> void:
 			check(scene.screen == "between", "Each short-run stage opens its intermission")
 			scene._advance_growth()
 	check(scene.series.finished and contains_label(scene.overlay, "完成 4 / 4 段"), "Fourth short-run victory reaches the final summary")
-	find_button(scene.overlay, "同開局，再挑戰").pressed.emit()
-	check(scene.series.short_run and model.scenario_id == "nana_build_s1", "Short-run retry preserves its mode")
+	await process_frame
+	await process_frame
+	var result_panel := find_panel(scene.overlay)
+	check(result_panel != null and result_panel.get_global_rect().position.y >= 0.0 and result_panel.get_global_rect().end.y <= scene.size.y + 1.0, "Full result fits inside the landscape viewport")
+	check(scene.treasure.owned and contains_label(scene.overlay, "本局新收藏"), "Third stage grants persistent bell and result shows it")
+	find_button(scene.overlay, "再挑戰 · 選擇裝備").pressed.emit()
+	check(not scene.series.active and find_button(scene.overlay, "未裝備 · 回身鈴鐺") != null, "Retry returns to optional treasure setup")
+	await process_frame
+	await process_frame
+	var setup_panel: PanelContainer = find_panel(scene.overlay)
+	check(setup_panel != null and setup_panel.get_global_rect().position.y >= 0.0 and setup_panel.get_global_rect().end.y <= scene.size.y + 1.0, "Treasure setup fits inside the landscape viewport")
+	find_button(scene.overlay, "未裝備 · 回身鈴鐺").pressed.emit()
+	check(scene.treasure.equipped, "Player can equip the acquired bell")
+	find_button(scene.overlay, "游走蓄勢").pressed.emit()
+	check(scene.series.short_run and model.scenario_id == "nana_build_s1" and model.growth.bell_equipped, "B opening starts with chosen bell")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_base + ".json"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_base + ".jsonl"))
 	for path in series_paths:
 		if not path.is_empty(): DirAccess.remove_absolute(path)
 	print("SCENE RESULT: %d checks, %d failures" % [checks, failures])
@@ -166,3 +200,11 @@ func contains_label(node: Node, text: String) -> bool:
 		if contains_label(child, text):
 			return true
 	return false
+
+
+func find_panel(node: Node) -> PanelContainer:
+	if node is PanelContainer: return node
+	for child: Node in node.get_children():
+		var found := find_panel(child)
+		if found != null: return found
+	return null

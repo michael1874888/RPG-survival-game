@@ -22,7 +22,7 @@ var growth_mode := false
 func stages() -> Array:
 	return SHORT_STAGES if short_run else STAGES
 
-func begin(run, ability: String, short_mode := false, use_growth := false, growth_seed: int = 0) -> bool:
+func begin(run, ability: String, short_mode := false, use_growth := false, growth_seed: int = 0, bell := false) -> bool:
 	if ability not in ["a", "b", "c"]:
 		return false
 	active = true
@@ -40,7 +40,7 @@ func begin(run, ability: String, short_mode := false, use_growth := false, growt
 	levels = {ability: 1}
 	if growth_mode:
 		run.growth = run.GrowthRun.new()
-		run.growth.begin(ability, growth_seed)
+		run.growth.begin(ability, growth_seed, bell)
 	_load_stage(run, [ability])
 	return true
 
@@ -69,6 +69,7 @@ func _load_stage(run, abilities: Array) -> void:
 		"starting_hp": run.hp, "starting_cooldown": run.nana.cooldown,
 		"previous_results": results.duplicate(true), "decisions": decisions.duplicate(true)}
 	if growth_mode:
+		run.experiment.context["bell_equipped"] = run.growth.bell_equipped
 		run.experiment.context["growth_seed"] = run.growth.seed_used
 		run.experiment.context["growth_decisions"] = run.growth.decisions.duplicate(true)
 		run.experiment.context["growth_common"] = run.growth.common.duplicate()

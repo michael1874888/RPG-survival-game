@@ -90,6 +90,54 @@ func _initialize() -> void:
 	check(is_equal_approx(run.nana.movement_charge, 260.0), "One charged hit consumes only one of two charges")
 	run.nana.attack(run)
 	check(is_zero_approx(run.nana.movement_charge), "Second charged hit consumes second charge")
+	# B3 branch selection and follow-up hit use the same upgrade.
+	series.begin(run, "b", true, true)
+	run.growth.levels = {"b": 2}
+	run.experiment.levels = {"b": 2}
+	run.state = "upgrade"
+	run.growth.offers.assign(["b", "power", "reach"])
+	check(run.choose_upgrade("b_follow") and run.growth.b_branch == "follow" and run.growth.levels.b == 3, "B3 selects follow branch in one upgrade")
+	run.enemies.clear()
+	run.encounters.add_enemy(run, "pursuer", run.player + Vector2(100, 0))
+	enemy = run.enemies[0]
+	enemy.hp = 200.0
+	run.aim = Vector2.RIGHT
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	check(run.nana.follow_target_id == enemy.id and is_equal_approx(run.nana.follow_remaining, 2.0), "Charged push marks living target")
+	var hp_before: float = enemy.hp
+	run.player = Vector2(enemy.pos) - Vector2(100, 0)
+	run.nana.attack(run)
+	check(is_equal_approx(hp_before - float(enemy.hp), 20.0) and run.nana.follow_target_id == -1, "Next claw grants one follow-up bite")
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	run.nana.advance(run, 2.1)
+	check(run.nana.follow_target_id == -1, "Follow mark expires")
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	run.aim = Vector2.LEFT
+	run.nana.attack(run)
+	check(run.nana.follow_target_id == -1, "A missed next claw clears follow mark")
+	run.aim = Vector2.RIGHT
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	run.damage_enemy(enemy, 1000.0)
+	check(run.nana.follow_target_id == -1, "Target death clears follow mark")
+	run.enemies.clear()
+	run.encounters.add_enemy(run, "guard", run.player + Vector2(100, 0))
+	enemy = run.enemies[0]
+	enemy.hp = 200.0
+	run.nana.prey_id = int(enemy.id)
+	run.nana.prey_remaining = -1.0
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	check(run.nana.follow_target_id == -1 and run.nana.prey_id == int(enemy.id), "C prey is not pushed or follow-marked")
+	run.nana.prey_id = -1
+	run.nana.movement_charge = 260.0
+	run.nana.attack(run)
+	run.state = "won"
+	check(series.collect(run) and series.advance_growth(run) and run.growth.b_branch == "follow" and run.nana.follow_target_id == -1, "Branch persists across stages while mark clears")
+	check(series.begin(run, "b", true, true) and run.growth.b_branch == "double", "Retry resets branch selection")
 	# Cashout retains a living C3 prey, without granting a free extra bite.
 	run.experiment.abilities.assign(["c"])
 	run.experiment.levels = {"c": 3}

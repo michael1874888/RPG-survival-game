@@ -32,6 +32,8 @@ var movement_charge: float = 0.0
 var prey_id: int = -1
 var prey_remaining: float = 0.0
 var assisted_target_id: int = -1
+var follow_target_id: int = -1
+var follow_remaining: float = 0.0
 
 
 func reset() -> void:
@@ -51,9 +53,15 @@ func reset() -> void:
 	prey_id = -1
 	prey_remaining = 0.0
 	assisted_target_id = -1
+	follow_target_id = -1
+	follow_remaining = 0.0
 
 
 func advance(run, delta: float) -> void:
+	if follow_remaining > 0.0:
+		follow_remaining = maxf(0.0, follow_remaining - delta)
+		if follow_remaining == 0.0:
+			follow_target_id = -1
 	if run.experiment.active:
 		if (shadow_count > 0 or shadow_power > 0) and run.elapsed - shadow_last_hit > 1.2:
 			shadow_count = 0
@@ -169,6 +177,10 @@ func attack(run) -> float:
 		for enemy: Dictionary in run.enemies:
 			if float(enemy["hp"]) > 0.0 and _in_cone(run.player, run.aim, enemy, reach, half_angle):
 				claw_targets.append(enemy)
+	var previous_follow_id: int = follow_target_id
+	follow_target_id = -1
+	follow_remaining = 0.0
+	var follow_candidates: Array[Dictionary] = []
 	var hit_prey: bool = false
 	var hit_prey_id: int = prey_id
 	var engaged_before: bool = run.experiment.engaged(run) if run.experiment.active else false
@@ -186,6 +198,10 @@ func attack(run) -> float:
 			marker_remaining = 1.0
 		var claw_damage: float = ((21.0 if run.hunt_variant == "heavy" else 14.0) if hunting else 10.0) + (12.0 if charged else 0.0)
 		run.damage_enemy(enemy, claw_damage * damage_multiplier, "ring" if ring else "claw")
+		if int(enemy.id) == previous_follow_id and float(enemy.hp) > 0.0:
+			run.damage_enemy(enemy, 10.0 * damage_multiplier, "follow_bite")
+			run.experiment.note(run, "follow_bite", {"target": int(enemy.id)})
+			run.events.append({"kind": "nana_cash", "pos": enemy.pos})
 		if float(enemy["hp"]) > 0.0 and enemy["kind"] in ["chaser", "pursuer"]:
 			var offset: Vector2 = Vector2(enemy["pos"]) - run.player
 			var push: Vector2 = offset.normalized() if offset.length_squared() > 0.01 else run.aim
@@ -194,6 +210,21 @@ func attack(run) -> float:
 			var away: Vector2 = Vector2(enemy.pos) - run.player
 			enemy.pos = (Vector2(enemy.pos) + (away.normalized() if away.length_squared() > 0.01 else run.aim) * 65.0).clamp(Vector2.ONE * 20.0, run.WORLD - Vector2.ONE * 20.0)
 			run.events.append({"kind": "nana_push", "pos": enemy.pos})
+			if run.growth != null and run.growth.b_branch == "follow" and int(run.experiment.levels.get("b", 1)) >= (2 if run.growth.bell_equipped else 3):
+				follow_candidates.append(enemy)
+	if not follow_candidates.is_empty():
+		var best_score := -INF
+		var best_distance := INF
+		for enemy: Dictionary in follow_candidates:
+			var offset: Vector2 = Vector2(enemy.pos) - run.player
+			var distance := offset.length()
+			var score: float = run.aim.dot(offset.normalized()) if distance > 0.001 else 1.0
+			if score > best_score + 0.00001 or (is_equal_approx(score, best_score) and distance < best_distance):
+				follow_target_id = int(enemy.id)
+				best_score = score
+				best_distance = distance
+		follow_remaining = 2.0
+		run.experiment.note(run, "follow_mark", {"target": follow_target_id})
 	last_attack_was_bite = false
 	if run.experiment.active and charged:
 		if hit_any:

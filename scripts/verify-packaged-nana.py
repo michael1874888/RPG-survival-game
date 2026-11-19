@@ -15,6 +15,7 @@ CONTROLLER = Path('/Users/junming/AI-Setup/storage/storagectl.py')
 CHECK = '''extends SceneTree
 const Run = preload("res://scripts/run_model.gd")
 const Series = preload("res://scripts/nana_series.gd")
+const Treasure = preload("res://scripts/treasure_collection.gd")
 
 func _initialize():
  var run = Run.new(99, "nana")
@@ -180,7 +181,44 @@ func _initialize():
  run.state = "won"
  if not series.collect(run) or not series.advance_growth(run) or run.level != 3: quit(1); return
  if not run.experiment.saved_path.is_empty(): DirAccess.remove_absolute(run.experiment.saved_path)
- print("PACKAGED NANA RULES: combat, legacy short run, growth XP and cross-stage progress passed")
+ if not series.begin(run, "b", true, true): quit(1); return
+ run.growth.levels = {"b": 2}
+ run.experiment.levels = {"b": 2}
+ run.state = "upgrade"
+ run.growth.offers.assign(["b", "power", "reach"])
+ if not run.choose_upgrade("b_follow") or run.growth.b_branch != "follow": quit(1); return
+ run.enemies.clear()
+ run.encounters.add_enemy(run, "pursuer", run.player + Vector2(100, 0))
+ var follow_target = run.enemies[0]
+ follow_target.hp = 200.0
+ run.aim = Vector2.RIGHT
+ run.nana.movement_charge = 260.0
+ run.nana.attack(run)
+ if run.nana.follow_target_id != follow_target.id: quit(1); return
+ run.player = Vector2(follow_target.pos) - Vector2(100, 0)
+ var before_follow = follow_target.hp
+ run.nana.attack(run)
+ if not is_equal_approx(before_follow - follow_target.hp, 20.0) or run.nana.follow_target_id != -1: quit(1); return
+ run.state = "won"
+ if not series.collect(run) or not series.advance_growth(run) or run.growth.b_branch != "follow": quit(1); return
+ if not run.experiment.saved_path.is_empty(): DirAccess.remove_absolute(run.experiment.saved_path)
+ var treasure_path = "user://packaged-bell-test-%d.json" % Time.get_ticks_usec()
+ var treasure = Treasure.new(treasure_path)
+ if treasure.owned or not treasure.acquire() or not treasure.set_equipped(true) or not Treasure.new(treasure_path).equipped: quit(1); return
+ DirAccess.remove_absolute(ProjectSettings.globalize_path(treasure_path))
+ if not series.begin(run, "b", true, true, 99, true) or not run.growth.bell_equipped: quit(1); return
+ run.state = "upgrade"
+ run.growth.offers.assign(["b", "power", "reach"])
+ if not run.choose_upgrade("b") or run.growth.levels.b != 2: quit(1); return
+ run.enemies.clear()
+ run.encounters.add_enemy(run, "pursuer", run.player + Vector2(100, 0))
+ follow_target = run.enemies[0]
+ follow_target.hp = 200.0
+ run.aim = Vector2.RIGHT
+ run.nana.movement_charge = 260.0
+ run.nana.attack(run)
+ if run.nana.follow_target_id != follow_target.id: quit(1); return
+ print("PACKAGED NANA RULES: combat, growth, cross-stage, B3 branch and persistent B2 bell passed")
  quit(0)
 '''
 
@@ -209,6 +247,7 @@ def main():
                          'nana_experiment.gdc', 'nana_experiment.gd.remap',
                          'nana_series.gdc', 'nana_series.gd.remap',
                          'nana_growth_run.gdc', 'nana_growth_run.gd.remap',
+                         'treasure_collection.gdc', 'treasure_collection.gd.remap',
                          'nana_combat.gdc', 'nana_combat.gd.remap',
                          'nana_encounters.gdc', 'nana_encounters.gd.remap',
                          'combat_geometry.gdc', 'combat_geometry.gd.remap'):
