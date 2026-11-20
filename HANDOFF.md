@@ -1,6 +1,6 @@
 # RPG-survival-game：下一個 session 交接
 
-更新：2026-11-20。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`。v0.20 整理於 `feature/nana-v0.20-r1`；**v0.30 X1 從它分出，開發於 `feature/nana-x1-pounce-hunt`（只在本機提交，尚未推送）**。接手前重新查 `git status --short --branch` 和遠端分支狀態。
+更新：2026-11-20。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`。v0.20 整理於 `feature/nana-v0.20-r1`；**v0.30 X1 從它分出，開發於 `feature/nana-x1-pounce-hunt`（已推送到 origin，尚未合併到 `main`）**。接手前重新查 `git status --short --branch` 和遠端分支狀態。
 
 **開發取捨（使用者確認）：**優先沿主線以小里程碑推進；不影響當前方向的問題先記錄，留待相關階段處理，避免發散。可能改變核心玩法、操作或構築方向，或阻礙下一里程碑的問題，先釐清。具體方向見 [開發路線](docs/design/development-roadmap.md)。
 
@@ -31,7 +31,7 @@
 1. 請使用者安裝 v0.30 APK 試玩（覆蓋安裝，舊收藏會遷移）。重點：撲擊與自動爪擊的手感、畫面是否太亂、卡不卡、一局多長、會不會想再開一局、隔天會不會自己回來。手機型號與 Android 版本請一起記下。
 2. 依回饋調數值：先改 `game/data/x1/*.json`，跑 `bash scripts/test-game.sh` 與自動探針，再重新匯出。需要新動作或新敵人行為才改程式，方法見調參指南。
 3. 自動探針只代表規則與節奏（瞬間反應、完美閃避判讀、沒有選單時間），**不是真人難度或樂趣**；紀錄見 [x1-autoplay-probe-v0.30.txt](docs/development/x1-autoplay-probe-v0.30.txt)。
-4. 用 `git log -1` 和 `git status --short --branch` 確認目前提交與工作樹；APK 路徑與雜湊見 [建置收據](tools/android-build.json)。分支尚未推送或合併到 `main`，等使用者決定。
+4. 用 `git log -1` 和 `git status --short --branch` 確認目前提交與工作樹；APK 路徑與雜湊見 [建置收據](tools/android-build.json)。分支已推送到 origin，尚未開 PR 或合併到 `main`，等使用者決定。
 
 **授權與範圍：**使用者核准 X1 完整版計畫並說「確認沒問題後就開一個新的 BRANCH 開始實作」。本輪交付 v0.30.0 可玩包；不宣稱手機驗收、平衡或樂趣通過。
 
