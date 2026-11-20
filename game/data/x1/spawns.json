@@ -1,0 +1,34 @@
+{
+  "layer_hp_mult": [1.0, 1.0, 1.0, 1.15, 1.3, 1.45, 1.6, 1.8],
+  "layer_damage_mult": [1.0, 1.0, 1.0, 1.0, 1.05, 1.1, 1.15, 1.2],
+  "hunt": {
+    "cap": 120,
+    "fodder": {"kind": "E01", "rate": 1.6, "rate_step": 0.45, "step_every": 15, "max_rate": 4.2, "pack_min": 3, "pack_max": 5},
+    "targets": {"count": 3, "first": 12, "gap": 16},
+    "specials": {"first": 16, "every": 13, "max_alive": 3},
+    "hounds": {"kind": "E02", "from": 45, "every": 10, "max_alive": 4}
+  },
+  "den": {
+    "cap": 90,
+    "fodder": {"kind": "E01", "rate": 1.2, "rate_step": 0.35, "step_every": 15, "max_rate": 3.2, "pack_min": 3, "pack_max": 4},
+    "elite_at": 3,
+    "targets": {"count": 1, "first": 15, "gap": 15},
+    "specials": {"first": 14, "every": 15, "max_alive": 2},
+    "hounds": {"kind": "E02", "from": 40, "every": 12, "max_alive": 3}
+  },
+  "boss": {
+    "cap": 40,
+    "fodder": {"kind": "E01", "rate": 0.7, "rate_step": 0.1, "step_every": 20, "max_rate": 1.2, "pack_min": 2, "pack_max": 3},
+    "boss_at": 1.5,
+    "specials": {"first": 9999, "every": 9999, "max_alive": 0},
+    "hounds": {"kind": "E02", "from": 9999, "every": 9999, "max_alive": 0}
+  },
+  "practice": {
+    "cap": 120,
+    "duration": 180,
+    "fodder": {"kind": "E01", "rate": 1.6, "rate_step": 0.45, "step_every": 15, "max_rate": 4.2, "pack_min": 3, "pack_max": 5},
+    "targets": {"count": 6, "first": 10, "gap": 25},
+    "specials": {"first": 16, "every": 13, "max_alive": 3},
+    "hounds": {"kind": "E02", "from": 45, "every": 10, "max_alive": 4}
+  }
+}

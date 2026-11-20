@@ -1,0 +1,30 @@
+{
+  "shadow": {
+    "name": "影", "title": "穿影習性",
+    "desc": "每 3 次爪擊命中，朝前方放出一道爪影。偏向影與爪的卡。",
+    "bias": ["shadow", "claw"],
+    "effects": [
+      {"type": "trigger", "hook": "claw_hit", "every": 3, "action": "shadow_line",
+       "params": {"length": 340, "width": 90, "damage": 8, "delay": 0.12, "origin": "player", "dir": "facing"}}
+    ]
+  },
+  "roam": {
+    "name": "遊", "title": "游走習性",
+    "desc": "移動 260 距離就多存一次撲擊，最多可超出上限 1 次；撲擊會推開路上的敵人。偏向遊與撲的卡。",
+    "bias": ["roam", "pounce"],
+    "effects": [
+      {"type": "stat", "stat": "roam_step_set", "value": 260},
+      {"type": "stat", "stat": "roam_overcap", "value": 1},
+      {"type": "stat", "stat": "pounce_knock", "value": 60}
+    ]
+  },
+  "hunt": {
+    "name": "獵", "title": "獵痕習性",
+    "desc": "落地咬中的敵人留下獵痕，爪擊打獵痕目標 +50%；再咬一次獵痕目標會兌現追加傷害。偏向獵與咬的卡。",
+    "bias": ["hunt", "bite"],
+    "effects": [
+      {"type": "trigger", "hook": "bite_hit", "action": "mark", "params": {}},
+      {"type": "stat", "stat": "marked_damage_pct", "value": 50}
+    ]
+  }
+}

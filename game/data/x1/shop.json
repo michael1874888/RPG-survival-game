@@ -1,0 +1,8 @@
+{
+  "card_offers": 2,
+  "card_price": {"common": 10, "rare": 16},
+  "heal": {"pct": 30, "price": 8},
+  "reroll": {"amount": 1, "price": 5},
+  "remove": {"price": 6},
+  "upgrade": {"price": 12}
+}

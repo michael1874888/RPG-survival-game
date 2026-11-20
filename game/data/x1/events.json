@@ -1,0 +1,64 @@
+{
+  "events": [
+    {"id": "M01", "title": "貓薄荷叢", "regions": [],
+     "text": "月光下長著一叢貓薄荷。聞一下會很興奮，但也可能一頭撞上石頭。",
+     "options": [
+       {"label": "用力聞：隨機一張卡升一級，受到 15 傷害", "requires": {"upgradable": 1}, "effects": [{"type": "upgrade_random", "count": 1}, {"type": "damage", "amount": 15}]},
+       {"label": "在旁邊打個盹：回復 15 生命", "requires": {}, "effects": [{"type": "heal", "amount": 15}]}
+     ]},
+    {"id": "M02", "title": "翻倒的花瓶", "regions": [],
+     "text": "花瓶後面有東西在動。追過去會遇到更多獵物，也可能撿到寶物。",
+     "options": [
+       {"label": "追過去：下一場狩獵多一隻目標獵物，勝利後得到寶物機會", "requires": {}, "effects": [{"type": "next_battle", "mod": "extra_target", "value": 1}, {"type": "next_battle", "mod": "item_reward", "value": 1}]},
+       {"label": "撿起掉落的小魚乾：+6 小魚乾", "requires": {}, "effects": [{"type": "fish", "amount": 6}]}
+     ]},
+    {"id": "M03", "title": "陌生的鈴聲", "regions": [],
+     "text": "一隻戴鈴鐺的貓願意用好東西換小魚乾。",
+     "options": [
+       {"label": "花 10 小魚乾：從三張稀有卡中選一張", "requires": {"fish": 10, "card_room": 1}, "effects": [{"type": "fish", "amount": -10}, {"type": "card_choice", "rarity": "rare"}]},
+       {"label": "揮揮尾巴離開：回復 5 生命", "requires": {}, "effects": [{"type": "heal", "amount": 5}]}
+     ]},
+    {"id": "M04", "title": "影子的低語", "regions": [],
+     "text": "影子說，只要分一點力氣給它，就能讓一招變得更強。",
+     "options": [
+       {"label": "答應：最大生命 -10，自選一張卡升一級", "requires": {"upgradable": 1, "max_hp": 40}, "effects": [{"type": "max_hp", "amount": -10}, {"type": "upgrade_choice"}]},
+       {"label": "拒絕：什麼都不做", "requires": {}, "effects": []}
+     ]},
+    {"id": "M05", "title": "鄰居的貓", "regions": [],
+     "text": "鄰居的貓示範了牠的狩獵技巧。",
+     "options": [
+       {"label": "照著學：從三張卡中選一張", "requires": {"card_room": 1}, "effects": [{"type": "card_choice", "rarity": "any"}]},
+       {"label": "一起玩：刷新次數 +1", "requires": {}, "effects": [{"type": "rerolls", "amount": 1}]}
+     ]},
+    {"id": "M06", "title": "月光水窪", "regions": [],
+     "text": "水窪裡映著滿滿的月光。",
+     "options": [
+       {"label": "喝幾口：回復 30% 生命", "requires": {}, "effects": [{"type": "heal_pct", "amount": 30}]},
+       {"label": "把月光收進影子：下一場開局夜影能量全滿", "requires": {}, "effects": [{"type": "next_battle", "mod": "full_meter", "value": 1}]}
+     ]},
+    {"id": "M07", "title": "灑水器", "regions": ["greenhouse"],
+     "text": "灑水器突然開了，地板變得滑溜溜。",
+     "options": [
+       {"label": "滑過去：下一場移速 +15%", "requires": {}, "effects": [{"type": "next_battle", "mod": "speed_pct", "value": 15}]},
+       {"label": "躲在花盆後：+8 小魚乾", "requires": {}, "effects": [{"type": "fish", "amount": 8}]}
+     ]},
+    {"id": "M08", "title": "熟透的果實", "regions": ["greenhouse"],
+     "text": "溫室角落掉了一顆香甜的果實。",
+     "options": [
+       {"label": "吃掉：回復 25 生命，最大生命 +5", "requires": {}, "effects": [{"type": "heal", "amount": 25}, {"type": "max_hp", "amount": 5}]},
+       {"label": "當成玩具：得到一張隨機卡 Lv.1", "requires": {"card_room": 1}, "effects": [{"type": "random_card"}]}
+     ]},
+    {"id": "M09", "title": "鐘聲迴盪", "regions": ["belltower"],
+     "text": "巨大的鐘聲震得耳朵發麻，但影子也跟著共鳴。",
+     "options": [
+       {"label": "忍住：受到 20 傷害，隨機兩張卡升一級", "requires": {"upgradable": 1, "hp": 25}, "effects": [{"type": "damage", "amount": 20}, {"type": "upgrade_random", "count": 2}]},
+       {"label": "摀住耳朵：回復 10 生命", "requires": {}, "effects": [{"type": "heal", "amount": 10}]}
+     ]},
+    {"id": "M10", "title": "夜鴉的羽毛", "regions": ["belltower"],
+     "text": "一根閃亮的羽毛卡在欄杆上，旁邊的小販想用寶物換小魚乾。",
+     "options": [
+       {"label": "花 12 小魚乾：得到寶物機會", "requires": {"fish": 12}, "effects": [{"type": "fish", "amount": -12}, {"type": "item_choice"}]},
+       {"label": "把羽毛賣掉：+10 小魚乾", "requires": {}, "effects": [{"type": "fish", "amount": 10}]}
+     ]}
+  ]
+}

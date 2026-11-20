@@ -1,0 +1,54 @@
+{
+  "courtyard": {
+    "name": "月下庭院", "order": 1, "requires": "",
+    "intro": "庭院裡的影偶又出來搗蛋了。去把家門鈴找回來吧。",
+    "win_story": "奈奈叼回了家門鈴。遠處的溫室亮起了奇怪的光。",
+    "world": [2400, 1600], "start": [1200, 800],
+    "palette": {"ground": "284b3b", "tuft": "4a7a55", "edge": "7a9b66", "obstacle": "35593f"},
+    "obstacles": [
+      {"circle": [620, 420, 46]}, {"circle": [1830, 1180, 46]}, {"circle": [1760, 380, 40]}
+    ],
+    "specials": ["E03", "E04", "E05"],
+    "targets": ["E03", "E04", "E05"],
+    "elites": ["EL01", "EL02"],
+    "boss": "B01",
+    "hp_mult": 1.0, "damage_mult": 1.0,
+    "chest_pool": ["H01", "H03", "H05", "U03"]
+  },
+  "greenhouse": {
+    "name": "失序溫室", "order": 2, "requires": "courtyard",
+    "intro": "溫室的花床之間藏著會設陷阱的影子。找回曬暖小毯。",
+    "win_story": "曬暖小毯回到了窗邊。鐘樓的鐘聲在夜裡響起。",
+    "world": [2400, 1600], "start": [1200, 600],
+    "palette": {"ground": "2f4a36", "tuft": "5d8a4e", "edge": "8bb07a", "obstacle": "6b4f3a"},
+    "obstacles": [
+      {"rect": [500, 350, 360, 160]}, {"rect": [1540, 350, 360, 160]},
+      {"rect": [500, 1090, 360, 160]}, {"rect": [1540, 1090, 360, 160]},
+      {"rect": [1020, 700, 360, 200]}
+    ],
+    "specials": ["E03", "E04", "E06", "E07"],
+    "targets": ["E03", "E04", "E06", "E07"],
+    "elites": ["EL02", "EL01"],
+    "boss": "B02",
+    "hp_mult": 1.08, "damage_mult": 1.05,
+    "chest_pool": ["H01", "H03", "H05", "U03"]
+  },
+  "belltower": {
+    "name": "月光鐘樓", "order": 3, "requires": "greenhouse",
+    "intro": "鐘樓的平台上，燈靈替影子們擋傷害。把月光玩具帶回家。",
+    "win_story": "月光玩具滾回了奈奈的窩。今晚的夜巡，圓滿結束。",
+    "world": [2400, 1600], "start": [1200, 420],
+    "palette": {"ground": "2a3346", "tuft": "4b5a7a", "edge": "8d96b8", "obstacle": "4a4560"},
+    "obstacles": [
+      {"circle": [1200, 800, 210]},
+      {"circle": [700, 450, 40]}, {"circle": [1700, 450, 40]},
+      {"circle": [700, 1150, 40]}, {"circle": [1700, 1150, 40]}
+    ],
+    "specials": ["E04", "E05", "E07", "E08"],
+    "targets": ["E04", "E05", "E07", "E08"],
+    "elites": ["EL01", "EL02"],
+    "boss": "B03",
+    "hp_mult": 1.16, "damage_mult": 1.1,
+    "chest_pool": ["H01", "H03", "H05", "U03"]
+  }
+}

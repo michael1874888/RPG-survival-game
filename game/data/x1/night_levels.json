@@ -1,0 +1,13 @@
+{
+  "max": 8,
+  "levels": [
+    {"level": 1, "desc": "雜兵移速 +10%", "mods": {"fodder_speed_pct": 10}},
+    {"level": 2, "desc": "每場狩獵多一隻疾追影偶", "mods": {"extra_hounds": 1}},
+    {"level": 3, "desc": "目標獵物身邊多一名疾追護衛", "mods": {"target_escort": 1}},
+    {"level": 4, "desc": "貓窩回復 35% → 25%", "mods": {"bed_heal_pct": -10}},
+    {"level": 5, "desc": "精英與守關生命 +25%", "mods": {"elite_hp_pct": 25}},
+    {"level": 6, "desc": "撲擊回復多 0.5 秒", "mods": {"pounce_recharge_add": 0.5}},
+    {"level": 7, "desc": "守關在 45% 生命就進入最後階段", "mods": {"boss_phase2": 0.45}},
+    {"level": 8, "desc": "雜兵生命 +50%", "mods": {"fodder_hp_pct": 50}}
+  ]
+}
