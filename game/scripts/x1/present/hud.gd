@@ -26,6 +26,8 @@ var combo_tier := {}
 var combo_bump := 0.0
 var combo_fade := 0.0
 var combo_broken := 0.0
+var combo_rank := 0.0            # 1 → 0 after reaching a new combo tier
+var level_pop := 0.0             # 1 → 0 after a level-up
 var banners: Array = []          # {text, sub, color, life, max, big}
 var flash := {}                  # {color, life, max}
 var hurt_t := 0.0
@@ -77,6 +79,14 @@ func banner(text: String, sub := "", color_name := "cream", seconds := 1.4, big 
 	if banners.size() > 3: banners.pop_front()
 
 
+## Screen y that world words should stay below: the HUD strip, or under a banner while one shows.
+func reserved_top() -> float:
+	var top := 130.0
+	for b: Dictionary in banners:
+		top = maxf(top, size.y * (0.26 if b.big else 0.34) + 50.0)
+	return top
+
+
 func screen_flash(color_name: String, strength := 1.0) -> void:
 	var a: float = strength * (0.35 if settings.get("low_flash", false) else 1.0)
 	flash = {"color": col(color_name), "life": 0.22, "max": 0.22, "alpha": a}
@@ -98,6 +108,16 @@ func set_combo(count: int, tier: Dictionary) -> void:
 	combo_fade = 2.0
 
 
+## A new combo tier: the counter swells, flashes and throws rays instead of a screen banner.
+func combo_tier_up() -> void:
+	combo_rank = 1.0
+	combo_bump = 1.0
+
+
+func level_up() -> void:
+	level_pop = 1.0
+
+
 func break_combo() -> void:
 	if combo >= 5: combo_broken = 0.8
 	combo = 0
@@ -112,6 +132,8 @@ func _process(delta: float) -> void:
 	combo_bump = maxf(0.0, combo_bump - delta * 5.0)
 	combo_fade = maxf(0.0, combo_fade - delta)
 	combo_broken = maxf(0.0, combo_broken - delta)
+	combo_rank = maxf(0.0, combo_rank - delta * 1.4)
+	level_pop = maxf(0.0, level_pop - delta * 1.2)
 	level_glow = maxf(0.0, level_glow - delta)
 	pip_flash = maxf(0.0, pip_flash - delta * 3.0)
 	if not flash.is_empty():
@@ -139,8 +161,17 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+var draw_ms := 0.0
+
+
 func _draw() -> void:
 	if battle == null: return
+	var t0 := Time.get_ticks_usec()
+	_draw_all()
+	draw_ms = lerpf(draw_ms, (Time.get_ticks_usec() - t0) / 1000.0, 0.1)
+
+
+func _draw_all() -> void:
 	_draw_screen_fx()
 	_draw_status()
 	_draw_center()
@@ -200,7 +231,13 @@ func _draw_status() -> void:
 	_bar(Rect2(origin + Vector2(16, 40), Vector2(276, 12)), float(p.hp) / float(p.max_hp), hp_ghost / float(p.max_hp), hp_col)
 	if run != null:
 		var need: int = run.xp_needed()
-		draw_string(bold, origin + Vector2(16, 80), "Lv.%d" % run.level, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, col("prey"))
+		var lv_size := int(17.0 * (1.0 + 0.5 * ease(level_pop, 2.0)))
+		if level_pop > 0.0:
+			var glow := col("prey")
+			glow.a = level_pop * 0.8
+			draw_arc(origin + Vector2(38, 74), 14.0 + 30.0 * ease(1.0 - level_pop, 0.4), 0.0, TAU, 32, glow, 3.0 * level_pop + 1.0, true)
+		draw_string_outline(bold, origin + Vector2(16, 80), "Lv.%d" % run.level, HORIZONTAL_ALIGNMENT_LEFT, -1, lv_size, 4, INK)
+		draw_string(bold, origin + Vector2(16, 80), "Lv.%d" % run.level, HORIZONTAL_ALIGNMENT_LEFT, -1, lv_size, col("prey") if level_pop <= 0.0 else Color.WHITE.lerp(col("prey"), 1.0 - level_pop))
 		var xp_col := col("prey") if level_glow <= 0.0 else col("prey").lightened(0.3 + 0.2 * sin(clock * 14.0))
 		_bar(Rect2(origin + Vector2(76, 68), Vector2(216, 8)), float(run.xp) / maxf(1.0, need) if need > 0 else 1.0, 0.0, xp_col, Color("2c4f3e"))
 		var fish_pos := _fish_anchor()
@@ -276,14 +313,25 @@ func _draw_combo() -> void:
 		return
 	var tier_col: Color = Color(str(combo_tier.get("color", "fff2d4")))
 	var alpha := minf(1.0, combo_fade)
-	var s := 1.0 + combo_bump * 0.4
-	draw_set_transform(anchor + Vector2(60, 30), (sin(clock * 20.0) * 0.04 * combo_bump), Vector2.ONE * s)
+	var s := 1.0 + combo_bump * 0.4 + ease(combo_rank, 3.0) * 0.6
+	var center := anchor + Vector2(60, 30)
+	if combo_rank > 0.0:
+		var spread: float = 1.0 - combo_rank
+		var ray := Color(tier_col.r, tier_col.g, tier_col.b, combo_rank * 0.8)
+		for k in 12:
+			var a: float = TAU * k / 12.0 + clock * 0.8
+			var dir := Vector2.RIGHT.rotated(a)
+			draw_line(center + dir * (34.0 + 30.0 * spread), center + dir * (52.0 + 60.0 * spread), ray, 3.0, true)
+		draw_circle(center, 40.0 + 24.0 * spread, Color(tier_col.r, tier_col.g, tier_col.b, combo_rank * 0.25))
+	draw_set_transform(center, (sin(clock * 20.0) * 0.04 * combo_bump), Vector2.ONE * s)
 	var label := "×%d" % combo
 	draw_string_outline(bold, Vector2(-60, 12), label, HORIZONTAL_ALIGNMENT_CENTER, 120, 40, 8, Color(0, 0, 0, alpha))
 	draw_string(bold, Vector2(-60, 12), label, HORIZONTAL_ALIGNMENT_CENTER, 120, 40, Color(tier_col.r, tier_col.g, tier_col.b, alpha))
 	var name: String = str(combo_tier.get("name", "連獵"))
+	var name_col := Color(tier_col.r, tier_col.g, tier_col.b, alpha)
+	if combo_rank > 0.0: name_col = name_col.lerp(Color(1, 1, 1, alpha), combo_rank * 0.7)
 	draw_string_outline(bold, Vector2(-60, 38), name, HORIZONTAL_ALIGNMENT_CENTER, 120, 18, 5, Color(0, 0, 0, alpha))
-	draw_string(bold, Vector2(-60, 38), name, HORIZONTAL_ALIGNMENT_CENTER, 120, 18, Color(tier_col.r, tier_col.g, tier_col.b, alpha))
+	draw_string(bold, Vector2(-60, 38), name, HORIZONTAL_ALIGNMENT_CENTER, 120, 18, name_col)
 	draw_set_transform(Vector2.ZERO)
 
 
@@ -371,15 +419,26 @@ func _draw_banners() -> void:
 		var leave: float = clampf((1.0 - t) / 0.2, 0.0, 1.0)
 		var a: float = minf(enter, leave)
 		var x_off: float = (1.0 - ease(enter, 0.3)) * -120.0 + (1.0 - leave) * 120.0
-		var y: float = size.y * (0.3 if b.big else 0.4) + i * 8.0
-		var size_px := 56 if b.big else 34
+		var y: float = size.y * (0.26 if b.big else 0.34) + i * 8.0
+		var size_px := 48 if b.big else 30
 		var c: Color = b.color
 		c.a = a
-		draw_rect(Rect2(Vector2(0, y - size_px * 0.95), Vector2(size.x, size_px * 1.35)), Color(0.02, 0.02, 0.05, 0.35 * a))
-		draw_string_outline(bold, Vector2(x_off, y), str(b.text), HORIZONTAL_ALIGNMENT_CENTER, size.x, size_px, 10, Color(0, 0, 0, a))
+		var half: float = minf(size.x * 0.32, 340.0)
+		var top: float = y - size_px * 0.95
+		var bottom: float = y + (36.0 if not str(b.sub).is_empty() else size_px * 0.35)
+		var shade := Color(0.02, 0.02, 0.05, 0.5 * a)
+		var clear := Color(0.02, 0.02, 0.05, 0.0)
+		var cx := size.x * 0.5
+		for side: float in [-1.0, 1.0]:
+			draw_polygon(PackedVector2Array([Vector2(cx, top), Vector2(cx + side * half, top), Vector2(cx + side * half, bottom), Vector2(cx, bottom)]),
+				PackedColorArray([shade, clear, clear, shade]))
+		draw_line(Vector2(cx - half * 0.7, top), Vector2(cx + half * 0.7, top), Color(c.r, c.g, c.b, a * 0.5), 2.0, true)
+		draw_line(Vector2(cx - half * 0.7, bottom), Vector2(cx + half * 0.7, bottom), Color(c.r, c.g, c.b, a * 0.5), 2.0, true)
+		draw_string_outline(bold, Vector2(x_off, y), str(b.text), HORIZONTAL_ALIGNMENT_CENTER, size.x, size_px, 9, Color(0, 0, 0, a))
 		draw_string(bold, Vector2(x_off, y), str(b.text), HORIZONTAL_ALIGNMENT_CENTER, size.x, size_px, c)
 		if not str(b.sub).is_empty():
-			draw_string(font, Vector2(x_off, y + 30), str(b.sub), HORIZONTAL_ALIGNMENT_CENTER, size.x, 20, Color(1, 1, 1, a * 0.9))
+			draw_string_outline(font, Vector2(x_off, y + 28), str(b.sub), HORIZONTAL_ALIGNMENT_CENTER, size.x, 18, 4, Color(0, 0, 0, a * 0.8))
+			draw_string(font, Vector2(x_off, y + 28), str(b.sub), HORIZONTAL_ALIGNMENT_CENTER, size.x, 18, Color(1, 1, 1, a * 0.9))
 
 
 func _draw_flyers() -> void:

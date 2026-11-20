@@ -312,6 +312,17 @@ def main():
             if (not remap or 'assets/' + remap.group(1) not in archive.namelist()
                     or b'res://x1_main.tscn' not in archive.read('assets/project.binary')):
                 raise RuntimeError('The X1 startup scene or its remap is missing from the APK')
+            names = archive.namelist()
+            # v0.31 feel layer: presentation scripts, feel data, and the baked sound effects and music.
+            present = [n for n in names if n.startswith('assets/scripts/x1/present/')]
+            music = [n for n in names if n.startswith('assets/assets/audio/x1/music/') and n.endswith('.import')]
+            sfx = [n for n in names if n.startswith('assets/assets/audio/x1/sfx/') and n.endswith('.import')]
+            samples = [n for n in names if n.startswith('assets/.godot/imported/') and n.endswith('.sample')]
+            if 'assets/data/x1/feel.json' not in names or len(present) < 10:
+                raise RuntimeError('The feel data or presentation scripts are missing from the APK')
+            if len(music) < 12 or len(sfx) < 49 or len(samples) < len(music) + len(sfx):
+                raise RuntimeError('Audio is missing from the APK: %d music, %d sfx, %d samples' % (len(music), len(sfx), len(samples)))
+            print('PACKAGED FEEL: %d presentation scripts, %d music files, %d sound files' % (len(present), len(music), len(sfx)))
             copied = 0
             for entry in archive.namelist():
                 if not (entry.startswith('assets/scripts/') or entry.startswith('assets/data/')):

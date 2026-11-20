@@ -149,6 +149,7 @@ func advance_frame(delta: float) -> void:
 	b.view_size = size
 	if run.needs_level_choice():
 		level_delay -= delta
+		time.advance(delta)   # let slow motion and hit-stop run out; no simulation while choosing
 		_present(delta, b)
 		if level_delay <= 0.0 or instant: _show_cards()
 		return
@@ -247,7 +248,9 @@ func _watch_performance(delta: float) -> void:
 	for v in perf_window: total += float(v)
 	var average_ms: float = total / maxf(1.0, perf_window.size()) * 1000.0
 	if _settings().get("perf_overlay", false):
-		hud.perf_text = "%.1f ms · %d fps · 敵 %d · 粒子 %d · %s" % [average_ms, Engine.get_frames_per_second(), run.battle.enemies.size() if run.battle != null else 0, world.fx.particles.size(), world.fx.quality]
+		var draw_total: float = hud.draw_ms
+		for key in world.draw_ms: draw_total += float(world.draw_ms[key])
+		hud.perf_text = "%.1f ms · %d fps · 繪製 %.1f ms · 敵 %d · 粒子 %d · %s" % [average_ms, Engine.get_frames_per_second(), draw_total, run.battle.enemies.size() if run.battle != null else 0, world.fx.particles.size(), world.fx.quality]
 	else:
 		hud.perf_text = ""
 	if perf_lowered or perf_window.size() < window_frames or OS.is_debug_build() and not OS.has_feature("mobile"): return
@@ -328,6 +331,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED: _on_focus_lost()
+
+
+## The button hook is static; drop it with the scene so nothing calls into a freed scene and the
+## lambda is not left for engine shutdown to free (that crashed headless runs at exit).
+func _exit_tree() -> void:
+	UI.press_hook = Callable()
 
 
 func _on_focus_lost() -> void:

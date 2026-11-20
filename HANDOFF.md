@@ -1,10 +1,17 @@
 # RPG-survival-game：下一個 session 交接
 
-更新：2026-11-20。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`。v0.20 整理於 `feature/nana-v0.20-r1`；**v0.30 X1 從它分出，開發於 `feature/nana-x1-pounce-hunt`（已推送到 origin，尚未合併到 `main`）**。接手前重新查 `git status --short --branch` 和遠端分支狀態。
+更新：2026-11-20。開發目錄 `/Users/junming/Codex_ws/RPG_Game_Dev`；遠端私人 repository `michael1874888/RPG-survival-game`。v0.20 整理於 `feature/nana-v0.20-r1`；**v0.30 X1 從它分出，開發於 `feature/nana-x1-pounce-hunt`（已推送到 origin，尚未合併到 `main`）；v0.31 手感重做再從 X1 分出，開發於 `feature/x1-feel`**。接手前重新查 `git status --short --branch` 和遠端分支狀態。
 
 **開發取捨（使用者確認）：**優先沿主線以小里程碑推進；不影響當前方向的問題先記錄，留待相關階段處理，避免發散。可能改變核心玩法、操作或構築方向，或阻礙下一里程碑的問題，先釐清。具體方向見 [開發路線](docs/design/development-roadmap.md)。
 
-**最新工作（2026-11-20，v0.30 / X1 撲擊狩獵）：**使用者要求分析 v0.20 是否讓人一玩再玩；開發端判斷底層 30 秒戰鬥缺判斷與爽感（尚無 v0.20 真人回饋，屬推論）。使用者允許突破既有框架，核准 [X1 重設計提案](docs/design/nana-pounce-redesign-proposal-x1.md) 的三區域完整可玩版：自動爪擊＋右手放開撲擊、擊殺充能夜影、湧出雜兵＋目標獵物、夜巡地圖、48 張本能卡與 8 組進化、夜深 1–8、30 個解鎖目標、12 件寶物；不做永久數值；一路做完不設中途試玩關卡；程式要模組化。已全部實作並匯出 Android 測試包，見 [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)、[內容表](docs/design/nana-x1-content.md)、[調參指南](docs/development/x1-tuning-guide.md)。**手機實玩、效能與樂趣尚未驗收**；iOS、正式美術、商店資料、「家」、無盡模式、第二角色不在本次範圍。
+**最新工作（2026-11-20，v0.31 / X1 手感與回饋重做）：**使用者要求重新設計 UI、特效與觸覺回饋，目標是「玩起來有爽感、有回饋感」、做好而不是做完，可以跳脫現有框架。使用者的選擇：美術維持程式繪製但大幅升級；加入會隨戰況變化的音樂；連獵只做回饋、不影響數值；傷害數字只顯示重擊。依核准的計畫實作 v0.31.0：
+- 回饋數值放在新的 `game/data/x1/feel.json`，並分成重量階梯。
+- 命中停頓與慢動作從規則層移到呈現層的時間控制器；規則與存檔重現不受影響，已測試。
+- 新增鏡頭、程式繪製的奈奈與敵人動畫、特效、預先產生的音效與四層音樂、觸覺詞彙、HUD、轉場與結算動畫、新設定和自動降特效。
+
+用逐格錄影修正了文字重疊、橫幅蓋住戰場、溢出傷害數字等問題，並把 120 隻敵人時的每幀時間從 22.6 毫秒降到 8.4 毫秒（Mac）。見 [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[手感設計](docs/design/x1-feel-design.md)、[調參指南：手感與回饋](docs/development/x1-tuning-guide.md#手感與回饋)。**手機實玩、震動與音量的實際感受、手機效能尚未驗收。**
+
+**先前工作（2026-11-20，v0.30 / X1 撲擊狩獵）：**使用者要求分析 v0.20 是否讓人一玩再玩；開發端判斷底層 30 秒戰鬥缺判斷與爽感（尚無 v0.20 真人回饋，屬推論）。使用者允許突破既有框架，核准 [X1 重設計提案](docs/design/nana-pounce-redesign-proposal-x1.md) 的三區域完整可玩版：自動爪擊＋右手放開撲擊、擊殺充能夜影、湧出雜兵＋目標獵物、夜巡地圖、48 張本能卡與 8 組進化、夜深 1–8、30 個解鎖目標、12 件寶物；不做永久數值；一路做完不設中途試玩關卡；程式要模組化。已全部實作並匯出 Android 測試包，見 [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)、[內容表](docs/design/nana-x1-content.md)、[調參指南](docs/development/x1-tuning-guide.md)。**手機實玩、效能與樂趣尚未驗收**；iOS、正式美術、商店資料、「家」、無盡模式、第二角色不在本次範圍。
 
 **先前進度（2026-11-20，v0.20 / D1 R1）：**首章九戰、六成形、15 天賦、六件首章寶物、六路線事件、收藏／續玩／練習／結果及 Android 試玩包。[主設計](docs/design/nana-full-version-design-v1.md)、[內容表](docs/design/nana-full-version-content-v1.md)、[製作／試玩／發布門檻](docs/design/nana-full-version-release-plan-v1.md)、[v0.20 試玩說明](docs/development/nana-v0.20-practice.md)。v0.20 沒有收到真人回饋就被 X1 取代為主場景；程式保留，debug 建置首頁可開啟對照。
 
@@ -22,18 +29,19 @@
 
 使用者追加確認「操作順，但敵人太好處理，沒什麼需要判斷」，並指示開始 v0.15。已調整遭遇與決策提示；不是基礎攻擊已完整驗收。
 
-**最新可玩版本為 v0.30.0 X1：三區域完整可玩、尚未經真人與手機驗收，不是上架候選。** [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)。
+**最新可玩版本為 v0.31.0 X1（v0.30 的玩法加上手感重做）：三區域完整可玩、尚未經真人與手機驗收，不是上架候選。** [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[v0.30 試玩說明](docs/development/nana-v0.30-practice.md)。
 
 ## 1. 接手後先做什麼
 
-**目前優先入口：**先讀 [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)、[X1 提案](docs/design/nana-pounce-redesign-proposal-x1.md)與[調參指南](docs/development/x1-tuning-guide.md)。下一步是收集使用者在手機上的實玩回饋，再依回饋調整 JSON 數值或規則。
+**目前優先入口：**先讀 [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[v0.30 試玩說明](docs/development/nana-v0.30-practice.md)、[X1 提案](docs/design/nana-pounce-redesign-proposal-x1.md)與[調參指南](docs/development/x1-tuning-guide.md)。下一步是收集使用者在手機上的實玩回饋，再依回饋調整 JSON 數值（玩法在 `tuning.json` 等，手感在 `feel.json`）或規則。
 
-1. 請使用者安裝 v0.30 APK 試玩（覆蓋安裝，舊收藏會遷移）。重點：撲擊與自動爪擊的手感、畫面是否太亂、卡不卡、一局多長、會不會想再開一局、隔天會不會自己回來。手機型號與 Android 版本請一起記下。
+1. 請使用者安裝 v0.31 APK 試玩（覆蓋安裝，舊收藏與設定會遷移）。重點：撲擊、咬獵物、收網夠不夠爽；畫面是否太亂、危險看不看得清楚；震動會不會太多或太弱；音樂與音效會不會吵；卡不卡、燙不燙（設定可開「顯示每幀時間」）；一局多長、會不會想再開一局、隔天會不會自己回來。手機型號與 Android 版本請一起記下。
 2. 依回饋調數值：先改 `game/data/x1/*.json`，跑 `bash scripts/test-game.sh` 與自動探針，再重新匯出。需要新動作或新敵人行為才改程式，方法見調參指南。
 3. 自動探針只代表規則與節奏（瞬間反應、完美閃避判讀、沒有選單時間），**不是真人難度或樂趣**；紀錄見 [x1-autoplay-probe-v0.30.txt](docs/development/x1-autoplay-probe-v0.30.txt)。
-4. 用 `git log -1` 和 `git status --short --branch` 確認目前提交與工作樹；APK 路徑與雜湊見 [建置收據](tools/android-build.json)。分支已推送到 origin，尚未開 PR 或合併到 `main`，等使用者決定。
+4. 用 `git log -1` 和 `git status --short --branch` 確認目前提交與工作樹；APK 路徑與雜湊見 [建置收據](tools/android-build.json)。`feature/nana-x1-pounce-hunt` 與 `feature/x1-feel` 都推送到 origin，尚未開 PR 或合併到 `main`，等使用者決定。
+5. 調手感時用 `tests/x1_record.gd`（加 `--fixed-fps 60`）錄關鍵時刻的聯絡表、用 `tests/x1_perf.gd` 量效能；每幀會畫很多次的圖形要遵守調參指南的「畫圖的效能規則」。
 
-**授權與範圍：**使用者核准 X1 完整版計畫並說「確認沒問題後就開一個新的 BRANCH 開始實作」。本輪交付 v0.30.0 可玩包；不宣稱手機驗收、平衡或樂趣通過。
+**授權與範圍：**使用者核准 X1 完整版計畫並說「確認沒問題後就開一個新的 BRANCH 開始實作」，之後核准手感重做計畫（v0.31，同樣開新分支）。本輪交付 v0.31.0 可玩包；不宣稱手機驗收、手感、平衡或樂趣通過。
 
 ## 2. 已確認的方向與合作方式
 
@@ -106,12 +114,15 @@ v0.9 回饋未提供比較的是狩獵原版、快攻或重擊，也未完整提
 
 | 工作內容 | 檔案 |
 | --- | --- |
-| **v0.30 X1** 主場景、畫面流程與輸入 | [x1_main.gd](game/scripts/x1_main.gd)、[touch_input.gd](game/scripts/x1/ui/touch_input.gd) |
+| **v0.31 X1** 主場景、畫面流程與輸入 | [x1_main.gd](game/scripts/x1_main.gd)、[touch_input.gd](game/scripts/x1/ui/touch_input.gd) |
 | X1 數值與內容（全部可調） | [game/data/x1/](game/data/x1)、[data.gd](game/scripts/x1/core/data.gd)（載入與檢查） |
 | X1 戰鬥、撲擊、夜影、湧出、卡片效果 | [battle.gd](game/scripts/x1/core/battle.gd)、[spawner.gd](game/scripts/x1/core/spawner.gd)、[effects.gd](game/scripts/x1/core/effects.gd)、[effect_actions.gd](game/scripts/x1/core/effect_actions.gd) |
 | X1 敵人行為 | [scripts/x1/ai/](game/scripts/x1/ai) |
 | X1 構築、地圖、一局流程、存檔與解鎖 | [build.gd](game/scripts/x1/core/build.gd)、[map_gen.gd](game/scripts/x1/core/map_gen.gd)、[run.gd](game/scripts/x1/core/run.gd)、[profile.gd](game/scripts/x1/core/profile.gd)、[progress.gd](game/scripts/x1/core/progress.gd) |
-| X1 戰鬥繪製與地圖畫面 | [battle_view.gd](game/scripts/x1/render/battle_view.gd)、[map_view.gd](game/scripts/x1/ui/map_view.gd) |
+| X1 回饋分派（事件 → 停頓、震屏、特效、聲音、觸覺、HUD）與連獵 | [feedback_director.gd](game/scripts/x1/present/feedback_director.gd)、[feel.json](game/data/x1/feel.json) |
+| X1 戰鬥繪製、角色動畫、特效、HUD | [world_view.gd](game/scripts/x1/present/world_view.gd)、[looks.gd](game/scripts/x1/present/looks.gd)、[nana_rig.gd](game/scripts/x1/present/nana_rig.gd)、[fx.gd](game/scripts/x1/present/fx.gd)、[hud.gd](game/scripts/x1/present/hud.gd) |
+| X1 時間（停頓與慢動作）、鏡頭、聲音、音樂、觸覺 | [time_controller.gd](game/scripts/x1/present/time_controller.gd)、[camera_rig.gd](game/scripts/x1/present/camera_rig.gd)、[audio_director.gd](game/scripts/x1/present/audio_director.gd)、[music_director.gd](game/scripts/x1/present/music_director.gd)、[haptics.gd](game/scripts/x1/present/haptics.gd)、[x1-make-audio.py](scripts/x1-make-audio.py) |
+| X1 地圖、轉場、寶箱畫面 | [map_view.gd](game/scripts/x1/ui/map_view.gd)、[wipe.gd](game/scripts/x1/ui/wipe.gd)、[chest_icon.gd](game/scripts/x1/ui/chest_icon.gd) |
 | v0.20 首章入口、遠征、成長與收藏 | [r1_main.gd](game/scripts/r1_main.gd)、[r1_expedition.gd](game/scripts/r1_expedition.gd)、[r1_growth.gd](game/scripts/r1_growth.gd)、[r1_profile.gd](game/scripts/r1_profile.gd) |
 | v0.20 波次、敵人與戰鬥 | [r1_waves.gd](game/scripts/r1_waves.gd)、[r1_encounters.gd](game/scripts/r1_encounters.gd)、[r1_combat.gd](game/scripts/r1_combat.gd) |
 | 角色攻擊、連段、重咬、大絕 | [nana_combat.gd](game/scripts/nana_combat.gd) |

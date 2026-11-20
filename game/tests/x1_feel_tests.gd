@@ -60,7 +60,7 @@ func make() -> Director:
 
 
 func defeat(role: String, prey := false) -> Dictionary:
-	return {"kind": "defeat", "pos": Vector2(1200, 800), "role": role, "prey": prey, "color": "ac9acc", "radius": 15.0, "id": 1, "kind_id": "E01"}
+	return {"kind": "defeat", "pos": Vector2(1200, 800), "role": role, "prey": prey, "color": "ac9acc", "radius": 15.0, "id": 1, "enemy": "E01"}
 
 
 func exercise() -> void:
@@ -134,6 +134,7 @@ func exercise() -> void:
 	d.frame(2.0, d.world.battle, null)
 	check(d.combo == 0, "the combo times out after the window")
 	check(d.best_combo == 12, "the best combo is remembered for the result screen")
+	check(d.hud.banners.is_empty() and d.hud.combo_rank > 0.0, "a combo tier pops the HUD counter instead of a screen banner")
 	# Damage numbers.
 	var claw := {"kind": "hit", "pos": Vector2(1200, 800), "amount": 10.0, "source": "claw", "role": "fodder", "prey": false, "kill": false, "id": 2}
 	var bite := {"kind": "hit", "pos": Vector2(1200, 800), "amount": 30.0, "source": "bite", "role": "fodder", "prey": false, "kill": false, "id": 2}
@@ -149,6 +150,19 @@ func exercise() -> void:
 	d.apply_settings({"damage_numbers": "off"})
 	d.process([bite], d.world.battle, null)
 	check(d.world.fx.numbers.size() == 2, "off mode shows none")
+	d.apply_settings({"damage_numbers": "heavy"})
+	d.process([{"kind": "hit", "pos": Vector2(1200, 800), "amount": 999999.0, "shown": 120.0, "source": "bite", "role": "boss", "prey": false, "kill": true, "id": 3}], d.world.battle, null)
+	check(int(d.world.fx.numbers[-1].value) == 120, "an overkill hit shows only the health it took")
+	# Floating words do not pile up on one spot; the boss entrance banner names the boss.
+	d.world.fx.text("獵物！", Vector2(1200, 800), Color.WHITE, 30)
+	d.world.fx.text("精英擊破！", Vector2(1200, 800), Color.WHITE, 30)
+	var words: Array = d.world.fx.texts
+	check(absf(float(words[-1].pos.y) - float(words[-2].pos.y)) >= 30.0, "a second word at the same spot moves out of the way")
+	var boss_id := ""
+	for id: String in data.enemies:
+		if str(data.enemies[id].get("role", "")) == "boss": boss_id = id
+	d.process([{"kind": "spawn", "pos": Vector2(1200, 800), "enemy": boss_id, "role": "boss", "id": 9, "prey": false, "summoned": false}], d.world.battle, null)
+	check(not d.hud.banners.is_empty() and str(d.hud.banners[-1].text) == str(data.enemies[boss_id].name), "the boss entrance banner shows the boss name")
 	# Accessibility.
 	d = make()
 	await process_frame

@@ -7,7 +7,7 @@ X1 的數值與內容全部放在 `game/data/x1/*.json`，程式只讀取，不�
 1. **Mac 上即時試：**用 Godot 開啟專案執行（debug 建置），進入戰鬥後按 **F5**，會重新讀取所有 JSON 並重開目前這一場。
 2. **跑規則測試：**`bash scripts/test-game.sh`。其中 `x1_data_tests` 會檢查所有 JSON 格式、ID、互相引用與卡片數量；改錯會直接報出是哪個檔案、哪個欄位。
 3. **看節奏數字：**`/Applications/Godot.app/Contents/MacOS/Godot --headless --path game --script res://tests/x1_autoplay_probe.gd -- seeds=3`。輸出每局的勝負、層數、等級、各類戰鬥時長、每場夜影次數與構築。自動玩家反應瞬間、不看選單，**只能看規則與節奏，不能代表真人難度或樂趣**。
-4. **看畫面：**`/Applications/Godot.app/Contents/MacOS/Godot --path game --script res://tests/x1_visual.gd -- out=/某個資料夾` 會截下每個畫面。
+4. **看畫面：**`/Applications/Godot.app/Contents/MacOS/Godot --path game --fixed-fps 60 --script res://tests/x1_visual.gd -- out=/某個資料夾` 會截下每個畫面；加 `--resolution 1600x720` 看 20:9。
 5. **更新可讀內容表：**`python3 -B scripts/x1-content-table.py` 會依 JSON 重寫 [內容表](../design/nana-x1-content.md)。
 
 ## 常見調整對照
@@ -25,7 +25,7 @@ X1 的數值與內容全部放在 `game/data/x1/*.json`，程式只讀取，不�
 | 升級頻率 | `tuning.json` | `xp.thresholds`（每級所需經驗）、`xp.drop`（每種敵人掉多少） |
 | 卡片格數、等級上限、刷新次數 | `tuning.json` | `build.slots`、`build.max_level`、`build.rerolls` |
 | 習性偏向強度、普通／稀有出現比例 | `tuning.json` | `build.habit_bias`、`build.rarity_weight` |
-| 命中停頓、震屏、震動強度 | `tuning.json` | `feel.*` |
+| 命中停頓、震屏、震動、特效、音效、音樂 | `feel.json` | 見下方「手感與回饋」 |
 | 同時最多幾個特殊攻擊 | `tuning.json` | `fairness.max_special_attacks` |
 | 地圖層數、每層節點數、各節點機率 | `tuning.json` | `map.*` |
 | 獵物巢／守關的獎勵 | `tuning.json` | `rewards.den`、`rewards.boss` |
@@ -41,6 +41,66 @@ X1 的數值與內容全部放在 `game/data/x1/*.json`，程式只讀取，不�
 | 月光事件 | `events.json` | `options[].effects`、`requires` |
 | 商店價格 | `shop.json` | `card_price`、`heal`、`reroll`、`remove`、`upgrade` |
 | 解鎖條件 | `unlocks.json` | `counter` 與 `value`，或 `win` 的 `habit`／`region`／`night` |
+
+## 手感與回饋
+
+v0.31 起，戰鬥的「感覺」全部放在 `game/data/x1/feel.json`，和玩法數值分開，同樣可以按 F5 熱重載，`x1_data_tests` 會檢查引用。設計原則與重量階梯見 [手感設計](../design/x1-feel-design.md)。
+
+### 一個事件會發生什麼
+
+戰鬥事件（命中、擊殺、咬擊、受傷……）由 `scripts/x1/present/feedback_director.gd` 對應到 `cues` 裡同名的「提示」，一個提示可以同時指定：
+
+| 欄位 | 作用 | 例 |
+| --- | --- | --- |
+| `hitstop` | 命中停頓秒數（全部加總後上限 `limits.hitstop_cap`） | `bite`: 0.045 |
+| `slowmo` | 慢動作 `{scale, time}` | `kill_elite`: 0.35 倍、0.25 秒 |
+| `shake`、`directional` | 震屏強度 0–1；`directional` 會往攻擊來的反方向震 | `hurt`: 0.45 |
+| `kick`、`zoom` | 鏡頭頓一下（像素）、推近比例 | `land`: 5；`ult`: 0.12 |
+| `flash`、`flash_strength` | 全畫面閃光顏色與強度（低閃光設定再乘 0.35） | `hurt`: 紅色、0.3 |
+| `particles`、`ring`、`pillar`、`puff`、`fx` | 粒子預設與數量、擴散圈、光柱、影煙、特殊圖形（`teeth` 咬合、`mark`、`refund`、`land`） | `kill_prey`: 金色 26 顆＋光柱 |
+| `text`、`text_color`、`text_size` | 浮動字。重疊時會自動往上（或靠近畫面頂端時往下）錯開 | `level_up`: 「升級！」 |
+| `sound`、`pitch`、`pitch_var`、`ladder` | 音效、音高、隨機幅度；`ladder` 讓連續擊殺沿五聲音階爬 | `kill_fodder` |
+| `haptic` | 觸覺圖案名稱（`haptics.patterns`） | `bite`: medium |
+| `music` | 短音樂（`stingers`） | `net` |
+| `fish_fly` | 小魚乾飛向左上計數 | `kill_prey` |
+
+### 常見調整
+
+| 想調整的感覺 | `feel.json` 欄位 |
+| --- | --- |
+| 某個時刻太輕或太重 | `cues.<名稱>` 的 `hitstop`、`shake`、`haptic`、`particles.count` |
+| 停頓或慢動作整體上限 | `limits.hitstop_cap`、`limits.slowmo_min_scale` |
+| 震屏最大位移、回復速度、鏡頭超前 | `camera.max_shake`、`camera.trauma_decay`、`camera.lookahead` |
+| 震動太多或太弱 | `limits.haptic_gap`（兩次震動最短間隔）、`haptics.strength`、`haptics.patterns`（每段 `[毫秒, 強度]`，強度 0 是停頓）、`haptics.priority` |
+| 粒子數量上限（依特效設定） | `limits.particles.high/medium/low`、`limits.particle_scale` |
+| 粒子外觀 | `particles.<預設>`：速度、壽命、大小、阻力、形狀（`streak`、`shard`、`star`、`puff`、`line`、`slash`、`plus`、`dot`）、顏色、是否加色發光 |
+| 連獵門檻與稱號 | `combo.tiers`、`combo.window`（幾秒內沒擊殺就歸零）、`combo.break_on_hurt` |
+| 哪些命中顯示傷害數字（「重擊」模式） | `damage_numbers.heavy_sources`、`heavy_roles`、`heavy_prey` |
+| 低血量心跳 | `low_hp.ratio`、`low_hp.beat` |
+| 音效音量與同時上限 | `sounds.<名稱>.volume`（dB）、`max`、`bus` |
+| 音樂層何時加入 | `music.layers`（強度門檻）、`music.intensity`（附近敵數、連獵、夜影、守關各佔多少） |
+| 自動降特效的門檻 | `performance.frame_budget_ms`、`performance.window`（只在手機的正式建置生效） |
+| 顏色語言 | `colors`（紅橘危險、金色獵物、青色影子攻擊、紫色夜影） |
+
+### 音效與音樂
+
+音效和音樂都是 `scripts/x1-make-audio.py` 用 Python 標準函式庫、固定種子產生的 WAV，重新產生結果相同：
+
+```sh
+python3 -B scripts/x1-make-audio.py
+```
+
+它會覆寫 `game/assets/audio/x1/sfx/` 與 `music/`，並印出每個檔案的峰值與 RMS。改了聲音的做法要改這支腳本；只想調大小聲就改 `feel.json` 的 `volume`。新增聲音時，在腳本加產生函式、在 `feel.json` 的 `sounds` 登記變體數，`x1_audio_tests` 會檢查檔案都存在、能載入、音樂循環長度一致。音樂循環檔的 `.import` 要保留 `edit/loop_mode=2`。
+
+### 看手感的工具
+
+- **F3**（電腦鍵盤）：在戰鬥左下角顯示每幀毫秒、fps、繪製毫秒、敵數、粒子數與特效等級；設定頁的「顯示每幀時間」也能打開（手機上用這個）。
+- **逐格錄影：**`Godot --path game --fixed-fps 60 --script res://tests/x1_record.gd -- out=/某資料夾`，把撲擊咬擊、擊敗獵物、夜影、受傷、連獵、升級、預警、守關登場／轉階段／擊破錄成九張聯絡表。**一定要加 `--fixed-fps 60`**，否則在 120 Hz 螢幕上特效會看起來長一倍。
+- **效能壓力：**`Godot --path game --script res://tests/x1_perf.gd -- seconds=10 effects=high`，畫面上維持 120 隻敵人、持續擊殺與夜影，輸出模擬、繪製清單、渲染 CPU 與實際每幀時間。數字只代表這台 Mac。
+
+### 畫圖的效能規則
+
+Compatibility 渲染器裡，`draw_colored_polygon`、`draw_circle`、`draw_arc`、`draw_polyline` 和有抗鋸齒的 `draw_line` 每次呼叫都會建立一個頂點緩衝（實測每次約 4 微秒）；`draw_rect`、`draw_texture_rect`、`draw_primitive`（3–4 點）則便宜而且會合批。所以每幀會畫很多次的東西（敵人身體、眼睛、粒子、寶石、草叢）用 `Looks.ellipse`／`Looks.disc`（著色的圓形貼圖）和 `Looks.poly`（三角形與四邊形）。改成這樣後，120 隻敵人加滿粒子時每幀從 22.6 毫秒降到 8.4 毫秒。少量的東西（預警、圈、HUD）照常用一般畫法即可。
 
 ## 卡片效果怎麼寫
 

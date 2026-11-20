@@ -42,15 +42,31 @@ func _ready() -> void:
 	var additive := CanvasItemMaterial.new()
 	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	layers.fx_glow.material = additive
-	layers.ground.draw.connect(func(): _draw_ground(layers.ground))
-	layers.entities.draw.connect(func(): _draw_entities(layers.entities))
-	layers.fx_normal.draw.connect(func(): fx.draw_particles(layers.fx_normal, false))
-	layers.fx_glow.draw.connect(func(): _draw_glow(layers.fx_glow))
-	layers.top.draw.connect(func(): _draw_top(layers.top))
+	layers.ground.draw.connect(func(): _timed("ground", _draw_ground.bind(layers.ground)))
+	layers.entities.draw.connect(func(): _timed("entities", _draw_entities.bind(layers.entities)))
+	layers.fx_normal.draw.connect(func(): _timed("fx_normal", fx.draw_particles.bind(layers.fx_normal, false)))
+	layers.fx_glow.draw.connect(func(): _timed("fx_glow", _draw_glow.bind(layers.fx_glow)))
+	layers.top.draw.connect(func(): _timed("top", _draw_top.bind(layers.top)))
+
+
+## Time spent building each layer's draw list (ms, smoothed), for the F3 overlay and the perf probe.
+var draw_ms: Dictionary = {}
+
+
+func _timed(name: String, call: Callable) -> void:
+	var t0 := Time.get_ticks_usec()
+	call.call()
+	draw_ms[name] = lerpf(float(draw_ms.get(name, 0.0)), (Time.get_ticks_usec() - t0) / 1000.0, 0.1)
 
 
 func col(name: String) -> Color:
 	return fx.color(name)
+
+
+## Looks keeps its disc textures in static variables; free them with the view rather than at
+## engine shutdown.
+func _exit_tree() -> void:
+	Looks.release()
 
 
 func set_battle(b) -> void:
@@ -97,7 +113,7 @@ func on_event(kind: String, ev: Dictionary) -> void:
 		"spawn":
 			view(int(ev.get("id", -1))).spawn = 0.0
 		"defeat":
-			var snapshot := {"id": int(ev.get("id", 0)), "kind": str(ev.get("kind", "E01")), "ai": str(Data.shared().enemies.get(str(ev.get("kind", "E01")), {}).get("ai", "chaser")),
+			var snapshot := {"id": int(ev.get("id", 0)), "kind": str(ev.get("enemy", "E01")), "ai": str(Data.shared().enemies.get(str(ev.get("enemy", "E01")), {}).get("ai", "chaser")),
 				"role": ev.get("role", "fodder"), "radius": float(ev.get("radius", 15.0)), "pos": ev.pos, "phase": "", "flash": 0.0}
 			fx.corpse(snapshot)
 			views.erase(int(ev.get("id", 0)))
@@ -116,6 +132,7 @@ func _process(delta: float) -> void:
 	clock += delta
 	var scaled := delta * time_scale
 	fx.update(scaled)
+	fx.view_rect = _visible_rect().grow(-80.0)
 	for id in views:
 		var v: Dictionary = views[id]
 		v.squash = maxf(0.0, float(v.squash) - scaled * 6.0)
@@ -179,10 +196,10 @@ func _draw_ground(c: CanvasItem) -> void:
 			Looks.ellipse(c, pos, r * 2.2, r * 1.4, ground.darkened(0.25), 10)
 			Looks.ellipse(c, pos + Vector2(-1, -2), r * 1.8, r * 1.0, ground.lightened(0.1), 10)
 			continue
-		c.draw_line(pos, pos + Vector2(-3, -r * 2), tuft, 2.0, true)
-		c.draw_line(pos, pos + Vector2(4, -r * 1.4), tuft, 2.0, true)
-		c.draw_line(pos, pos + Vector2(0, -r * 2.4), tuft.lightened(0.1), 2.0, true)
-		if item.flower: c.draw_circle(pos + Vector2(-3, -r * 2), 3.0, Color("e8d9a0"))
+		c.draw_line(pos, pos + Vector2(-3, -r * 2), tuft, 2.0)
+		c.draw_line(pos, pos + Vector2(4, -r * 1.4), tuft, 2.0)
+		c.draw_line(pos, pos + Vector2(0, -r * 2.4), tuft.lightened(0.1), 2.0)
+		if item.flower: Looks.disc(c, pos + Vector2(-3, -r * 2), 3.0, Color("e8d9a0"))
 	var edge := Rect2(Vector2(10, 10), battle.world - Vector2(20, 20))
 	c.draw_rect(edge, Color(str(palette.get("edge", "7a9b66"))), false, 14.0)
 	c.draw_rect(edge.grow(-12), Color(0, 0, 0, 0.18), false, 6.0)
@@ -194,21 +211,21 @@ func _draw_ground(c: CanvasItem) -> void:
 		c.draw_style_box(UI.panel(obstacle.lightened(0.12), 16, 0), Rect2(rect.position + Vector2(10, 8), rect.size - Vector2(20, 26)))
 		for i in 6:
 			var dot: Vector2 = rect.position + Vector2(rect.size.x * (0.12 + 0.15 * i), rect.size.y * (0.35 + 0.3 * (i % 2)))
-			c.draw_circle(dot + Vector2(0, 2), 7.0, Color(0, 0, 0, 0.25))
-			c.draw_circle(dot, 7.0, Color("e7a6c4") if i % 2 == 0 else Color("f1d27a"))
-			c.draw_circle(dot + Vector2(-2, -2), 2.5, Color(1, 1, 1, 0.7))
+			Looks.disc(c, dot + Vector2(0, 2), 7.0, Color(0, 0, 0, 0.25))
+			Looks.disc(c, dot, 7.0, Color("e7a6c4") if i % 2 == 0 else Color("f1d27a"))
+			Looks.disc(c, dot + Vector2(-2, -2), 2.5, Color(1, 1, 1, 0.7))
 	for circle: Dictionary in battle.obstacles.circles:
 		var pos: Vector2 = circle.center
 		var r: float = circle.radius
 		c.draw_texture_rect(fx.glow_texture, Rect2(pos + Vector2(-r * 1.2, -r * 0.6), Vector2(r * 2.4, r * 2.2)), false, Color(0, 0, 0, 0.4))
-		c.draw_circle(pos, r + 3.0, Looks.INK)
-		c.draw_circle(pos, r, obstacle)
-		c.draw_circle(pos + Vector2(-r * 0.15, -r * 0.18), r * 0.78, obstacle.lightened(0.1))
+		Looks.disc(c, pos, r + 3.0, Looks.INK)
+		Looks.disc(c, pos, r, obstacle)
+		Looks.disc(c, pos + Vector2(-r * 0.15, -r * 0.18), r * 0.78, obstacle.lightened(0.1))
 		c.draw_arc(pos, r - 6.0, PI * 1.05, PI * 1.7, 20, obstacle.lightened(0.35), 4.0, true)
 	for hazard: Dictionary in battle.hazards:
 		var pos: Vector2 = hazard.pos
 		var r: float = hazard.radius
-		c.draw_circle(pos, r, Color(0.32, 0.55, 0.25, 0.35))
+		Looks.disc(c, pos, r, Color(0.32, 0.55, 0.25, 0.35))
 		for k in 7:
 			var a := TAU * k / 7.0 + clock * 0.6
 			c.draw_arc(pos + Vector2.RIGHT.rotated(a) * r * 0.55, r * 0.35, a, a + 2.4, 10, Color(0.55, 0.85, 0.4, 0.7), 3.0, true)
@@ -252,13 +269,13 @@ func _draw_entities(c: CanvasItem) -> void:
 	for shot: Dictionary in battle.shots:
 		var pos: Vector2 = shot.pos
 		c.draw_texture_rect(fx.glow_texture, Rect2(pos - Vector2.ONE * 18, Vector2.ONE * 36), false, Color(1.0, 0.45, 0.35, 0.6))
-		c.draw_circle(pos, 8.0, Looks.INK)
-		c.draw_circle(pos, 6.5, col("danger"))
-		c.draw_circle(pos + Vector2(-2, -2), 2.5, Color(1, 0.9, 0.8))
+		Looks.disc(c, pos, 8.0, Looks.INK)
+		Looks.disc(c, pos, 6.5, col("danger"))
+		Looks.disc(c, pos + Vector2(-2, -2), 2.5, Color(1, 0.9, 0.8))
 	for ball: Dictionary in battle.balls:
 		var pos: Vector2 = ball.pos
-		c.draw_circle(pos, 8.0, Looks.INK)
-		c.draw_circle(pos, 6.5, prey_col)
+		Looks.disc(c, pos, 8.0, Looks.INK)
+		Looks.disc(c, pos, 6.5, prey_col)
 		c.draw_arc(pos, 4.5, clock * 12.0, clock * 12.0 + 3.0, 8, Color("c98a3a"), 2.0, true)
 
 
@@ -376,12 +393,12 @@ func _telegraph(c: CanvasItem, e: Dictionary, pos: Vector2) -> void:
 				c.draw_line(pos, pos + dir * length * progress, Color(1, 0.95, 0.7, 0.9), 3.5, true)
 		"circle":
 			var center: Vector2 = Vector2(tele.get("pos", e.pos))
-			c.draw_circle(center, float(tele.radius), fill)
+			Looks.disc(c, center, float(tele.radius), fill)
 			c.draw_arc(center, float(tele.radius), 0, TAU, 36, edge, 3.5, true)
 			c.draw_arc(center, float(tele.radius) * progress, 0, TAU, 36, Color(1, 0.95, 0.7, 0.7), 2.5, true)
 		"circles":
 			for point in tele.points:
-				c.draw_circle(Vector2(point), float(tele.radius), fill)
+				Looks.disc(c, Vector2(point), float(tele.radius), fill)
 				c.draw_arc(Vector2(point), float(tele.radius), 0, TAU, 36, edge, 3.5, true)
 		"ring":
 			var radius: float = float(tele.radius)

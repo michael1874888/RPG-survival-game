@@ -14,8 +14,8 @@ import xml.etree.ElementTree as ET
 PROJECT = Path(__file__).resolve().parent.parent
 GODOT = Path('/Applications/Godot.app/Contents/MacOS/Godot')
 CONTROLLER = '/Users/junming/AI-Setup/storage/storagectl.py'
-VERSION = '0.30.0'
-VERSION_CODE = 30
+VERSION = '0.31.0'
+VERSION_CODE = 31
 
 
 def run(args, env=None):
@@ -97,7 +97,7 @@ def main():
     configure_editor(java, sdk, key)
     destination = root / 'builds/android'
     destination.mkdir(parents=True, exist_ok=True)
-    apk = destination / 'bramble-v0.30-debug.apk'
+    apk = destination / 'bramble-v0.31-debug.apk'
 
     preset = '''[preset.0]
 name="Android"
@@ -153,12 +153,18 @@ permissions/vibrate=true
         for script in ('run_model', 'nana_combat', 'nana_encounters', 'nana_experiment', 'nana_series', 'nana_growth_run', 'treasure_collection', 'main',
                        'r1_main', 'r1_growth', 'r1_profile', 'r1_waves', 'r1_combat', 'r1_encounters', 'r1_expedition', 'x1_main',
                        'x1/core/battle', 'x1/core/run', 'x1/core/profile', 'x1/core/data', 'x1/core/effects', 'x1/core/effect_actions',
-                       'x1/core/spawner', 'x1/core/build', 'x1/render/battle_view', 'x1/ai/boss_crow'):
+                       'x1/core/spawner', 'x1/core/build', 'x1/ai/boss_crow', 'x1/present/feedback_director', 'x1/present/world_view',
+                       'x1/present/hud', 'x1/present/time_controller', 'x1/present/audio_director', 'x1/present/music_director'):
             if 'assets/scripts/' + script + '.gdc' not in archive.namelist():
                 raise RuntimeError('Compiled game script is missing: ' + script)
-        for table in ('tuning', 'enemies', 'spawns', 'regions', 'cards', 'habits', 'items', 'events', 'shop', 'night_levels', 'unlocks'):
+        for table in ('tuning', 'enemies', 'spawns', 'regions', 'cards', 'habits', 'items', 'events', 'shop', 'night_levels', 'unlocks', 'feel'):
             if 'assets/data/x1/' + table + '.json' not in archive.namelist():
                 raise RuntimeError('X1 data table is missing: ' + table)
+        for folder in ('sfx', 'music'):
+            source = sorted(path.name for path in (PROJECT / 'game/assets/audio/x1' / folder).glob('*.wav'))
+            for name in source:
+                if 'assets/assets/audio/x1/%s/%s.import' % (folder, name) not in archive.namelist():
+                    raise RuntimeError('Generated audio is missing from the APK: %s/%s' % (folder, name))
         remap_name = 'assets/x1_main.tscn.remap'
         if remap_name not in archive.namelist():
             raise RuntimeError('The X1 main scene is missing.')

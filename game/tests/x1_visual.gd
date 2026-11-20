@@ -1,6 +1,6 @@
 extends SceneTree
 ## Desktop screenshot tour of every X1 screen with an isolated test profile (needs a window, not headless).
-## Usage: Godot --path game --script res://tests/x1_visual.gd -- out=/absolute/folder [size=1280x720]
+## Usage: Godot --path game --fixed-fps 60 [--resolution 1600x720] --script res://tests/x1_visual.gd -- out=/absolute/folder
 
 const Profile := preload("res://scripts/x1/core/profile.gd")
 const Data := preload("res://scripts/x1/core/data.gd")
@@ -54,7 +54,7 @@ func fight(scene, seconds: float) -> void:
 		b.player.invuln = 1.0
 		var input: Dictionary = bot.battle_input(b, 1.0 / 60.0)
 		var ended: bool = scene.run.tick(1.0 / 60.0, input)
-		scene.view.consume(b.take_events())
+		b.take_events()   # screenshots show the battle state, not 26 s of piled-up effects
 		if ended: return
 
 
@@ -68,6 +68,7 @@ func tour() -> void:
 	next.unlocked = ["CL05", "SH05", "PO04"]
 	profile.commit(next)
 	scene.profile = profile
+	scene.instant = true   # no wipes, walks or card flips in still shots
 	root.add_child(scene)
 	await shot("01_title")
 	press(scene, "出發夜巡")
@@ -76,15 +77,14 @@ func tour() -> void:
 	await shot("03_map")
 	press(scene, "狩獵")
 	fight(scene, 26.0)
-	scene.view.show_hint("右手拖曳、放開：撲出去！撲擊途中不會受傷，落地會咬一口。", 5.0)
+	scene.hud.show_hint("右手拖曳、放開：撲出去！撲擊途中不會受傷，落地會咬一口。", 5.0)
 	scene.touch.aim_id = 3
 	scene.touch.aim_origin = Vector2(1050, 520)
 	scene.touch.aim_point = Vector2(1120, 470)
 	await shot("04_battle_courtyard")
 	scene.touch.aim_id = -1
-	scene.run.pending_levels = 1
-	scene.run.build.offers.clear()
-	scene._physics_process(1.0 / 60.0)
+	scene.run.gain_xp(scene.run.xp_needed())
+	scene.advance_frame(1.0 / 60.0)
 	await shot("05_card_choice")
 	press(scene, "略過")
 	scene.run.phase = "shop"

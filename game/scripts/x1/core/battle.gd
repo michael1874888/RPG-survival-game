@@ -524,12 +524,13 @@ func damage_multiplier(source: String, e: Dictionary) -> float:
 func damage_enemy(e: Dictionary, amount: float, source: String, depth: int) -> bool:
 	if float(e.hp) <= 0.0 or amount <= 0.0: return false
 	var dealt: float = amount * damage_multiplier(source, e)
-	e.hp = float(e.hp) - dealt
+	var hp_before: float = float(e.hp)
+	e.hp = hp_before - dealt
 	e.flash = 0.1
 	metrics.damage_dealt = float(metrics.damage_dealt) + dealt
 	if source != "bleed":
 		var away: Vector2 = e.pos - player.pos
-		event("hit", {"pos": e.pos, "amount": dealt, "source": source, "id": int(e.id), "role": e.role, "prey": is_prey(e),
+		event("hit", {"pos": e.pos, "amount": dealt, "shown": minf(dealt, hp_before), "source": source, "id": int(e.id), "role": e.role, "prey": is_prey(e),
 			"kill": float(e.hp) <= 0.0, "dir": away.normalized() if away.length_squared() > 0.01 else Vector2.RIGHT, "radius": e.radius})
 	if source != "bleed" and depth < max_depth:
 		effects.fire(self, "hit", {"source": source, "depth": depth, "target": e, "pos": e.pos})
@@ -557,7 +558,7 @@ func _kill(e: Dictionary, source: String, depth: int) -> void:
 	if fish > 0 and owner != null: owner.gain_fish(fish)
 	add_meter(float(t.ult.gain.get(drop_key, 0)) * (1.0 + stats.value("ult_gain_pct") / 100.0))
 	event("defeat", {"pos": e.pos, "role": e.role, "color": data.enemies[e.kind].get("color", "ffffff"), "radius": e.radius,
-		"source": source, "id": int(e.id), "kind": e.kind, "prey": bool(e.get("prey", false)), "target": bool(e.get("target", false)),
+		"source": source, "id": int(e.id), "enemy": e.kind, "prey": bool(e.get("prey", false)), "target": bool(e.get("target", false)),
 		"summoned": bool(e.get("summoned", false))})
 	if is_prey(e):
 		if e.get("prey", false) or e.role == "elite": metrics.prey_kills += 1
@@ -767,7 +768,7 @@ func spawn_enemy(kind_id: String, pos: Vector2, opts: Dictionary = {}) -> Dictio
 	if script != null and script.has_method("init"): script.init(self, e)
 	enemies.append(e)
 	by_id[int(e.id)] = e
-	event("spawn", {"pos": e.pos, "kind": kind_id, "role": role, "id": int(e.id), "prey": bool(e.prey), "summoned": bool(e.summoned)})
+	event("spawn", {"pos": e.pos, "enemy": kind_id, "role": role, "id": int(e.id), "prey": bool(e.prey), "summoned": bool(e.summoned)})
 	return e
 
 

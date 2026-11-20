@@ -2,6 +2,8 @@ extends RefCounted
 ## Presentation-only effects: particles, rings, pillars, bite teeth, floating text, damage numbers,
 ## dissolving bodies and pounce afterimages. Updated with scaled time (freezes during hit-stop).
 
+const Looks := preload("res://scripts/x1/present/looks.gd")
+
 var feel: Dictionary = {}
 var colors: Dictionary = {}
 var quality := "high"
@@ -16,6 +18,8 @@ var afterimages: Array = []   # {pos, dir, life, max, squash}
 var rng := RandomNumberGenerator.new()
 var glow_texture: Texture2D
 var low_flash := false
+var view_rect := Rect2()       # visible world area, set by world_view each frame
+var hud_top := 130.0           # world units kept clear under the top HUD
 
 
 func setup(feel_data: Dictionary) -> void:
@@ -111,16 +115,43 @@ func special(kind: String, pos: Vector2, dir := Vector2.RIGHT, data := {}) -> vo
 	specials.append({"kind": kind, "pos": pos, "life": life, "max": life, "dir": dir, "data": data})
 
 
+## Floating word. It starts inside the visible area, and a word that would land on a fresh word or
+## number is moved above it (or below, when there is no room under the HUD) instead of overlapping.
 func text(value: String, pos: Vector2, col: Color, size := 30) -> void:
 	if texts.size() >= int(feel.get("limits", {}).get("texts", 6)): texts.pop_front()
-	texts.append({"text": value, "pos": pos, "life": 0.9, "max": 0.9, "color": col, "size": size, "vel": Vector2(0, -60)})
+	var place := _free_spot(pos, size * value.length(), size)
+	# Words near the top edge hold still instead of drifting into the HUD and onto each other.
+	var rise := 60.0 if place.y - 60.0 >= _top_limit(size) else 0.0
+	texts.append({"text": value, "pos": place, "life": 0.9, "max": 0.9, "color": col, "size": size, "width": size * value.length(), "vel": Vector2(0, -rise)})
 
 
 func number(value: float, pos: Vector2, col: Color, big := false) -> void:
 	if numbers.size() >= int(feel.get("limits", {}).get("damage_numbers", 28)): numbers.pop_front()
 	var life := 0.75 if big else 0.6
-	numbers.append({"value": int(round(value)), "pos": pos + Vector2(rng.randf_range(-10, 10), -18), "life": life, "max": life,
+	var size := 30 if big else 20
+	var label := str(int(round(value)))
+	var start := pos + Vector2(rng.randf_range(-10, 10), -18)
+	if big: start = _free_spot(start, size * 0.6 * label.length(), size)
+	numbers.append({"value": int(round(value)), "pos": start, "life": life, "max": life, "size": size, "width": size * 0.6 * label.length(),
 		"color": col, "big": big, "vel": Vector2(rng.randf_range(-30, 30), -110 if big else -80)})
+
+
+func _free_spot(pos: Vector2, width: float, size: float) -> Vector2:
+	var place := _on_screen(pos, width, size)
+	var top_limit := _top_limit(size)
+	for k in 5:
+		var blocked := false
+		for list: Array in [texts, numbers]:
+			for other: Dictionary in list:
+				if float(other.max) - float(other.life) > 0.6 or not other.has("width"): continue
+				if list == numbers and not other.big: continue
+				var o: Vector2 = other.pos
+				var gap: float = (float(other.size) + size) * 0.6
+				if absf(o.x - place.x) < (float(other.width) + width) * 0.5 and absf(o.y - place.y) < gap:
+					place.y = o.y - gap if o.y - gap >= top_limit else o.y + gap
+					blocked = true
+		if not blocked: break
+	return place
 
 
 func corpse(snapshot: Dictionary) -> void:
@@ -169,29 +200,29 @@ func draw_particles(canvas: CanvasItem, additive: bool) -> void:
 		match str(p.shape):
 			"streak":
 				var v: Vector2 = p.vel
-				canvas.draw_line(pos, pos - v * 0.04, c, size, true)
+				canvas.draw_line(pos, pos - v * 0.04, c, size, false)
 			"line":
 				var d: Vector2 = Vector2(p.dir) if Vector2(p.dir) != Vector2.ZERO else Vector2.RIGHT
-				canvas.draw_line(pos, pos - d * 46.0 * t, c, size, true)
+				canvas.draw_line(pos, pos - d * 46.0 * t, c, size, false)
 			"shard":
 				var r: float = p.rot
-				canvas.draw_colored_polygon(PackedVector2Array([pos + Vector2(size, 0).rotated(r), pos + Vector2(-size * 0.6, size * 0.5).rotated(r),
+				Looks.poly(canvas, PackedVector2Array([pos + Vector2(size, 0).rotated(r), pos + Vector2(-size * 0.6, size * 0.5).rotated(r),
 					pos + Vector2(-size * 0.4, -size * 0.7).rotated(r)]), c)
 			"star":
 				canvas.draw_texture_rect(glow_texture, Rect2(pos - Vector2.ONE * size * 2.2, Vector2.ONE * size * 4.4), false, c)
-				canvas.draw_line(pos - Vector2(size * 1.6, 0).rotated(p.rot), pos + Vector2(size * 1.6, 0).rotated(p.rot), c, 1.5, true)
-				canvas.draw_line(pos - Vector2(0, size * 1.6).rotated(p.rot), pos + Vector2(0, size * 1.6).rotated(p.rot), c, 1.5, true)
+				canvas.draw_line(pos - Vector2(size * 1.6, 0).rotated(p.rot), pos + Vector2(size * 1.6, 0).rotated(p.rot), c, 1.5, false)
+				canvas.draw_line(pos - Vector2(0, size * 1.6).rotated(p.rot), pos + Vector2(0, size * 1.6).rotated(p.rot), c, 1.5, false)
 			"puff":
 				canvas.draw_texture_rect(glow_texture, Rect2(pos - Vector2.ONE * size * (2.0 - t), Vector2.ONE * size * (4.0 - 2.0 * t)), false, c)
 			"plus":
-				canvas.draw_line(pos - Vector2(size, 0), pos + Vector2(size, 0), c, 2.5, true)
-				canvas.draw_line(pos - Vector2(0, size), pos + Vector2(0, size), c, 2.5, true)
+				canvas.draw_line(pos - Vector2(size, 0), pos + Vector2(size, 0), c, 2.5, false)
+				canvas.draw_line(pos - Vector2(0, size), pos + Vector2(0, size), c, 2.5, false)
 			"slash":
 				var d: Vector2 = Vector2(p.dir) if Vector2(p.dir) != Vector2.ZERO else Vector2.RIGHT
 				var side: Vector2 = d.orthogonal().rotated(0.5) * size
-				canvas.draw_line(pos - side, pos + side, c, 5.0 * t + 1.0, true)
+				canvas.draw_line(pos - side, pos + side, c, 5.0 * t + 1.0, false)
 			_:
-				canvas.draw_circle(pos, size, c)
+				Looks.disc(canvas, pos, size, c)
 
 
 func draw_glow(canvas: CanvasItem) -> void:
@@ -228,7 +259,7 @@ func draw_specials(canvas: CanvasItem, font: Font) -> void:
 					var y: float = gap * side
 					for k in 4:
 						var x: float = -18.0 + k * 12.0
-						canvas.draw_colored_polygon(PackedVector2Array([pos + Vector2(x - 5, y), pos + Vector2(x + 5, y),
+						Looks.poly(canvas, PackedVector2Array([pos + Vector2(x - 5, y), pos + Vector2(x + 5, y),
 							pos + Vector2(x, y - 10.0 * side)]), col)
 					canvas.draw_line(pos + Vector2(-24, y), pos + Vector2(24, y), Color(col.r, col.g, col.b, alpha * 0.7), 3.0, true)
 				if close >= 1.0:
@@ -253,7 +284,8 @@ func draw_specials(canvas: CanvasItem, font: Font) -> void:
 		var size := int(float(entry.size) * pop)
 		var c: Color = entry.color
 		c.a = minf(1.0, t * 2.5)
-		_outlined(canvas, font, Vector2(entry.pos) - Vector2(size * str(entry.text).length() * 0.5, 0), str(entry.text), size, c)
+		var width: float = size * str(entry.text).length()
+		_outlined(canvas, font, _on_screen(Vector2(entry.pos), width, size) - Vector2(width * 0.5, 0), str(entry.text), size, c)
 	for n: Dictionary in numbers:
 		var t: float = float(n.life) / float(n.max)
 		var pop: float = 1.0 + (0.6 if n.big else 0.3) * maxf(0.0, (t - 0.75) / 0.25)
@@ -261,7 +293,21 @@ func draw_specials(canvas: CanvasItem, font: Font) -> void:
 		var c: Color = n.color
 		c.a = minf(1.0, t * 3.0)
 		var label := str(n.value)
-		_outlined(canvas, font, Vector2(n.pos) - Vector2(size * 0.3 * label.length(), 0), label, size, c)
+		var width: float = size * 0.6 * label.length()
+		_outlined(canvas, font, _on_screen(Vector2(n.pos), width, size) - Vector2(width * 0.5, 0), label, size, c)
+
+
+func _top_limit(size: float) -> float:
+	return view_rect.position.y + hud_top + size if view_rect.size.x > 0.0 else -INF
+
+
+## Keep words inside the visible world area and below the HUD strip at the top.
+func _on_screen(pos: Vector2, width: float, size: float) -> Vector2:
+	if view_rect.size.x <= 0.0: return pos
+	var left: float = view_rect.position.x + width * 0.5 + 12.0
+	var right: float = view_rect.end.x - width * 0.5 - 12.0
+	var top: float = view_rect.position.y + hud_top + size
+	return Vector2(clampf(pos.x, left, maxf(left, right)), clampf(pos.y, top, maxf(top, view_rect.end.y - 12.0)))
 
 
 func _outlined(canvas: CanvasItem, font: Font, pos: Vector2, value: String, size: int, c: Color) -> void:

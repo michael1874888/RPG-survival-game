@@ -97,9 +97,9 @@ func cue(name: String, pos: Vector2, opts: Dictionary = {}) -> void:
 		if entry.get("pillar", false): fx.pillar(pos)
 		if entry.get("puff", false): fx.burst("puff", pos, 3, opts.get("tint", Color.WHITE))
 		if entry.has("fx"): fx.special(str(entry.fx), pos, opts.get("dir", Vector2.RIGHT), opts)
-		if entry.has("text"): fx.text(str(entry.text), pos + Vector2(0, -50), _color(str(entry.get("text_color", "cream"))), 30)
+		if entry.has("text"): fx.text(str(entry.text), pos + Vector2(0, -50), _color(str(entry.get("text_color", "cream"))), int(entry.get("text_size", 30)))
 	if hud != null:
-		if entry.has("flash"): hud.screen_flash(str(entry.flash), 1.0)
+		if entry.has("flash"): hud.screen_flash(str(entry.flash), float(entry.get("flash_strength", 1.0)))
 		if entry.get("fish_fly", false): hud.fly_fish(_screen(pos))
 	if audio != null and entry.has("sound"):
 		var semis: float = float(entry.get("pitch", 0.0))
@@ -187,11 +187,13 @@ func process(events: Array, b, run) -> void:
 			"spawn":
 				if str(ev.get("role", "")) in ["special", "elite", "boss"] or ev.get("prey", false): cue("spawn_special", pos)
 				if str(ev.get("role", "")) == "boss" and hud != null:
-					hud.banner(str(Data.shared().enemies.get(str(ev.get("kind", "")), {}).get("name", "")), "守關現身", "danger", 1.8)
+					hud.banner(str(Data.shared().enemies.get(str(ev.get("enemy", "")), {}).get("name", "")), "守關現身", "danger", 1.8)
 			"boss_phase": cue("boss_phase", pos)
 			"net":
 				cue("net", pos)
-				if hud != null: hud.banner("收網！", "目標獵物全部打倒", "prey", 1.5)
+				if hud != null:
+					if b != null and b.kind == "boss": hud.banner("守關擊破！", "夜巡收網", "prey", 1.8)
+					else: hud.banner("收網！", "目標獵物全部打倒", "prey", 1.5)
 			"lost": cue("lost", pos)
 
 
@@ -217,7 +219,7 @@ func _on_defeat(ev: Dictionary) -> void:
 	if tier_index > combo_tier:
 		combo_tier = tier_index
 		cue("combo_tier", pos)
-		if hud != null: hud.banner("%s ×%d" % [tiers[tier_index].name, combo], "", "prey", 0.9, false)
+		if hud != null: hud.combo_tier_up()
 	if hud != null: hud.set_combo(combo, tiers[maxi(0, combo_tier)] if not tiers.is_empty() and combo_tier >= 0 else {"name": "連獵", "color": "fff2d4"})
 
 
@@ -234,7 +236,7 @@ func _damage_number(ev: Dictionary, heavy: bool) -> void:
 	var mode: String = str(settings.get("damage_numbers", "heavy"))
 	if mode == "off" or (mode == "heavy" and not heavy): return
 	var source: String = str(ev.get("source", ""))
-	var big: bool = source in ["cash", "execute"] or (heavy and float(ev.get("amount", 0.0)) >= 40.0)
+	var big: bool = source in ["cash", "execute"] or (heavy and float(ev.get("shown", ev.get("amount", 0.0))) >= 40.0)
 	var col_name := "cream"
 	match source:
 		"bite": col_name = "white"
@@ -242,7 +244,7 @@ func _damage_number(ev: Dictionary, heavy: bool) -> void:
 		"execute": col_name = "danger"
 		"shadow", "wind": col_name = "shadow"
 	if ev.get("prey", false) and source in ["bite", "claw"]: col_name = "prey"
-	world.fx.number(float(ev.get("amount", 0.0)), Vector2(ev.pos), _color(col_name), big)
+	world.fx.number(float(ev.get("shown", ev.get("amount", 0.0))), Vector2(ev.pos), _color(col_name), big)
 
 
 ## Per frame: combo timeout, pickup streak, level-up detection, heartbeat, music intensity.
@@ -254,10 +256,12 @@ func frame(dt: float, b, run) -> void:
 		pickup_timer -= dt
 		if pickup_timer <= 0.0: pickup_streak = 0
 	if run != null:
-		if run.pending_levels > last_pending and b != null: cue("level_up", b.player.pos)
-		if b != null and run.pending_levels > last_pending and hud != null: hud.banner("升級！", "", "prey", 1.0)
+		if run.pending_levels > last_pending and b != null:
+			cue("level_up", b.player.pos)
+			if hud != null: hud.level_up()
 		last_pending = run.pending_levels
 	if b == null: return
+	if world != null and hud != null: world.fx.hud_top = hud.reserved_top()
 	var ratio: float = float(b.player.hp) / maxf(1.0, float(b.player.max_hp))
 	var low: bool = ratio < float(feel.get("low_hp", {}).get("ratio", 0.3)) and b.state == "playing"
 	if audio != null: audio.low_pass(low)

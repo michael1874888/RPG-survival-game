@@ -2,6 +2,8 @@ extends RefCounted
 ## Nana's procedural rig: breathing, tail and ear motion, running bob and lean, paw swipes,
 ## pounce squash -> stretch -> landing squash, bite mouth, hurt flinch, night-shadow aura.
 
+const Looks := preload("res://scripts/x1/present/looks.gd")
+
 const INK := Color(0.07, 0.05, 0.1)
 
 var t := 0.0
@@ -116,9 +118,9 @@ func draw(c: CanvasItem, pos: Vector2, glow: Texture2D, night: Color) -> void:
 		var base_l: Vector2 = head + Vector2(13.0 * s, -8.0)
 		c.draw_colored_polygon(PackedVector2Array([base_l + Vector2(-7.0 * s, 4), head + Vector2(17.0 * s, -30.0 - ear_lift * (1.0 if s > 0 else 0.4)), base_l + Vector2(6.0 * s, 4)]), INK)
 		c.draw_colored_polygon(PackedVector2Array([base_l + Vector2(-4.0 * s, 2), head + Vector2(15.5 * s, -25.0 - ear_lift * (1.0 if s > 0 else 0.4)), base_l + Vector2(3.0 * s, 2)]), Color(0.85, 0.55, 0.62))
-	c.draw_circle(head, 18.5, INK)
-	c.draw_circle(head, 16.0, fur)
-	c.draw_circle(head + Vector2(-5, -6), 6.0, shine)
+	Looks.disc(c, head, 18.5, INK)
+	Looks.disc(c, head, 16.0, fur)
+	Looks.disc(c, head + Vector2(-5, -6), 6.0, shine)
 	# face
 	var eye_side := facing.orthogonal()
 	var eye_col := Color("f2dc8a")
@@ -129,23 +131,23 @@ func draw(c: CanvasItem, pos: Vector2, glow: Texture2D, night: Color) -> void:
 			c.draw_line(eye - Vector2(3, 0), eye + Vector2(3, 0), INK, 2.0, true)
 		else:
 			if ult_ready or ult: c.draw_texture_rect(glow, Rect2(eye - Vector2.ONE * 9, Vector2.ONE * 18), false, Color(0.8, 0.65, 1.0, 0.6))
-			c.draw_circle(eye, 3.6, eye_col)
-			c.draw_circle(eye + facing * 1.2, 1.7, INK)
+			Looks.disc(c, eye, 3.6, eye_col)
+			Looks.disc(c, eye + facing * 1.2, 1.7, INK)
 	var nose: Vector2 = head + facing * 12.0 + Vector2(0, 3)
 	if mouth_t > 0.0:
 		var open: float = sin(mouth_t * PI) * 7.0
 		c.draw_colored_polygon(PackedVector2Array([nose + Vector2(-5, 1), nose + Vector2(5, 1), nose + Vector2(0, 2 + open)]), Color(0.75, 0.2, 0.3))
 		c.draw_line(nose + Vector2(-4, 1), nose + Vector2(-2, 4), Color.WHITE, 1.5)
 		c.draw_line(nose + Vector2(4, 1), nose + Vector2(2, 4), Color.WHITE, 1.5)
-	c.draw_circle(nose, 2.4, Color("efb0b4"))
+	Looks.disc(c, nose, 2.4, Color("efb0b4"))
 	c.draw_set_transform(Vector2.ZERO)
 	# paw swipe (world aligned so the arc points at the target)
 	if paw_t > 0.0:
 		var swing: float = (1.0 - paw_t) * 1.6 - 0.8
 		var dir: Vector2 = paw_dir.rotated(swing * paw_side)
 		var paw: Vector2 = pos + Vector2(0, bob) + dir * (20.0 + 18.0 * sin((1.0 - paw_t) * PI))
-		c.draw_circle(paw, 7.5, INK)
-		c.draw_circle(paw, 5.5, fur.lightened(0.15))
+		Looks.disc(c, paw, 7.5, INK)
+		Looks.disc(c, paw, 5.5, fur.lightened(0.15))
 		for k in 3:
 			var claw_dir: Vector2 = dir.rotated((k - 1) * 0.35)
 			c.draw_line(paw + claw_dir * 5.0, paw + claw_dir * 11.0, Color(1, 1, 1, paw_t), 2.0, true)
