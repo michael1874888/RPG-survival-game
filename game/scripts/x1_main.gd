@@ -100,6 +100,7 @@ func _physics_process(delta: float) -> void:
 		_show_cards()
 		return
 	var b = run.battle
+	b.view_size = size
 	view.battle = b
 	view.run = run
 	var input := _gather_input(b)
@@ -507,6 +508,7 @@ func _show_map() -> void:
 	if not run.notice.is_empty(): map_box.add_child(UI.label(run.notice, 15, UI.GOLD))
 	if not save_notice.is_empty(): map_box.add_child(UI.label(save_notice, 14, UI.DANGER))
 	var map_view = MapView.new()
+	map_view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	map_box.add_child(map_view)
 	map_view.build(run, func(id: String):
 		_sound("click")

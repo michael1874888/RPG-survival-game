@@ -227,6 +227,8 @@ func _battle_won() -> void:
 		_finish(true)
 		return
 	queue.clear()
+	# Level-ups from experience collected during the net are chosen right after the battle.
+	for i in pending_levels: queue.append("level")
 	match node_kind:
 		"hunt":
 			fish += int(data.tuning.fish.hunt_clear)
@@ -260,6 +262,17 @@ func advance_queue() -> void:
 	while not queue.is_empty():
 		var step: String = queue.pop_front()
 		match step:
+			"level":
+				if pending_levels <= 0: continue
+				card_mode = "level"
+				choice_context = "level"
+				build.make_offers(rngs.get_rng("cards"), "level")
+				if build.offers.is_empty():
+					pending_levels -= 1
+					_heal(float(data.tuning.build.skip_heal))
+					continue
+				phase = "card"
+				return
 			"card_rare":
 				card_mode = "rare"
 				choice_context = "reward"
@@ -303,10 +316,13 @@ func reroll_cards() -> bool:
 func _after_card() -> void:
 	match choice_context:
 		"level":
-			pending_levels -= 1
+			pending_levels = maxi(0, pending_levels - 1)
 			if battle != null:
 				battle.refresh_build(build.entries())
 				if pending_levels > 0: _offer_level()
+			else:
+				hp = minf(hp, max_hp())
+				advance_queue()
 		_:
 			hp = minf(hp, max_hp())
 			advance_queue()

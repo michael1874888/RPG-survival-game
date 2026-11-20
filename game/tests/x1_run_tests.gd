@@ -154,6 +154,20 @@ func flow_tests() -> void:
 	loss.battle.hurt_player(50.0, "E01")
 	loss.tick(1.0 / 60.0, {})
 	check(loss.phase == "result" and not loss.won and loss.summary().last_hurt == "E01", "dying ends the run and names what hit last")
+	var late = Run.new()
+	late.begin({"seed": 6, "region": "courtyard", "habit": "roam"})
+	late.enter(late.available_nodes()[0])
+	late.battle.begin_net()
+	late.battle.pickups.append({"pos": late.battle.player.pos + Vector2(400, 0), "value": 30})
+	for i in 200:
+		late.tick(1.0 / 60.0, {})
+		if late.phase != "battle": break
+	check(late.phase == "card" and late.choice_context == "level" and late.battle == null, "level-ups from the net are offered right after the battle")
+	var level_guard := 0
+	while late.phase == "card" and level_guard < 10:
+		level_guard += 1
+		late.choose_card(late.build.offers[0])
+	check(late.phase == "map" and late.pending_levels == 0, "after the leftover level-ups the map continues")
 	var practice = Run.new()
 	practice.begin({"seed": 5, "region": "courtyard", "habit": "shadow", "practice": true})
 	check(practice.phase == "battle" and practice.battle.kind == "practice", "practice starts a single practice battle")

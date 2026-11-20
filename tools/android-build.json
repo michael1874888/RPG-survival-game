@@ -1,7 +1,7 @@
 {
   "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/builds/android/bramble-v0.30-debug.apk",
   "bytes": 37681385,
-  "sha256": "b9a74658e1e802244c6dd9691f1b4f30ebf48fd9bac208765c375e4ed4ffbbaf",
+  "sha256": "0208247eaff7a4299b813a0331cc7de7ce6800f8efbbb4692fb535d1d32d5904",
   "package": "org.bramble.prototype",
   "version": "0.30.0",
   "build_type": "debug",
