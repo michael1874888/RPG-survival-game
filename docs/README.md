@@ -45,6 +45,7 @@ v0.17 有 345 項規則與場景檢查通過；這與玩家爽感、平衡、設
 
 ## 其他入口
 
+- [重設計提案 X1：撲擊狩獵](design/nana-pounce-redesign-proposal-x1.md)（2026-11-20 已核准，實作中）
 - [名詞表](../GLOSSARY.md)
 - [Android 安裝與試玩](development/android-install.md)
 - [手機測試清單](development/mobile-test-checklist.md)
