@@ -16,6 +16,10 @@ var cancelled := false
 
 func handle(event: InputEvent, viewport_size: Vector2) -> void:
 	if event is InputEventScreenTouch:
+		if event.pressed and not event.canceled:
+			# A press from a finger we still think is down means its release went elsewhere.
+			if event.index == move_id: move_id = -1
+			if event.index == aim_id: aim_id = -1
 		if not event.pressed or event.canceled:
 			if event.index == move_id: move_id = -1
 			if event.index == aim_id:

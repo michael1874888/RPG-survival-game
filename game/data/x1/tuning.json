@@ -3,7 +3,7 @@
   "player": {"hp": 100, "speed": 260, "radius": 20, "hurt_invuln": 0.8, "speed_cap_pct": 45},
   "claw": {"interval": 0.42, "min_interval": 0.12, "damage": 10, "reach": 145, "angle": 100, "seek": 175},
   "pounce": {"charges": 2, "recharge": 2.5, "distance": 230, "duration": 0.18, "after_invuln": 0.15, "width": 56,
-    "path_damage": 12, "bite_damage": 30, "bite_radius": 90, "prey_refund": 1, "prey_refund_icd": 2.0, "deadzone": 24, "escape_radius": 120, "escape_count": 3},
+    "path_damage": 12, "bite_damage": 30, "bite_radius": 90, "prey_refund": 1, "prey_refund_icd": 2.0, "deadzone": 24, "input_buffer": 0.2, "escape_radius": 120, "escape_count": 3},
   "roam": {"step": 400, "overcap": 0},
   "ult": {"meter_max": 100, "radius": 220, "damage": 15, "knockback": 80, "protect": 0.6, "duration": 6.0,
     "reach_mult": 1.4, "damage_mult": 1.5, "recharge_mult": 2.0,

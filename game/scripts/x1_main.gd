@@ -49,6 +49,8 @@ var mouse_pos := Vector2.ZERO
 var mouse_aiming := false
 var mouse_pounce := false
 var keyboard_pounce := false
+var pounce_buffer := Vector2.ZERO   # a released pounce waiting for the next simulation step
+var pounce_buffer_left := 0.0
 var setup: Dictionary = {}
 var snapshot_clock := 0.0
 var report: Dictionary = {}
@@ -155,12 +157,20 @@ func advance_frame(delta: float) -> void:
 		return
 	var steps: int = time.advance(delta)
 	var input := _gather_input(b)
+	if input.pounce != Vector2.ZERO:
+		pounce_buffer = input.pounce
+		pounce_buffer_left = float(data.tuning.pounce.input_buffer)
 	var ended := false
+	# Requests wait for a simulation step: frames without one (hit-stop, slow motion, screens above
+	# 60 Hz) used to drop a release, and a release during a dash now fires when the dash ends.
 	for i in steps:
 		if i == steps - 1: world.capture()
+		input.pounce = pounce_buffer
+		input.ult = ult_request
+		ult_request = false
+		var pounces_before: int = int(b.metrics.pounces)
 		ended = run.tick(TimeController.STEP, input) or ended
-		input.pounce = Vector2.ZERO
-		input.ult = false
+		_age_pounce_buffer(b, pounces_before)
 		director.process(b.take_events(), b, run)
 		if run.phase != "battle" or run.needs_level_choice(): break
 	director.frame(delta, b, run)
@@ -203,6 +213,7 @@ func _present(delta: float, b) -> void:
 
 func _begin_battle_view(b) -> void:
 	current_battle = b
+	_reset_requests()
 	world.set_battle(b)
 	hud.reset_battle(b, run)
 	director.reset_battle(run)
@@ -233,9 +244,38 @@ func _gather_input(b) -> Dictionary:
 	if keyboard_pounce:
 		keyboard_pounce = false
 		pounce = move.normalized() if move.length_squared() > 0.01 else Vector2(b.player.facing)
-	var ult := ult_request
+	return {"move": move, "pounce": pounce, "ult": false}
+
+
+## Keep a pounce request for a short stretch of simulated time until the battle starts it. If it
+## runs out with no charge left, tell the player why nothing happened.
+func _age_pounce_buffer(b, pounces_before: int) -> void:
+	if pounce_buffer == Vector2.ZERO: return
+	if int(b.metrics.pounces) != pounces_before or not (b.state in ["playing", "net"]):
+		_clear_pounce_buffer()
+		return
+	pounce_buffer_left -= TimeController.STEP
+	if pounce_buffer_left > 0.0: return
+	_clear_pounce_buffer()
+	if int(b.pounce.charges) < 1:
+		director.cue("pounce_empty", b.player.pos)
+		hud.pounce_empty()
+
+
+func _clear_pounce_buffer() -> void:
+	pounce_buffer = Vector2.ZERO
+	pounce_buffer_left = 0.0
+
+
+## Forget fingers and queued requests when battle input stops reaching us (cards, pause, a new
+## battle): their releases go to the other screen, so the old roles would block the next touch.
+func _reset_requests() -> void:
+	touch.clear()
+	ult_touches.clear()
+	_clear_pounce_buffer()
 	ult_request = false
-	return {"move": move, "pounce": pounce, "ult": ult}
+	mouse_pounce = false
+	keyboard_pounce = false
 
 
 ## Auto quality: if frames stay slow for a while, lower the effect tier once and say so.
@@ -340,8 +380,7 @@ func _exit_tree() -> void:
 
 
 func _on_focus_lost() -> void:
-	touch.clear()
-	ult_touches.clear()
+	_reset_requests()
 	if screen == "battle": _pause()
 
 
@@ -683,6 +722,7 @@ func _card_button(id: String, callback: Callable) -> Button:
 
 func _show_cards() -> void:
 	screen = "card"
+	_reset_requests()
 	var titles := {"level": "升級！選一張本能卡", "reward": "獵物巢的獎勵", "event": "月光下的收穫"}
 	var column := _open(900, 0.7)
 	column.add_child(UI.label(titles.get(run.choice_context, "選一張卡"), 28))
@@ -892,7 +932,7 @@ func _show_supply() -> void:
 func _pause() -> void:
 	if run == null: return
 	screen = "pause"
-	touch.clear()
+	_reset_requests()
 	_save_active()
 	var column := _open(620)
 	column.add_child(UI.label("暫停", 32))
@@ -955,17 +995,25 @@ func _show_result(summary: Dictionary) -> void:
 		haptics.play("double")
 	if summary.won: column.add_child(UI.label(str(region.win_story), 18, UI.GOLD))
 	var metrics: Dictionary = summary.metrics
-	column.add_child(UI.label("%s · 夜深 %d · %s · 到達第 %d 層 · %d:%02d" % [region.name, int(summary.night), data.habits[summary.habit].title,
-		mini(int(summary.layer), 8), int(summary.time) / 60, int(summary.time) % 60], 17, UI.MUTED))
-	var stats := UI.row(column, 18)
+	var clock := "%d:%02d" % [int(summary.time) / 60, int(summary.time) % 60]
+	if summary.practice:
+		column.add_child(UI.label("練習場 · %s · %s" % [data.habits[summary.habit].title, clock], 17, UI.MUTED))
+	else:
+		column.add_child(UI.label("%s · 夜深 %d · %s · 到達第 %d 層 · %s" % [region.name, int(summary.night), data.habits[summary.habit].title,
+			mini(int(summary.layer), 8), clock], 17, UI.MUTED))
+	var stats := UI.row(column, 10)
 	var counters := [["擊敗", int(metrics.get("kills", 0))], ["獵物", int(metrics.get("prey_kills", 0))], ["撲擊", int(metrics.get("pounces", 0))],
 		["脫困", int(metrics.get("escape_pounces", 0))], ["夜影", int(metrics.get("ult_uses", 0))], ["等級", int(summary.level)], ["最高連獵", int(director.best_combo)]]
 	var stat_index := 0
 	for entry: Array in counters:
+		# Fixed-width columns without wrapping: a wrapping label has no minimum width, so the row
+		# squeezed each title into one character per line and the numbers ran together.
 		var box := VBoxContainer.new()
-		var number := UI.label("0" if not instant else str(entry[1]), 30, UI.GOLD)
+		box.custom_minimum_size.x = 96
+		box.add_theme_constant_override("separation", 0)
+		var number := UI.label("0" if not instant else str(entry[1]), 30, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, false)
 		box.add_child(number)
-		box.add_child(UI.label(str(entry[0]), 14, UI.MUTED))
+		box.add_child(UI.label(str(entry[0]), 14, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER, false))
 		stats.add_child(box)
 		if not instant:
 			var target: int = int(entry[1])

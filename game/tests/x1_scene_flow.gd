@@ -5,6 +5,7 @@ extends SceneTree
 const Profile := preload("res://scripts/x1/core/profile.gd")
 const Data := preload("res://scripts/x1/core/data.gd")
 const Bot := preload("res://tests/x1_bot.gd")
+const Touch := preload("res://scripts/x1/ui/touch_input.gd")
 
 var checks := 0
 var failures := 0
@@ -36,6 +37,75 @@ func has_text(node: Node, needle: String) -> bool:
 	for child: Node in node.get_children():
 		if has_text(child, needle): return true
 	return false
+
+
+func find_label(node: Node, text: String) -> Label:
+	if node == null: return null
+	if node is Label and node.text == text: return node
+	for child: Node in node.get_children():
+		var result := find_label(child, text)
+		if result != null: return result
+	return null
+
+
+## The result counters once wrapped each title into one character per line on a phone.
+func counters_keep_width(overlay: Node) -> bool:
+	for title: String in ["擊敗", "最高連獵"]:
+		var label := find_label(overlay, title)
+		if label == null or label.autowrap_mode != TextServer.AUTOWRAP_OFF: return false
+		if label.get_parent().custom_minimum_size.x < 90.0: return false
+	return true
+
+
+## A released pounce must not be lost on frames that run no simulation step, nor during a dash,
+## and an empty release explains itself.
+func check_pounce_input(scene) -> void:
+	var b = scene.run.battle
+	b.player.invuln = 30.0
+	b.pounce.charges = 2
+	var before: int = int(b.metrics.pounces)
+	scene.time.hitstop = 0.1
+	scene.touch.pending_pounce = Vector2.RIGHT
+	scene.advance_frame(1.0 / 60.0)
+	check(int(b.metrics.pounces) == before, "hit-stop holds the pounce")
+	for i in 10: scene.advance_frame(1.0 / 60.0)
+	check(int(b.metrics.pounces) == before + 1, "a pounce released during hit-stop fires when the simulation resumes")
+	for i in 40: scene.advance_frame(1.0 / 60.0)
+	b.pounce.charges = 2
+	scene.time.reset()
+	before = int(b.metrics.pounces)
+	scene.touch.pending_pounce = Vector2.LEFT
+	scene.advance_frame(1.0 / 120.0)
+	scene.advance_frame(1.0 / 120.0)
+	check(int(b.metrics.pounces) == before + 1, "a release on a 120 Hz frame without a step still pounces")
+	scene.touch.pending_pounce = Vector2.UP
+	scene.advance_frame(1.0 / 60.0)
+	check(b.dashing() and int(b.metrics.pounces) == before + 1, "a release during a dash waits")
+	for i in 20: scene.advance_frame(1.0 / 60.0)
+	check(int(b.metrics.pounces) == before + 2, "a release during a dash pounces when the dash ends")
+	for i in 40: scene.advance_frame(1.0 / 60.0)
+	b.pounce.charges = 0
+	b.pounce.recharge = 0.0
+	before = int(b.metrics.pounces)
+	scene.touch.pending_pounce = Vector2.DOWN
+	for i in 20: scene.advance_frame(1.0 / 60.0)
+	check(int(b.metrics.pounces) == before and scene.pounce_buffer == Vector2.ZERO, "a pounce with no charge is dropped after the buffer")
+	check(scene.hud.empty_flash > 0.0 and scene.director.applied.has("pounce_empty"), "an empty pounce shows and sounds why")
+	b.pounce.charges = 2
+	# A finger whose release went to another screen must not block the next touch.
+	var touch = Touch.new()
+	var press_event := InputEventScreenTouch.new()
+	press_event.index = 0
+	press_event.pressed = true
+	press_event.position = Vector2(1000, 500)
+	touch.handle(press_event, Vector2(1280, 720))
+	press_event.position = Vector2(1100, 400)
+	touch.handle(press_event, Vector2(1280, 720))
+	check(touch.aim_id == 0 and touch.aim_origin == Vector2(1100, 400), "a press from a finger with a missed release starts a fresh aim")
+	scene.touch.aim_id = 3
+	scene._show_cards()
+	check(scene.touch.aim_id == -1, "opening the card screen forgets held fingers")
+	scene._resume()
 
 
 func press(scene, needle: String) -> bool:
@@ -102,6 +172,7 @@ func exercise() -> void:
 	press(scene, "繼續")
 	await process_frame
 	check(scene.screen == "battle", "resume returns to the battle")
+	check_pounce_input(scene)
 	var levels_before: int = scene.run.level
 	play_until_not_battle(scene, bot, 150.0)
 	check(scene.run.level > levels_before, "level-ups were chosen through the card screen")
@@ -120,6 +191,7 @@ func exercise() -> void:
 		scene._sync()
 	await process_frame
 	check(scene.screen == "result" and find_button(scene.overlay, "再出發") != null, "the run ends on the result screen")
+	check(has_text(scene.overlay, "到達第") and counters_keep_width(scene.overlay), "the result shows the layer and readable counters")
 	check(scene.profile.data.active.is_empty() and int(scene.profile.data.progress.runs) == 1, "the finished run is recorded")
 	check(has_text(scene.overlay, "差一點就解鎖"), "the result shows the nearest goals")
 	check(scene.profile.data.tutorial_done, "the tutorial is finished after the first run")
@@ -165,6 +237,17 @@ func exercise() -> void:
 	press(scene, "放棄")
 	await process_frame
 	check(scene.screen == "title" and int(scene.profile.data.progress.runs) == runs_before, "leaving practice changes nothing")
+	press(scene, "練習場")
+	await process_frame
+	press(scene, "穿影習性")
+	await process_frame
+	scene.run.battle.elapsed = 999.0
+	play_until_not_battle(scene, bot, 10.0)
+	await process_frame
+	check(scene.screen == "result" and has_text(scene.overlay, "練習場 ·") and not has_text(scene.overlay, "到達第"), "the practice result names the practice ground, not a patrol layer")
+	check(counters_keep_width(scene.overlay), "practice result counters keep their width")
+	press(scene, "首頁")
+	await process_frame
 	scene.queue_free()
 	await process_frame
 	print("X1 SCENE: %d checks, %d failures" % [checks, failures])

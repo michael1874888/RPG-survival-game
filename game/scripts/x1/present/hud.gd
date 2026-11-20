@@ -37,6 +37,7 @@ var hint := ""
 var hint_time := 0.0
 var level_glow := 0.0
 var pip_flash := 0.0
+var empty_flash := 0.0      # a released pounce found no charge: the arc shakes red with a word
 var last_charges := 0
 var perf_text := ""
 var font: Font
@@ -63,6 +64,7 @@ func reset_battle(b, r) -> void:
 	combo = 0
 	combo_fade = 0.0
 	hurt_t = 0.0
+	empty_flash = 0.0
 	if b != null:
 		hp_ghost = float(b.player.hp)
 		last_charges = int(b.pounce.charges)
@@ -118,6 +120,10 @@ func level_up() -> void:
 	level_pop = 1.0
 
 
+func pounce_empty() -> void:
+	empty_flash = 1.0
+
+
 func break_combo() -> void:
 	if combo >= 5: combo_broken = 0.8
 	combo = 0
@@ -136,6 +142,7 @@ func _process(delta: float) -> void:
 	level_pop = maxf(0.0, level_pop - delta * 1.2)
 	level_glow = maxf(0.0, level_glow - delta)
 	pip_flash = maxf(0.0, pip_flash - delta * 3.0)
+	empty_flash = maxf(0.0, empty_flash - delta * 1.4)
 	if not flash.is_empty():
 		flash.life = float(flash.life) - delta
 		if float(flash.life) <= 0.0: flash = {}
@@ -380,15 +387,22 @@ func _draw_controls() -> void:
 	var cap: int = battle.max_charges() + int(battle.stats.value("roam_overcap"))
 	var charges: int = int(battle.pounce.charges)
 	var recharge: float = float(battle.pounce.recharge) / maxf(0.01, battle.recharge_time())
+	var arc_center := right + Vector2(sin(clock * 70.0) * 5.0 * empty_flash, 0.0)
 	for i in cap:
 		var a0 := -PI * 0.92 + i * 0.32
 		var full := i < charges
 		var c := col("prey") if full else Color(0.3, 0.28, 0.25, 0.8)
 		if full and pip_flash > 0.0 and i == charges - 1: c = c.lightened(pip_flash * 0.6)
-		draw_arc(right, radius + 8.0, a0, a0 + 0.26, 8, INK, 11.0, true)
-		draw_arc(right, radius + 8.0, a0, a0 + 0.26, 8, c, 7.0, true)
+		if not full and empty_flash > 0.0: c = c.lerp(col("danger"), empty_flash)
+		draw_arc(arc_center, radius + 8.0, a0, a0 + 0.26, 8, INK, 11.0, true)
+		draw_arc(arc_center, radius + 8.0, a0, a0 + 0.26, 8, c, 7.0, true)
 		if i == charges and charges < battle.max_charges():
-			draw_arc(right, radius + 8.0, a0, a0 + 0.26 * recharge, 8, Color(col("prey").r, col("prey").g, col("prey").b, 0.55), 7.0, true)
+			draw_arc(arc_center, radius + 8.0, a0, a0 + 0.26 * recharge, 8, Color(col("prey").r, col("prey").g, col("prey").b, 0.55), 7.0, true)
+	if empty_flash > 0.0:
+		var word := "撲擊次數用完"
+		var at := arc_center + Vector2(-54, -radius - 26)
+		draw_string_outline(bold, at, word, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, 5, Color(INK, empty_flash))
+		draw_string(bold, at, word, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(col("danger"), empty_flash))
 	# Night shadow ring on the ult button.
 	if ult_rect.size.x > 0.0:
 		var c2 := ult_rect.get_center()

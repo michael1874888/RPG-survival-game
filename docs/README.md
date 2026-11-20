@@ -23,7 +23,7 @@ v0.16 疾追者已有正向威脅感回饋，但整局重玩與成就感不足�
 
 | 版本 | 驗證問題與紀錄 |
 | --- | --- |
-| v0.31 | [X1 手感與回饋重做](development/nana-v0.31-practice.md)：重量分級的停頓／震屏／觸覺、程式繪製角色動畫、特效、音效與隨戰況變化的音樂、HUD 與流程動畫、新設定；[手感設計](design/x1-feel-design.md)、[調參指南：手感與回饋](development/x1-tuning-guide.md#手感與回饋)；待手機試玩 |
+| v0.31 | [X1 手感與回饋重做](development/nana-v0.31-practice.md)：重量分級的停頓／震屏／觸覺、程式繪製角色動畫、特效、音效與隨戰況變化的音樂、HUD 與流程動畫、新設定；v0.31.1 修正結算版面與撲擊放開沒反應；[手感設計](design/x1-feel-design.md)、[調參指南：手感與回饋](development/x1-tuning-guide.md#手感與回饋)；待手機試玩 |
 | v0.30 | [奈奈夜巡 X1](development/nana-v0.30-practice.md)：撲擊狩獵、三區域夜巡地圖、本能卡與進化、夜深與解鎖；[提案](design/nana-pounce-redesign-proposal-x1.md)、[內容表](design/nana-x1-content.md)、[調參指南](development/x1-tuning-guide.md)；待真人試玩 |
 | v0.1 | [原型規格](design/prototype-v0.1-spec.md)、[歷史實作與驗證](development/prototype-v0.1-status.md)：手機雙手操作、三分鐘生存、升級與重玩 |
 | v0.2 | [角色對照](design/animal-attacks-poc-v0.2.md)：刺蝟遠距尖刺與小熊近距揮擊 |

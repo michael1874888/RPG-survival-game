@@ -14,8 +14,8 @@ import xml.etree.ElementTree as ET
 PROJECT = Path(__file__).resolve().parent.parent
 GODOT = Path('/Applications/Godot.app/Contents/MacOS/Godot')
 CONTROLLER = '/Users/junming/AI-Setup/storage/storagectl.py'
-VERSION = '0.31.0'
-VERSION_CODE = 31
+VERSION = '0.31.1'
+VERSION_CODE = 32
 
 
 def run(args, env=None):
@@ -97,7 +97,7 @@ def main():
     configure_editor(java, sdk, key)
     destination = root / 'builds/android'
     destination.mkdir(parents=True, exist_ok=True)
-    apk = destination / 'bramble-v0.31-debug.apk'
+    apk = destination / 'bramble-v0.31.1-debug.apk'
 
     preset = '''[preset.0]
 name="Android"

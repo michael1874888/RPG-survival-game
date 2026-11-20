@@ -11,6 +11,13 @@
 
 用逐格錄影修正了文字重疊、橫幅蓋住戰場、溢出傷害數字等問題，並把 120 隻敵人時的每幀時間從 22.6 毫秒降到 8.4 毫秒（Mac）。見 [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[手感設計](docs/design/x1-feel-design.md)、[調參指南：手感與回饋](docs/development/x1-tuning-guide.md#手感與回饋)。**手機實玩、震動與音量的實際感受、手機效能尚未驗收。**
 
+**第一次手機回饋（2026-11-20，v0.31.1）：**使用者說「目前有變好玩」，並回報三個問題：
+- 練習場結算的統計亂掉：版面錯誤，已修正。
+- 升級很快：正式夜巡每局 12–15 次是設計目標；練習場沿用同一條曲線，三分鐘內就把卡升滿。**使用者決定先多玩幾局再考慮要不要放慢。**
+- 拉出撲擊線後放開，有時沒有撲出：v0.31.0 在不跑模擬步的畫面會丟掉指令。已加入 0.2 秒指令保留、衝刺中接續撲出、沒次數時的提示。
+
+已匯出 v0.31.1。見 [v0.31.1 修正](docs/development/nana-v0.31-practice.md#v0311第一次手機試玩後的修正2026-11-20)與[回饋紀錄](docs/design/poc-feedback-and-followups.md#v031-第一次手機試玩回饋2026-11-20)。
+
 **先前工作（2026-11-20，v0.30 / X1 撲擊狩獵）：**使用者要求分析 v0.20 是否讓人一玩再玩；開發端判斷底層 30 秒戰鬥缺判斷與爽感（尚無 v0.20 真人回饋，屬推論）。使用者允許突破既有框架，核准 [X1 重設計提案](docs/design/nana-pounce-redesign-proposal-x1.md) 的三區域完整可玩版：自動爪擊＋右手放開撲擊、擊殺充能夜影、湧出雜兵＋目標獵物、夜巡地圖、48 張本能卡與 8 組進化、夜深 1–8、30 個解鎖目標、12 件寶物；不做永久數值；一路做完不設中途試玩關卡；程式要模組化。已全部實作並匯出 Android 測試包，見 [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)、[內容表](docs/design/nana-x1-content.md)、[調參指南](docs/development/x1-tuning-guide.md)。**手機實玩、效能與樂趣尚未驗收**；iOS、正式美術、商店資料、「家」、無盡模式、第二角色不在本次範圍。
 
 **先前進度（2026-11-20，v0.20 / D1 R1）：**首章九戰、六成形、15 天賦、六件首章寶物、六路線事件、收藏／續玩／練習／結果及 Android 試玩包。[主設計](docs/design/nana-full-version-design-v1.md)、[內容表](docs/design/nana-full-version-content-v1.md)、[製作／試玩／發布門檻](docs/design/nana-full-version-release-plan-v1.md)、[v0.20 試玩說明](docs/development/nana-v0.20-practice.md)。v0.20 沒有收到真人回饋就被 X1 取代為主場景；程式保留，debug 建置首頁可開啟對照。
@@ -29,13 +36,13 @@
 
 使用者追加確認「操作順，但敵人太好處理，沒什麼需要判斷」，並指示開始 v0.15。已調整遭遇與決策提示；不是基礎攻擊已完整驗收。
 
-**最新可玩版本為 v0.31.0 X1（v0.30 的玩法加上手感重做）：三區域完整可玩、尚未經真人與手機驗收，不是上架候選。** [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[v0.30 試玩說明](docs/development/nana-v0.30-practice.md)。
+**最新可玩版本為 v0.31.1 X1（v0.30 的玩法加上手感重做，以及第一次手機試玩後的修正）：三區域完整可玩、尚未經真人與手機驗收，不是上架候選。** [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[v0.30 試玩說明](docs/development/nana-v0.30-practice.md)。
 
 ## 1. 接手後先做什麼
 
 **目前優先入口：**先讀 [v0.31 試玩說明](docs/development/nana-v0.31-practice.md)、[v0.30 試玩說明](docs/development/nana-v0.30-practice.md)、[X1 提案](docs/design/nana-pounce-redesign-proposal-x1.md)與[調參指南](docs/development/x1-tuning-guide.md)。下一步是收集使用者在手機上的實玩回饋，再依回饋調整 JSON 數值（玩法在 `tuning.json` 等，手感在 `feel.json`）或規則。
 
-1. 請使用者安裝 v0.31 APK 試玩（覆蓋安裝，舊收藏與設定會遷移）。重點：撲擊、咬獵物、收網夠不夠爽；畫面是否太亂、危險看不看得清楚；震動會不會太多或太弱；音樂與音效會不會吵；卡不卡、燙不燙（設定可開「顯示每幀時間」）；一局多長、會不會想再開一局、隔天會不會自己回來。手機型號與 Android 版本請一起記下。
+1. 請使用者安裝 v0.31.1 APK 試玩（覆蓋安裝，舊收藏與設定會遷移）。重點：撲擊、咬獵物、收網夠不夠爽；畫面是否太亂、危險看不看得清楚；震動會不會太多或太弱；音樂與音效會不會吵；卡不卡、燙不燙（設定可開「顯示每幀時間」）；一局多長、會不會想再開一局、隔天會不會自己回來。手機型號與 Android 版本請一起記下。
 2. 依回饋調數值：先改 `game/data/x1/*.json`，跑 `bash scripts/test-game.sh` 與自動探針，再重新匯出。需要新動作或新敵人行為才改程式，方法見調參指南。
 3. 自動探針只代表規則與節奏（瞬間反應、完美閃避判讀、沒有選單時間），**不是真人難度或樂趣**；紀錄見 [x1-autoplay-probe-v0.30.txt](docs/development/x1-autoplay-probe-v0.30.txt)。
 4. 用 `git log -1` 和 `git status --short --branch` 確認目前提交與工作樹；APK 路徑與雜湊見 [建置收據](tools/android-build.json)。`feature/nana-x1-pounce-hunt` 與 `feature/x1-feel` 都推送到 origin，尚未開 PR 或合併到 `main`，等使用者決定。

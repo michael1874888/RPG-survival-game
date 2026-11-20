@@ -18,6 +18,7 @@ X1 的數值與內容全部放在 `game/data/x1/*.json`，程式只讀取，不�
 | 撲擊路徑傷害、落地咬擊傷害與範圍 | `tuning.json` | `pounce.path_damage`、`pounce.bite_damage`、`pounce.bite_radius` |
 | 咬中獵物返還撲擊與冷卻 | `tuning.json` | `pounce.prey_refund`、`pounce.prey_refund_icd` |
 | 「拖曳多遠才算撲擊」 | `tuning.json` | `pounce.deadzone`（像素） |
+| 放開後撲擊指令保留多久（停頓、衝刺中或剛好沒次數時） | `tuning.json` | `pounce.input_buffer`（模擬秒數；過期且沒次數時播 `feel.json` 的 `pounce_empty` 提示） |
 | 爪擊速度、傷害、角度、自動索敵距離 | `tuning.json` | `claw.interval`、`claw.damage`、`claw.angle`、`claw.seek` |
 | 夜影多久充滿 | `tuning.json` | `ult.gain`（每種擊殺給多少）、`ult.meter_max` |
 | 夜影效果 | `tuning.json` | `ult.radius`、`ult.damage`、`ult.duration`、`ult.damage_mult`、`ult.recharge_mult` |

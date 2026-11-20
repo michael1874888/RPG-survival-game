@@ -1,9 +1,9 @@
 {
-  "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/builds/android/bramble-v0.31-debug.apk",
+  "path": "/Volumes/Samsung SSD 990 EVO Plus 1TB/AI-Data/Artifacts/codex/RPG_Game_Dev/builds/android/bramble-v0.31.1-debug.apk",
   "bytes": 39605248,
-  "sha256": "1985cfaf1c839d4f911014d148917bff376a46f01323df99fea291971fd15290",
+  "sha256": "a33819555ba88d33c5ad8ce9c81740d9dc7c4c00d12056eed904f079527346ab",
   "package": "org.bramble.prototype",
-  "version": "0.31.0",
+  "version": "0.31.1",
   "build_type": "debug",
   "architectures": [
     "arm64-v8a"
@@ -15,8 +15,8 @@
   "debug_keystore_path": "/Users/junming/Library/Application Support/Bramble/keys/android-debug.keystore",
   "manifest": {
     "package": "org.bramble.prototype",
-    "version_name": "0.31.0",
-    "version_code": "31",
+    "version_name": "0.31.1",
+    "version_code": "32",
     "minimum_sdk": "24",
     "target_sdk": "36",
     "debuggable": "true",

@@ -64,6 +64,7 @@
     "heal": {"sound": "heal", "particles": {"preset": "heal", "count": 5}},
     "refund": {"sound": "refund", "fx": "refund"},
     "roam_charge": {"sound": "charge", "fx": "refund"},
+    "pounce_empty": {"sound": "tick", "pitch": -9, "haptic": "tick"},
     "pickup": {"sound": "pickup", "ladder": true},
     "level_up": {"sound": "level", "slowmo": {"scale": 0.35, "time": 0.25}, "haptic": "double",
                  "ring": "level", "particles": {"preset": "gold", "count": 18}, "text": "升級！", "text_color": "prey", "text_size": 34},
