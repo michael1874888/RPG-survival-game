@@ -47,7 +47,7 @@ static func update(b, e: Dictionary, dt: float) -> void:
 				var inside: bool = offset.length() <= float(s.ring_radius) + b.player_radius()
 				var safe: bool = offset.length() > 0.01 and absf(Vector2(e.safe_dir).angle_to(offset)) <= deg_to_rad(float(s.ring_safe) * 0.5)
 				b.event("enemy_strike", {"pos": e.pos, "radius": float(s.ring_radius), "shape": "ring", "safe_dir": e.safe_dir, "safe": float(s.ring_safe)})
-				if inside and not safe: b.hurt_player(float(s.ring_damage), str(e.kind))
+				if inside and not safe: b.hurt_player(float(s.ring_damage), str(e.kind), e.pos)
 				_finish(b, e, float(s.ring_recover), "swoop")
 		"recover":
 			if Common.tick(e, dt):

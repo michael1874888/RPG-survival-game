@@ -12,6 +12,7 @@ const PREY := Color("ff9eac")
 const SHADOW := Color("9deaff")
 
 static var _regular: Font = null
+static var press_hook: Callable = Callable()   # sound + haptic tick on every button press
 static var _bold: Font = null
 
 
@@ -71,6 +72,12 @@ static func button(text: String, callback: Callable, primary := false, size := 2
 	node.add_theme_stylebox_override("pressed", panel(Color("e4af54") if primary else Color("2c4f3e"), 14, 12))
 	node.add_theme_stylebox_override("disabled", panel(Color(0.18, 0.28, 0.23, 0.8), 14, 12))
 	node.pressed.connect(callback)
+	node.resized.connect(func(): node.pivot_offset = node.size * 0.5)
+	node.button_down.connect(func():
+		node.create_tween().tween_property(node, "scale", Vector2(0.95, 0.95), 0.05)
+		if press_hook.is_valid(): press_hook.call())
+	node.button_up.connect(func():
+		node.create_tween().tween_property(node, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
 	return node
 
 

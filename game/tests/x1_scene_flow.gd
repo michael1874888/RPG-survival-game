@@ -57,13 +57,14 @@ func play_until_not_battle(scene, bot, limit_seconds: float) -> void:
 		var input: Dictionary = bot.battle_input(b, 1.0 / 60.0)
 		scene.touch.pending_pounce = input.pounce
 		scene.ult_request = input.ult
-		scene._physics_process(1.0 / 60.0)
+		scene.advance_frame(1.0 / 60.0)
 
 
 func exercise() -> void:
 	var base := "user://x1-scene-%d" % Time.get_ticks_usec()
 	var scene = load("res://x1_main.tscn").instantiate()
 	scene.profile = Profile.new(base + ".save", base + ".r1", base + ".old")
+	scene.instant = true
 	root.add_child(scene)
 	await process_frame
 	check(scene.screen == "title" and find_button(scene.overlay, "出發夜巡") != null and find_button(scene.overlay, "練習場") != null, "title offers patrol and practice")
@@ -84,10 +85,10 @@ func exercise() -> void:
 	check(not scene.profile.data.active.is_empty(), "the new run is saved at once")
 	check(press(scene, "狩獵"), "a hunt can be chosen on the map")
 	await process_frame
-	check(scene.screen == "battle" and scene.view.visible and scene.run.battle != null, "the battle starts")
+	check(scene.screen == "battle" and scene.world.visible and scene.run.battle != null, "the battle starts")
 	var bot = Bot.new()
 	play_until_not_battle(scene, bot, 4.0)
-	check(scene.view.hint_time > 0.0 or scene.tutorial_flags.has("pounce"), "tutorial hints appear")
+	check(scene.hud.hint_time > 0.0 or scene.tutorial_flags.has("pounce"), "tutorial hints appear")
 	scene._on_focus_lost()
 	await process_frame
 	check(scene.screen == "pause" and find_button(scene.overlay, "繼續") != null, "losing focus pauses the battle")
@@ -113,7 +114,7 @@ func exercise() -> void:
 		scene.run.battle.player.hp = 1.0
 		scene.run.battle.player.invuln = 0.0
 		scene.run.battle.hurt_player(99.0, "E01")
-		scene._physics_process(1.0 / 60.0)
+		scene.advance_frame(1.0 / 60.0)
 	else:
 		scene.run._finish(false)
 		scene._sync()

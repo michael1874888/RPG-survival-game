@@ -4,7 +4,7 @@ extends RefCounted
 
 const SELF_PATH := "res://scripts/x1/core/data.gd"
 const DIR := "res://data/x1/"
-const FILES := ["tuning", "enemies", "spawns", "regions", "cards", "habits", "items", "events", "shop", "night_levels", "unlocks"]
+const FILES := ["tuning", "enemies", "spawns", "regions", "cards", "habits", "items", "events", "shop", "night_levels", "unlocks", "feel"]
 
 ## How each stat combines when several sources grant it.
 const STATS := {
@@ -52,6 +52,7 @@ var events: Array = []
 var shop: Dictionary = {}
 var night: Dictionary = {}
 var unlocks: Array = []
+var feel: Dictionary = {}
 var errors: Array[String] = []
 
 
@@ -103,6 +104,7 @@ func _init() -> void:
 	items = raw.items
 	shop = raw.shop
 	night = raw.night_levels
+	feel = raw.feel
 	events = raw.events.get("events", [])
 	unlocks = raw.unlocks.get("conditions", [])
 	categories = raw.cards.get("categories", {})
@@ -172,7 +174,7 @@ func _check_effects(owner: String, effects) -> void:
 
 
 func validate() -> Array[String]:
-	for key: String in ["world", "player", "claw", "pounce", "roam", "ult", "xp", "build", "map", "feel", "fairness", "effects"]:
+	for key: String in ["world", "player", "claw", "pounce", "roam", "ult", "xp", "build", "map", "fairness", "effects"]:
 		if not tuning.has(key): errors.append("tuning.json 缺少 %s" % key)
 	for id: String in enemies:
 		var enemy: Dictionary = enemies[id]
@@ -260,7 +262,26 @@ func validate() -> Array[String]:
 	for id: String in items:
 		if items[id].get("source", "") == "unlock" and not unlock_targets.has(id):
 			errors.append("寶物 %s 標為解鎖取得，卻沒有解鎖條件" % id)
+	_validate_feel()
 	return errors
+
+
+func _validate_feel() -> void:
+	for key: String in ["colors", "limits", "camera", "combo", "cues", "particles", "haptics", "sounds", "music"]:
+		if not feel.has(key): errors.append("feel.json 缺少 %s" % key)
+	if not feel.has("cues"): return
+	var colors: Dictionary = feel.get("colors", {})
+	var patterns: Dictionary = feel.get("haptics", {}).get("patterns", {})
+	for name: String in feel.cues:
+		var cue: Dictionary = feel.cues[name]
+		if cue.has("sound") and not feel.sounds.has(str(cue.sound)): errors.append("提示 %s 使用不存在的聲音 %s" % [name, cue.sound])
+		if cue.has("haptic") and not patterns.has(str(cue.haptic)): errors.append("提示 %s 使用不存在的震動 %s" % [name, cue.haptic])
+		if cue.has("particles") and not feel.particles.has(str(cue.particles.get("preset", ""))): errors.append("提示 %s 使用不存在的粒子 %s" % [name, cue.particles])
+		if cue.has("text_color") and not colors.has(str(cue.text_color)): errors.append("提示 %s 使用不存在的顏色 %s" % [name, cue.text_color])
+		for key: String in ["hitstop", "shake", "zoom"]:
+			if cue.has(key) and (float(cue[key]) < 0.0 or float(cue[key]) > 1.0): errors.append("提示 %s 的 %s 要在 0–1 之間" % [name, key])
+	for name: String in feel.get("haptics", {}).get("priority", {}):
+		if not patterns.has(name): errors.append("震動優先序引用不存在的圖案 %s" % name)
 
 
 ## Drop the shared copy (tests call this before quitting).

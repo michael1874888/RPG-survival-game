@@ -24,7 +24,6 @@ var night := 0
 var assist := false
 var practice := false
 var tutorial := false
-var hitstop := true
 var view_size := Vector2(1280, 720)
 var map: Dictionary = {}
 var at := ""
@@ -74,7 +73,6 @@ func begin(params: Dictionary) -> void:
 	assist = bool(params.get("assist", false))
 	practice = bool(params.get("practice", false))
 	tutorial = bool(params.get("tutorial", false))
-	hitstop = bool(params.get("hitstop", true))
 	view_size = params.get("view_size", Vector2(1280, 720))
 	owned_items = params.get("owned", []).duplicate()
 	target_item = str(params.get("target", ""))
@@ -152,7 +150,7 @@ func _start_battle(kind: String) -> void:
 	next_mods = {}
 	battle.setup({"region": region_id, "kind": kind, "layer": mini(node_layer, 7), "night": night, "assist": assist,
 		"hp": hp, "max_hp_base": max_hp_base, "entries": build.entries(), "next_mods": battle_mods,
-		"view_size": view_size, "hitstop": hitstop}, rngs, self)
+		"view_size": view_size}, rngs, self)
 	phase = "battle"
 
 
@@ -558,7 +556,7 @@ func summary() -> Dictionary:
 	return result
 
 
-const SAVED := ["seed_value", "run_id", "region_id", "habit", "equip", "night", "assist", "practice", "tutorial", "hitstop",
+const SAVED := ["seed_value", "run_id", "region_id", "habit", "equip", "night", "assist", "practice", "tutorial",
 	"view_size", "map", "at", "visited", "phase", "choice_context", "card_mode", "hp", "max_hp_base", "level", "xp",
 	"pending_levels", "fish", "node_kind", "node_layer", "next_mods", "battle_mods", "queue", "item_choices",
 	"supply_choices", "shop_stock", "event_id", "seen_events", "owned_items", "target_item", "bell_guarantee",

@@ -17,4 +17,4 @@ static func update(b, e: Dictionary, dt: float) -> void:
 	var velocity: Vector2 = (dir + separation.limit_length(1.0) * 0.9).normalized() * float(e.speed)
 	b.move_enemy(e, velocity, dt)
 	if float(e.contact) > 0.0 and e.pos.distance_to(b.player.pos) <= radius + b.player_radius():
-		b.hurt_player(float(e.contact), str(e.kind))
+		b.hurt_player(float(e.contact), str(e.kind), e.pos)

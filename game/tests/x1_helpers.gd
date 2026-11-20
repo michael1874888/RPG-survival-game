@@ -31,7 +31,6 @@ static func battle(habit := "roam", cards: Dictionary = {}, region := "courtyard
 	b.setup({"region": region, "kind": kind, "layer": 1, "night": night, "entries": entries(habit, cards)}, rngs, Owner.new())
 	b.spawning = false
 	b.player.pos = at
-	b.hitstop_enabled = false
 	return b
 
 

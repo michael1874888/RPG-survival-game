@@ -42,7 +42,7 @@ static func dash(b, e: Dictionary, speed: float, dt: float, max_travel: float = 
 	if not e.get("hit_done", false):
 		var closest: Vector2 = Geometry2D.get_closest_point_to_segment(b.player.pos, from, e.pos)
 		if closest.distance_to(b.player.pos) <= float(e.radius) + b.player_radius():
-			b.hurt_player(float(e.damage), str(e.kind))
+			b.hurt_player(float(e.damage), str(e.kind), from)
 			e.hit_done = true
 	e.timer = float(e.timer) - dt
 	if blocked: return true

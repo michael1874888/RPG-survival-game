@@ -130,6 +130,7 @@ func _update_pending(b, dt: float) -> void:
 func on_kill(b, e: Dictionary) -> void:
 	if not e.get("target", false): return
 	targets_killed += 1
+	if targets_total > 0 and targets_killed >= targets_total: b.event("last_target", {"pos": e.pos, "role": e.role})
 	if e.role == "boss":
 		b.begin_net(1.0)
 	elif targets_total > 0 and targets_killed >= targets_total:

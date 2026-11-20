@@ -1,5 +1,5 @@
 extends SceneTree
-## X1 player rules: auto claw, pounce, landing bite, night shadow, hurt, hitstop, roam, marks, input.
+## X1 player rules: auto claw, pounce, landing bite, night shadow, hurt, roam, marks, input.
 
 const H := preload("res://tests/x1_helpers.gd")
 const Touch := preload("res://scripts/x1/ui/touch_input.gd")
@@ -136,13 +136,6 @@ func ult_and_hurt_tests() -> void:
 	assist.hurt_player(20.0, "a")
 	assist.step(1.0 / 60.0, {})
 	check(float(assist.player.hp) == 85.0, "assist mode reduces enemy damage to 75%")
-	var stop = H.battle()
-	stop.hitstop_enabled = true
-	stop.add_hitstop(0.05)
-	var before: float = stop.elapsed
-	stop.step(1.0 / 60.0, {})
-	stop.step(1.0 / 60.0, {})
-	check(stop.elapsed - before < 1.0 / 60.0, "hitstop freezes the simulation clock")
 	var lose = H.battle()
 	lose.player.hp = 5.0
 	lose.hurt_player(10.0, "x")

@@ -8,7 +8,8 @@ const Progress := preload("res://scripts/x1/core/progress.gd")
 const LegacyProfile := preload("res://scripts/r1_profile.gd")
 
 const VERSION := 1
-const DEFAULT_SETTINGS := {"volume": 0.7, "vibration": true, "shake": true, "low_flash": false, "controls": "medium", "assist": false}
+const DEFAULT_SETTINGS := {"music_volume": 0.6, "sfx_volume": 0.8, "haptics": "medium", "shake_level": 1.0, "effects": "high",
+	"damage_numbers": "heavy", "low_flash": false, "reduce_motion": false, "controls": "medium", "assist": false, "perf_overlay": false}
 
 var store
 var data: Dictionary = {}
@@ -70,11 +71,26 @@ func load_profile() -> bool:
 		_:
 			data = default_data()
 			_migrate()
-	for key: String in DEFAULT_SETTINGS:
-		if not data.settings.has(key): data.settings[key] = DEFAULT_SETTINGS[key]
+	_migrate_settings(data.settings)
 	for id: String in Data.shared().regions:
 		if not data.region_night.has(id): data.region_night[id] = -1
 	return true
+
+
+## v0.30 settings (volume, vibration, shake) become the v0.31 feedback settings.
+static func _migrate_settings(settings: Dictionary) -> void:
+	if settings.has("volume"):
+		if not settings.has("sfx_volume"): settings.sfx_volume = float(settings.volume)
+		if not settings.has("music_volume"): settings.music_volume = minf(0.6, float(settings.volume))
+		settings.erase("volume")
+	if settings.has("vibration"):
+		if not settings.has("haptics"): settings.haptics = "medium" if settings.vibration else "off"
+		settings.erase("vibration")
+	if settings.has("shake") and settings.shake is bool:
+		if not settings.has("shake_level"): settings.shake_level = 1.0 if settings.shake else 0.0
+		settings.erase("shake")
+	for key: String in DEFAULT_SETTINGS:
+		if not settings.has(key): settings[key] = DEFAULT_SETTINGS[key]
 
 
 ## First X1 launch: keep items found in v0.19 / v0.20. The old files are only read.

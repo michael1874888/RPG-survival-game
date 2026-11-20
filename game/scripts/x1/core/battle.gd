@@ -34,7 +34,6 @@ var night := 0
 var mods: Dictionary = {}
 var next_mods: Dictionary = {}
 var assist := false
-var hitstop_enabled := true
 var spawning := true   # tests turn this off for controlled scenarios
 var owner = null
 var rng_spawn: RandomNumberGenerator
@@ -51,7 +50,6 @@ var base_max_hp := 100.0
 
 var state := "playing"   # playing, net, won, lost
 var elapsed := 0.0
-var hitstop := 0.0
 var net_timer := 0.0
 var next_id := 1
 var player: Dictionary = {}
@@ -71,7 +69,7 @@ var metrics: Dictionary = {}
 var events: Array = []
 
 
-## ctx: region, kind, layer, night, assist, hp, max_hp_base, entries, next_mods, view_size, hitstop
+## ctx: region, kind, layer, night, assist, hp, max_hp_base, entries, next_mods, view_size
 ## fresh = false is used when restoring a snapshot: nothing may consume random numbers.
 func setup(ctx: Dictionary, rngs, owner_ref = null, fresh := true) -> void:
 	data = Data.shared()
@@ -85,7 +83,6 @@ func setup(ctx: Dictionary, rngs, owner_ref = null, fresh := true) -> void:
 	mods = data.night_mods(night)
 	next_mods = ctx.get("next_mods", {}).duplicate(true)
 	assist = bool(ctx.get("assist", false))
-	hitstop_enabled = bool(ctx.get("hitstop", true))
 	view_size = ctx.get("view_size", Vector2(1280, 720))
 	rng_spawn = rngs.get_rng("spawn")
 	rng_combat = rngs.get_rng("combat")
@@ -95,7 +92,6 @@ func setup(ctx: Dictionary, rngs, owner_ref = null, fresh := true) -> void:
 	base_max_hp = float(ctx.get("max_hp_base", t.player.hp))
 	state = "playing"
 	elapsed = 0.0
-	hitstop = 0.0
 	net_timer = 0.0
 	next_id = 1
 	enemies.clear()
@@ -115,7 +111,7 @@ func setup(ctx: Dictionary, rngs, owner_ref = null, fresh := true) -> void:
 	var start: Vector2 = Data.vec(region.get("start", [world.x * 0.5, world.y * 0.5]))
 	player = {"pos": obstacles.resolve(start, float(t.player.radius)), "hp": 0.0, "max_hp": 0.0, "invuln": 0.0,
 		"facing": Vector2.RIGHT, "move_dir": Vector2.RIGHT, "roam": 0.0, "block_used": false,
-		"pending": 0.0, "pending_source": "", "slow": 0.0}
+		"pending": 0.0, "pending_source": "", "pending_from": Vector2.INF, "slow": 0.0}
 	player.max_hp = base_max_hp + stats.value("max_hp")
 	player.hp = clampf(float(ctx.get("hp", player.max_hp)), 1.0, player.max_hp)
 	claw_timer = 0.0
@@ -214,21 +210,12 @@ func take_events() -> Array:
 	return result
 
 
-func add_hitstop(amount: float) -> void:
-	if hitstop_enabled: hitstop = minf(float(t.feel.hitstop_cap), hitstop + amount)
-
-
 # ---- main tick ---------------------------------------------------------------------------
 
 ## input: {"move": Vector2, "pounce": Vector2 (zero when none), "ult": bool}
 func step(dt: float, input: Dictionary = {}) -> void:
 	if state == "won" or state == "lost": return
 	if owner != null and owner.wants_choice(): return
-	if hitstop > 0.0:
-		var frozen := minf(dt, hitstop)
-		hitstop -= frozen
-		dt -= frozen
-		if dt <= 0.000001: return
 	elapsed += dt
 	stats.tick(dt)
 	_rebuild_index()
@@ -358,6 +345,7 @@ func _pounce_hits(from: Vector2, to: Vector2, dash: Dictionary) -> void:
 			var side: Vector2 = e.pos - closest
 			if side.length_squared() < 0.01: side = Vector2(dash.dir).orthogonal()
 			knockback(e, side.normalized(), knock)
+		event("pounce_hit", {"pos": e.pos, "index": dash.hit.size(), "dir": dash.dir})
 		effects.fire(self, "pounce_hit", {"source": "pounce", "depth": 0, "target": e, "pos": e.pos})
 
 
@@ -374,7 +362,7 @@ func _land(dash: Dictionary) -> void:
 			if other.is_empty(): break
 			bitten.append(int(other.id))
 			bite(other, false)
-	event("land", {"pos": player.pos, "dir": dash.dir})
+	event("land", {"pos": player.pos, "dir": dash.dir, "escape": dash.get("escape", false), "hits": dash.hit.size()})
 	effects.fire(self, "pounce_land", {"source": "pounce", "depth": 0, "pos": player.pos, "dir": dash.dir, "kills": metrics.kills - kills_before})
 
 
@@ -397,8 +385,7 @@ func bite(e: Dictionary, primary: bool) -> void:
 	var was_prey := is_prey(e)
 	metrics.bites += 1
 	damage_enemy(e, float(t.pounce.bite_damage), "bite", 0)
-	add_hitstop(float(t.feel.hitstop_bite))
-	event("bite", {"pos": e.pos, "prey": was_prey})
+	event("bite", {"pos": e.pos, "prey": was_prey, "id": int(e.id), "role": e.role, "kill": float(e.hp) <= 0.0})
 	effects.fire(self, "bite_hit", {"source": "bite", "depth": 0, "target": e, "pos": e.pos})
 	# Only marked prey refunds, on a cooldown, so elites and bosses cannot be pounce-chained.
 	if primary and bool(e.get("prey", false)) and elapsed - float(pounce.get("last_refund", -99.0)) >= float(t.pounce.prey_refund_icd):
@@ -450,7 +437,7 @@ func swing(dir: Vector2, damage_pct: float, depth: int, source: String) -> int:
 		var e: Dictionary = enemies[index]
 		if float(e.hp) <= 0.0: continue
 		if Geometry.sector_circle(player.pos, dir, e.pos, float(e.radius), reach, half): hits.append(e)
-	event("swipe", {"pos": player.pos, "dir": dir, "reach": reach, "half": half, "depth": depth})
+	event("swipe", {"pos": player.pos, "dir": dir, "reach": reach, "half": half, "depth": depth, "hits": hits.size()})
 	effects.fire(self, "claw_swing", {"source": source, "depth": depth, "pos": player.pos, "dir": dir, "hits": hits.size()})
 	var base: float = (float(t.claw.damage) + stats.value("claw_damage_flat")) * damage_pct / 100.0
 	for e: Dictionary in hits:
@@ -486,7 +473,9 @@ func claw_burst(radius: float, damage_pct: float, depth: int) -> void:
 
 
 func _update_ult(dt: float, input: Dictionary) -> void:
-	if ult_active(): ult.active = maxf(0.0, float(ult.active) - dt)
+	if ult_active():
+		ult.active = maxf(0.0, float(ult.active) - dt)
+		if float(ult.active) <= 0.0: event("ult_end", {"pos": player.pos})
 	if input.get("ult", false): activate_ult()
 
 
@@ -497,7 +486,6 @@ func activate_ult() -> bool:
 	player.invuln = maxf(float(player.invuln), float(t.ult.protect))
 	pounce.charges = maxi(int(pounce.charges), max_charges())
 	metrics.ult_uses += 1
-	add_hitstop(float(t.feel.hitstop_ult))
 	event("ult", {"pos": player.pos, "radius": float(t.ult.radius)})
 	shockwave(player.pos, float(t.ult.radius), float(t.ult.damage), float(t.ult.knockback), "ult", 0)
 	effects.fire(self, "ult_start", {"source": "ult", "depth": 0, "pos": player.pos})
@@ -506,7 +494,9 @@ func activate_ult() -> bool:
 
 func add_meter(amount: float) -> void:
 	if ult_active(): return
+	var was_ready := ult_ready()
 	ult.meter = minf(float(t.ult.meter_max), float(ult.meter) + amount)
+	if not was_ready and ult_ready(): event("ult_ready", {"pos": player.pos})
 
 
 # ---- damage to enemies ---------------------------------------------------------------------
@@ -537,7 +527,10 @@ func damage_enemy(e: Dictionary, amount: float, source: String, depth: int) -> b
 	e.hp = float(e.hp) - dealt
 	e.flash = 0.1
 	metrics.damage_dealt = float(metrics.damage_dealt) + dealt
-	if source != "bleed": event("hit", {"pos": e.pos, "amount": dealt, "source": source})
+	if source != "bleed":
+		var away: Vector2 = e.pos - player.pos
+		event("hit", {"pos": e.pos, "amount": dealt, "source": source, "id": int(e.id), "role": e.role, "prey": is_prey(e),
+			"kill": float(e.hp) <= 0.0, "dir": away.normalized() if away.length_squared() > 0.01 else Vector2.RIGHT, "radius": e.radius})
 	if source != "bleed" and depth < max_depth:
 		effects.fire(self, "hit", {"source": source, "depth": depth, "target": e, "pos": e.pos})
 	if float(e.hp) <= 0.0:
@@ -563,12 +556,13 @@ func _kill(e: Dictionary, source: String, depth: int) -> void:
 	elif e.role == "elite": fish = int(t.fish.elite)
 	if fish > 0 and owner != null: owner.gain_fish(fish)
 	add_meter(float(t.ult.gain.get(drop_key, 0)) * (1.0 + stats.value("ult_gain_pct") / 100.0))
-	event("defeat", {"pos": e.pos, "role": e.role, "color": data.enemies[e.kind].get("color", "ffffff"), "radius": e.radius})
+	event("defeat", {"pos": e.pos, "role": e.role, "color": data.enemies[e.kind].get("color", "ffffff"), "radius": e.radius,
+		"source": source, "id": int(e.id), "kind": e.kind, "prey": bool(e.get("prey", false)), "target": bool(e.get("target", false)),
+		"summoned": bool(e.get("summoned", false))})
 	if is_prey(e):
 		if e.get("prey", false) or e.role == "elite": metrics.prey_kills += 1
 		if e.role == "elite": metrics.elites += 1
 		if e.role == "boss": metrics.bosses += 1
-		add_hitstop(float(t.feel.hitstop_prey))
 		effects.fire(self, "prey_kill", {"source": source, "depth": depth, "target": e, "pos": e.pos})
 	if e.get("marked", false):
 		e.marked = false
@@ -773,7 +767,7 @@ func spawn_enemy(kind_id: String, pos: Vector2, opts: Dictionary = {}) -> Dictio
 	if script != null and script.has_method("init"): script.init(self, e)
 	enemies.append(e)
 	by_id[int(e.id)] = e
-	event("spawn", {"pos": e.pos, "kind": kind_id, "role": role})
+	event("spawn", {"pos": e.pos, "kind": kind_id, "role": role, "id": int(e.id), "prey": bool(e.prey), "summoned": bool(e.summoned)})
 	return e
 
 
@@ -856,24 +850,26 @@ func flee(e: Dictionary, dt: float) -> void:
 	move_enemy(e, away.normalized() * maxf(120.0, float(e.speed)) * float(t.flee.speed_mult), dt)
 
 
-func hurt_player(amount: float, source: String) -> void:
+## from: where the hit came from (for directional feedback); Vector2.INF when unknown.
+func hurt_player(amount: float, source: String, from: Vector2 = Vector2.INF) -> void:
 	if amount <= 0.0 or float(player.invuln) > 0.0 or dashing() or state != "playing": return
 	var dealt := amount * (float(t.assist.enemy_damage_mult) if assist else 1.0)
 	if dealt > float(player.pending):
 		player.pending = dealt
 		player.pending_source = source
+		player.pending_from = from
 
 
 func sector_attack(origin: Vector2, dir: Vector2, reach: float, angle_deg: float, amount: float, source: String) -> void:
 	event("enemy_strike", {"pos": origin, "dir": dir, "reach": reach, "half": deg_to_rad(angle_deg * 0.5), "shape": "sector"})
 	if Geometry.sector_circle(origin, dir, player.pos, player_radius(), reach, deg_to_rad(angle_deg * 0.5)):
-		hurt_player(amount, source)
+		hurt_player(amount, source, origin)
 
 
 func line_attack(origin: Vector2, dir: Vector2, length: float, width: float, amount: float, source: String) -> void:
 	event("enemy_strike", {"pos": origin, "dir": dir, "length": length, "width": width, "shape": "line"})
 	if Geometry.rectangle_circle(origin, dir, player.pos, player_radius(), length, width):
-		hurt_player(amount, source)
+		hurt_player(amount, source, origin)
 
 
 func fire_shot(origin: Vector2, dir: Vector2, speed: float, life: float, amount: float, source: String) -> void:
@@ -884,7 +880,7 @@ func fire_shot(origin: Vector2, dir: Vector2, speed: float, life: float, amount:
 func add_hazard(origin: Vector2, radius: float, amount: float, linger: float, slow: float, source: String) -> void:
 	hazards.append({"pos": origin, "radius": radius, "windup": 0.0, "linger": linger, "slow": slow, "source": source})
 	event("hazard", {"pos": origin, "radius": radius})
-	if player.pos.distance_to(origin) <= radius + player_radius(): hurt_player(amount, source)
+	if player.pos.distance_to(origin) <= radius + player_radius(): hurt_player(amount, source, origin)
 
 
 func support_count(owner_id: int) -> int:
@@ -922,7 +918,7 @@ func _update_shots(dt: float) -> void:
 		shot.life = float(shot.life) - dt
 		var closest: Vector2 = Geometry2D.get_closest_point_to_segment(player.pos, from, to)
 		if closest.distance_to(player.pos) <= player_radius() + 8.0 and not dashing() and float(player.invuln) <= 0.0:
-			hurt_player(float(shot.damage), str(shot.source))
+			hurt_player(float(shot.damage), str(shot.source), from - Vector2(shot.dir) * 40.0)
 			shots.remove_at(i)
 		elif float(shot.life) <= 0.0 or obstacles.blocked(to, 4.0):
 			shots.remove_at(i)
@@ -949,6 +945,7 @@ func _resolve_player_damage() -> void:
 	if float(player.pending) <= 0.0: return
 	var amount: float = player.pending
 	var source: String = player.pending_source
+	var from: Vector2 = player.get("pending_from", Vector2.INF)
 	player.pending = 0.0
 	player.pending_source = ""
 	if float(player.invuln) > 0.0 or dashing() or state != "playing": return
@@ -962,7 +959,7 @@ func _resolve_player_damage() -> void:
 	metrics.hits_taken += 1
 	metrics.taken_by[source] = float(metrics.taken_by.get(source, 0.0)) + amount
 	metrics.last_hurt = source
-	event("hurt", {"pos": player.pos, "amount": amount, "source": source})
+	event("hurt", {"pos": player.pos, "amount": amount, "source": source, "from": from, "ratio": float(player.hp) / float(player.max_hp)})
 	effects.fire(self, "hurt", {"source": source, "depth": 0, "pos": player.pos})
 	if float(player.hp) <= 0.0:
 		player.hp = 0.0
@@ -1046,8 +1043,8 @@ func boss() -> Dictionary:
 
 # ---- snapshot -------------------------------------------------------------------------------
 
-const SAVED := ["region_id", "kind", "layer", "night", "next_mods", "assist", "hitstop_enabled", "base_max_hp", "state",
-	"elapsed", "hitstop", "net_timer", "next_id", "player", "claw_timer", "pounce", "ult", "enemies", "shots", "hazards",
+const SAVED := ["region_id", "kind", "layer", "night", "next_mods", "assist", "base_max_hp", "state",
+	"elapsed", "net_timer", "next_id", "player", "claw_timer", "pounce", "ult", "enemies", "shots", "hazards",
 	"balls", "lines", "pickups", "marked_id", "metrics"]
 
 
@@ -1063,7 +1060,7 @@ func to_dict() -> Dictionary:
 
 func from_dict(saved: Dictionary, rngs, entries: Array, owner_ref = null) -> void:
 	setup({"region": saved.region_id, "kind": saved.kind, "layer": saved.layer, "night": saved.night, "next_mods": saved.next_mods,
-		"assist": saved.assist, "hitstop": saved.hitstop_enabled, "max_hp_base": saved.base_max_hp, "entries": entries,
+		"assist": saved.assist, "max_hp_base": saved.base_max_hp, "entries": entries,
 		"view_size": saved.get("view_size", Vector2(1280, 720))}, rngs, owner_ref, false)
 	for key: String in SAVED:
 		var value = saved[key]

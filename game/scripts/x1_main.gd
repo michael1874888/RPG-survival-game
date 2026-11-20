@@ -1,6 +1,7 @@
 extends Control
 ## X1 「奈奈夜巡」 entry: title, setup, map, battle, rewards, results, collection and settings.
-## Rules live in scripts/x1/core; this script only connects them to the screen, input and saves.
+## Rules live in scripts/x1/core; presentation (world, HUD, sound, music, haptics, camera, time)
+## lives in scripts/x1/present. This script owns the screen flow, input and save points.
 
 const UI := preload("res://scripts/x1/ui/theme.gd")
 const Data := preload("res://scripts/x1/core/data.gd")
@@ -8,19 +9,35 @@ const Run := preload("res://scripts/x1/core/run.gd")
 const Profile := preload("res://scripts/x1/core/profile.gd")
 const Progress := preload("res://scripts/x1/core/progress.gd")
 const Touch := preload("res://scripts/x1/ui/touch_input.gd")
-const BattleView := preload("res://scripts/x1/render/battle_view.gd")
 const MapView := preload("res://scripts/x1/ui/map_view.gd")
-const Synth := preload("res://scripts/x1/render/synth.gd")
+const Wipe := preload("res://scripts/x1/ui/wipe.gd")
+const ChestIcon := preload("res://scripts/x1/ui/chest_icon.gd")
+const WorldView := preload("res://scripts/x1/present/world_view.gd")
+const Hud := preload("res://scripts/x1/present/hud.gd")
+const AudioDirector := preload("res://scripts/x1/present/audio_director.gd")
+const MusicDirector := preload("res://scripts/x1/present/music_director.gd")
+const TimeController := preload("res://scripts/x1/present/time_controller.gd")
+const CameraRig := preload("res://scripts/x1/present/camera_rig.gd")
+const Haptics := preload("res://scripts/x1/present/haptics.gd")
+const Director := preload("res://scripts/x1/present/feedback_director.gd")
 
 const HABIT_ORDER := ["shadow", "roam", "hunt"]
 const STICK_SIZES := {"small": 60.0, "medium": 72.0, "large": 90.0}
 const KIND_NAMES := {"hunt": "狩獵", "den": "獵物巢", "boss": "守關", "practice": "練習場"}
+const QUALITY := ["low", "medium", "high"]
 
 var data
 var profile = null
 var run = null
-var view
-var synth
+var world
+var hud
+var audio
+var music
+var wipe
+var time = TimeController.new()
+var camera = CameraRig.new()
+var haptics = Haptics.new()
+var director = Director.new()
 var touch = Touch.new()
 var overlay: Control = null
 var screen := "title"
@@ -29,6 +46,7 @@ var ult_button: Button
 var ult_touches: Dictionary = {}
 var ult_request := false
 var mouse_pos := Vector2.ZERO
+var mouse_aiming := false
 var mouse_pounce := false
 var keyboard_pounce := false
 var setup: Dictionary = {}
@@ -38,27 +56,49 @@ var save_notice := ""
 var shop_pick_index := -1
 var collection_tab := "items"
 var tutorial_flags: Dictionary = {}
-var last_ult_ready := false
 var autosave_enabled := true
+var instant := false             # tests: skip walk animations and card delays
+var level_delay := 0.0
+var current_battle = null
+var perf_window: Array = []
+var perf_lowered := false
+var last_aim := false
 
 
 func _ready() -> void:
 	data = Data.shared()
 	if profile == null: profile = Profile.new()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	view = BattleView.new()
-	view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	view.touch = touch
-	view.visible = false
-	add_child(view)
-	synth = Synth.new()
-	add_child(synth)
+	world = WorldView.new()
+	world.visible = false
+	add_child(world)
+	hud = Hud.new()
+	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hud.touch = touch
+	hud.visible = false
+	add_child(hud)
+	audio = AudioDirector.new()
+	add_child(audio)
+	audio.setup(data.feel)
+	music = MusicDirector.new()
+	add_child(music)
+	music.setup(data.feel, audio)
+	camera.setup(data.feel.get("camera", {}))
+	haptics.setup(data.feel, "medium")
+	time.hitstop_cap = float(data.feel.get("limits", {}).get("hitstop_cap", 0.15))
+	time.min_scale = float(data.feel.get("limits", {}).get("slowmo_min_scale", 0.2))
+	director.setup(data.feel, {"time": time, "camera": camera, "world": world, "hud": hud, "audio": audio, "music": music, "haptics": haptics})
 	pause_button = UI.button("暫停 Ⅱ", _pause, false, 17, 44)
 	add_child(pause_button)
-	ult_button = UI.button("夜影解放", func(): ult_request = true, false, 18, 74)
-	ult_button.add_theme_stylebox_override("normal", UI.panel(Color("564478"), 18, 10))
-	ult_button.add_theme_stylebox_override("hover", UI.panel(Color("725c9a"), 18, 10))
+	ult_button = UI.button("", func(): ult_request = true, false, 18, 96)
+	var clear := StyleBoxEmpty.new()
+	for state: String in ["normal", "hover", "pressed", "disabled", "focus"]: ult_button.add_theme_stylebox_override(state, clear)
 	add_child(ult_button)
+	wipe = Wipe.new()
+	add_child(wipe)
+	UI.press_hook = func():
+		audio.play("click")
+		haptics.play("tick")
 	resized.connect(_layout)
 	_layout()
 	_apply_settings()
@@ -69,135 +109,173 @@ func _ready() -> void:
 func _layout() -> void:
 	pause_button.position = Vector2(size.x - 124.0, 22.0)
 	pause_button.size = Vector2(100, 44)
-	ult_button.position = Vector2(size.x - 360.0, size.y - 310.0)
-	ult_button.size = Vector2(150.0, 74.0)
+	ult_button.position = Vector2(size.x - 340.0, size.y - 320.0)
+	ult_button.size = Vector2(110.0, 110.0)
+
+
+func _settings() -> Dictionary:
+	return profile.data.settings
 
 
 func _apply_settings() -> void:
-	var settings: Dictionary = profile.data.settings
-	synth.volume = float(settings.get("volume", 0.7))
+	var settings: Dictionary = _settings()
 	touch.radius = float(STICK_SIZES.get(str(settings.get("controls", "medium")), 72.0))
 	touch.deadzone = float(data.tuning.pounce.deadzone)
-	view.settings = settings
+	audio.set_volumes(float(settings.get("music_volume", 0.6)), float(settings.get("sfx_volume", 0.8)))
+	var applied: Dictionary = settings.duplicate()
+	if perf_lowered: applied.effects = QUALITY[maxi(0, QUALITY.find(str(settings.get("effects", "high"))) - 1)]
+	director.apply_settings(applied)
 
 
-func _sound(name: String) -> void:
-	synth.play(name)
-
-
-func _vibrate(ms: int) -> void:
-	if profile.data.settings.get("vibration", true) and OS.has_feature("mobile"): Input.vibrate_handheld(ms)
+func _move_to_top(node: Node) -> void:
+	move_child(node, get_child_count() - 1)
 
 
 # ---- frame loop -------------------------------------------------------------------------------
 
-func _physics_process(delta: float) -> void:
+func _process(delta: float) -> void:
+	advance_frame(delta)
+
+
+## One rendered frame: fixed simulation steps through the time controller, then presentation.
+func advance_frame(delta: float) -> void:
+	haptics.process(delta)
 	var in_battle: bool = screen == "battle" and run != null and run.phase == "battle" and run.battle != null
 	pause_button.visible = in_battle
 	ult_button.visible = in_battle
 	if not in_battle: return
-	if run.needs_level_choice():
-		_show_cards()
-		return
 	var b = run.battle
+	if b != current_battle: _begin_battle_view(b)
 	b.view_size = size
-	view.battle = b
-	view.run = run
-	var input := _gather_input(b)
-	var ended: bool = run.tick(delta, input)
-	var events: Array = b.take_events()
-	view.consume(events)
-	_react(events, b)
-	_tutorial(b)
-	_update_ult_button(b)
 	if run.needs_level_choice():
-		_sound("level")
-		_show_cards()
+		level_delay -= delta
+		_present(delta, b)
+		if level_delay <= 0.0 or instant: _show_cards()
+		return
+	var steps: int = time.advance(delta)
+	var input := _gather_input(b)
+	var ended := false
+	for i in steps:
+		if i == steps - 1: world.capture()
+		ended = run.tick(TimeController.STEP, input) or ended
+		input.pounce = Vector2.ZERO
+		input.ult = false
+		director.process(b.take_events(), b, run)
+		if run.phase != "battle" or run.needs_level_choice(): break
+	director.frame(delta, b, run)
+	_tutorial(b)
+	_present(delta, b)
+	_watch_performance(delta)
+	if run.needs_level_choice():
+		level_delay = 0.0 if instant else 0.35
 		return
 	snapshot_clock += delta
 	if snapshot_clock >= float(data.tuning.save.battle_snapshot_every) and not ended:
 		snapshot_clock = 0.0
 		_save_active()
-	if ended or run.phase != "battle": _sync()
+	if ended or run.phase != "battle":
+		if run.phase == "result" and not run.won: director.cue("lost", b.player.pos)
+		_sync()
+
+
+func _present(delta: float, b) -> void:
+	var lead: Vector2 = Vector2(b.pounce.dash.dir) if b.dashing() else (b.player.move_dir if touch.movement().length_squared() > 0.01 or _keys().length_squared() > 0.0 else Vector2.ZERO)
+	var near := 0
+	for e: Dictionary in b.enemies:
+		if e.pos.distance_squared_to(b.player.pos) < 300.0 * 300.0: near += 1
+	camera.update(delta, b.player.pos, lead, b.dashing(), clampf(near / 40.0, 0.0, 1.0))
+	world.transform = camera.world_transform(size, b.world)
+	world.alpha = time.alpha()
+	world.time_scale = time.current_scale()
+	director.view_size = size
+	hud.world_xf = world.transform
+	hud.ult_rect = Rect2(ult_button.position, ult_button.size)
+	var aim := Vector2.ZERO
+	if touch.aiming(): aim = touch.aim_direction()
+	elif mouse_aiming:
+		var offset: Vector2 = mouse_pos - camera.world_to_screen(size, b.world, b.player.pos)
+		if offset.length() > 24.0: aim = offset.normalized()
+	if touch.aiming() and not last_aim: haptics.play("tick")
+	last_aim = touch.aiming()
+	world.aim_dir = aim
+
+
+func _begin_battle_view(b) -> void:
+	current_battle = b
+	world.set_battle(b)
+	hud.reset_battle(b, run)
+	director.reset_battle(run)
+	camera.snap(b.player.pos)
+	world.visible = true
+	hud.visible = true
+	music.play_region(run.region_id, "battle")
+	var region_name: String = data.regions[run.region_id].name
+	if not instant: wipe.play(KIND_NAMES.get(b.kind, ""), region_name if b.kind != "practice" else "三分鐘自由練習")
+	_move_to_top(wipe)
+
+
+func _keys() -> Vector2:
+	return Vector2(
+		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
+		float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
 
 
 func _gather_input(b) -> Dictionary:
 	var move: Vector2 = touch.movement()
-	var keys := Vector2(
-		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
-		float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
+	var keys := _keys()
 	if keys.length_squared() > 0.0: move = keys.normalized()
 	var pounce: Vector2 = touch.take_pounce()
-	var player_screen: Vector2 = b.player.pos - b.camera_rect().position
 	if mouse_pounce:
 		mouse_pounce = false
-		var offset: Vector2 = mouse_pos - player_screen
+		var offset: Vector2 = mouse_pos - camera.world_to_screen(size, b.world, b.player.pos)
 		if offset.length() > 8.0: pounce = offset.normalized()
 	if keyboard_pounce:
 		keyboard_pounce = false
 		pounce = move.normalized() if move.length_squared() > 0.01 else Vector2(b.player.facing)
-	view.aim_mouse = mouse_pos
 	var ult := ult_request
 	ult_request = false
 	return {"move": move, "pounce": pounce, "ult": ult}
 
 
-func _react(events: Array, b) -> void:
-	var feel: Dictionary = data.tuning.feel
-	for ev: Dictionary in events:
-		match str(ev.kind):
-			"swipe": if int(ev.get("depth", 0)) == 0: _sound("swipe")
-			"pounce": _sound("pounce")
-			"land": _sound("land")
-			"bite":
-				_sound("bite")
-				_vibrate(int(feel.vibrate_bite))
-			"hurt":
-				_sound("hurt")
-				_vibrate(int(feel.vibrate_hurt))
-			"defeat":
-				if ev.get("role", "") in ["elite", "boss"] or ev.get("prey", false): _sound("prey")
-				else: _sound("defeat")
-			"ult":
-				_sound("ult")
-				_vibrate(int(feel.vibrate_ult))
-			"pickup": _sound("pickup")
-			"telegraph": if ev.get("role", "") in ["elite", "boss"]: _sound("warn")
-			"boss_phase": _sound("boss")
-			"net": _sound("net")
-	if b.ult_ready() and not last_ult_ready: _sound("ready")
-	last_ult_ready = b.ult_ready()
-
-
-func _update_ult_button(b) -> void:
-	if b.ult_active():
-		ult_button.text = "夜影解放\n影化 %.1f 秒" % float(b.ult.active)
-	elif b.ult_ready():
-		ult_button.text = "夜影解放\n準備好了！"
+## Auto quality: if frames stay slow for a while, lower the effect tier once and say so.
+func _watch_performance(delta: float) -> void:
+	var cfg: Dictionary = data.feel.get("performance", {})
+	perf_window.append(delta)
+	var window_frames := int(float(cfg.get("window", 2.0)) * 60.0)
+	if perf_window.size() > window_frames: perf_window.pop_front()
+	var total := 0.0
+	for v in perf_window: total += float(v)
+	var average_ms: float = total / maxf(1.0, perf_window.size()) * 1000.0
+	if _settings().get("perf_overlay", false):
+		hud.perf_text = "%.1f ms · %d fps · 敵 %d · 粒子 %d · %s" % [average_ms, Engine.get_frames_per_second(), run.battle.enemies.size() if run.battle != null else 0, world.fx.particles.size(), world.fx.quality]
 	else:
-		ult_button.text = "夜影解放\n%d%%" % int(100.0 * float(b.ult.meter) / float(data.tuning.ult.meter_max))
-	ult_button.add_theme_stylebox_override("normal", UI.panel(Color("8a6ac4") if b.ult_ready() else Color("564478"), 18, 10))
+		hud.perf_text = ""
+	if perf_lowered or perf_window.size() < window_frames or OS.is_debug_build() and not OS.has_feature("mobile"): return
+	if average_ms > float(cfg.get("frame_budget_ms", 20.0)) and str(_settings().get("effects", "high")) != "low":
+		perf_lowered = true
+		_apply_settings()
+		hud.show_hint("畫面有點吃力，已自動降低一級特效（可在設定調整）", 3.0)
 
 
 func _tutorial(b) -> void:
 	if not run.tutorial or b.kind == "practice": return
 	var steps := [
-		["move", 0.4, "左手拖曳移動。爪子會自動抓身邊的敵人。"],
+		["move", 0.6, "左手拖曳移動。爪子會自動抓身邊的敵人。"],
 		["pounce", 4.5, "右手拖曳、放開：撲出去！撲擊途中不會受傷，落地會咬一口。"],
 	]
 	for entry: Array in steps:
 		if not tutorial_flags.has(entry[0]) and b.elapsed >= float(entry[1]):
 			tutorial_flags[entry[0]] = true
-			view.show_hint(str(entry[2]), 5.0)
+			hud.show_hint(str(entry[2]), 5.0)
 	if not tutorial_flags.has("prey"):
 		for e: Dictionary in b.enemies:
 			if e.get("target", false):
 				tutorial_flags["prey"] = true
-				view.show_hint("頭上有 ◆ 的是目標獵物。全部打倒就能收網、結束這場。", 5.0)
+				hud.show_hint("頭上有 ◆ 的是目標獵物。全部打倒就能收網、結束這場。", 5.0)
 				break
 	if not tutorial_flags.has("ult") and b.ult_ready():
 		tutorial_flags["ult"] = true
-		view.show_hint("夜影解放充滿了！按右下的按鈕（或空白鍵）突破包圍。", 5.0)
+		hud.show_hint("夜影解放充滿了！按右下的圓形按鈕（或空白鍵）突破包圍。", 5.0)
 
 
 # ---- input ------------------------------------------------------------------------------------
@@ -229,9 +307,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_J, KEY_K, KEY_SHIFT:
 				if screen == "battle": keyboard_pounce = true
 			KEY_M:
-				var volume: float = 0.0 if synth.volume > 0.0 else 0.7
-				profile.set_setting("volume", volume)
+				var muted: bool = float(_settings().get("sfx_volume", 0.8)) <= 0.0 and float(_settings().get("music_volume", 0.6)) <= 0.0
+				profile.set_setting("sfx_volume", 0.8 if muted else 0.0)
+				profile.set_setting("music_volume", 0.6 if muted else 0.0)
 				_apply_settings()
+			KEY_F3:
+				profile.set_setting("perf_overlay", not _settings().get("perf_overlay", false))
 			KEY_F5:
 				if OS.is_debug_build(): _debug_reload()
 	if screen != "battle": return
@@ -239,7 +320,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		touch.handle(event, size)
 	elif event is InputEventMouseMotion:
 		mouse_pos = event.position
-		view.mouse_aiming = true
+		mouse_aiming = true
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		mouse_pos = event.position
 		mouse_pounce = true
@@ -261,7 +342,12 @@ func _debug_reload() -> void:
 		run.data = data
 		run.build.data = data
 		if run.phase == "battle": run._start_battle(run.node_kind)
-	view.show_hint("已重新載入資料檔（F5）", 2.0)
+	audio.setup(data.feel)
+	director.setup(data.feel, {"time": time, "camera": camera, "world": world, "hud": hud, "audio": audio, "music": music, "haptics": haptics})
+	camera.setup(data.feel.get("camera", {}))
+	world.fx.setup(data.feel)
+	_apply_settings()
+	hud.show_hint("已重新載入資料檔（F5）", 2.0)
 
 
 # ---- screens --------------------------------------------------------------------------------------
@@ -277,7 +363,16 @@ func _open(width := 760.0, dim := 0.84) -> VBoxContainer:
 	var column: VBoxContainer = UI.overlay(self, width, dim)
 	overlay = column.get_parent().get_parent().get_parent().get_parent()
 	move_child(overlay, get_child_count() - 1)
+	_move_to_top(wipe)
 	if not save_notice.is_empty(): column.add_child(UI.label(save_notice, 15, UI.DANGER))
+	var box: Control = column.get_parent().get_parent()
+	box.pivot_offset = box.custom_minimum_size * 0.5
+	if not instant:
+		box.scale = Vector2(0.94, 0.94)
+		box.modulate.a = 0.0
+		var tween := box.create_tween().set_parallel()
+		tween.tween_property(box, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(box, "modulate:a", 1.0, 0.12)
 	return column
 
 
@@ -285,14 +380,17 @@ func _sync() -> void:
 	if run == null:
 		_show_title()
 		return
-	view.visible = run.phase == "battle"
+	var battling: bool = run.phase == "battle"
+	world.visible = battling or (run.phase == "card" and current_battle != null and run.battle != null)
+	hud.visible = world.visible
+	if not battling and run.battle == null and current_battle != null:
+		current_battle = null
+		if not instant: wipe.play()
+		music.play_region(run.region_id, "menu")
 	match run.phase:
 		"battle":
 			screen = "battle"
 			_clear()
-			if run.battle != null:
-				view.battle = run.battle
-				view.run = run
 		"map":
 			_save_active()
 			_show_map()
@@ -328,7 +426,10 @@ func _save_active() -> bool:
 func _show_title() -> void:
 	screen = "title"
 	run = null
-	view.visible = false
+	current_battle = null
+	world.visible = false
+	hud.visible = false
+	music.play_region("courtyard", "menu")
 	var column := _open(720)
 	column.add_child(UI.label("BRAMBLE · 奈奈夜巡", 40))
 	column.add_child(UI.label("撲向今晚的獵物，把家裡的東西找回來", 19, UI.GOLD))
@@ -461,7 +562,7 @@ func _start_run() -> void:
 		"assist": profile.data.settings.get("assist", false), "unlocked": profile.unlocked_cards(), "owned": profile.data.owned,
 		"target": profile.data.target, "tutorial": not profile.data.tutorial_done,
 		"bell_guarantee": not profile.data.bell_given and not profile.owned("H03"),
-		"hitstop": profile.data.settings.get("shake", true), "view_size": size})
+		"view_size": size})
 	tutorial_flags.clear()
 	snapshot_clock = 0.0
 	_sync()
@@ -481,7 +582,7 @@ func _start_practice(habit: String) -> void:
 	run = Run.new()
 	var unlocked: Array = profile.unlocked_cards() if not profile.load_failed else []
 	run.begin({"seed": randi(), "region": "courtyard", "habit": habit, "practice": true, "unlocked": unlocked,
-		"assist": profile.data.settings.get("assist", false), "hitstop": profile.data.settings.get("shake", true), "view_size": size})
+		"assist": profile.data.settings.get("assist", false), "view_size": size})
 	tutorial_flags.clear()
 	_sync()
 
@@ -510,11 +611,14 @@ func _show_map() -> void:
 	var map_view = MapView.new()
 	map_view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	map_box.add_child(map_view)
+	map_view.audio = audio
 	map_view.build(run, func(id: String):
-		_sound("click")
-		run.enter(id)
-		snapshot_clock = 0.0
-		_sync())
+		var go := func():
+			run.enter(id)
+			snapshot_clock = 0.0
+			_sync()
+		if instant: go.call()
+		else: map_view.walk(id, go))
 	var side := PanelContainer.new()
 	side.custom_minimum_size = Vector2(330, 0)
 	side.add_theme_stylebox_override("panel", UI.panel(UI.PANEL, 0, 16))
@@ -555,8 +659,16 @@ func _card_button(id: String, callback: Callable) -> Button:
 	var button: Button = UI.button("\n".join(lines), callback, id.begins_with("EV"), 16, 170)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.custom_minimum_size = Vector2(250, 170)
-	button.add_theme_stylebox_override("normal", UI.panel(Color(str(category.color)).darkened(0.55) if not id.begins_with("EV") else UI.GOLD, 16, 12))
-	button.add_theme_stylebox_override("hover", UI.panel(Color(str(category.color)).darkened(0.4) if not id.begins_with("EV") else Color("ffe5a4"), 16, 12))
+	var tint := Color(str(category.color))
+	var normal := UI.panel(tint.darkened(0.55) if not id.begins_with("EV") else UI.GOLD, 16, 12)
+	normal.border_color = tint if card.get("rarity", "") != "rare" else UI.GOLD
+	normal.set_border_width_all(2 if card.get("rarity", "") != "rare" else 4)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", UI.panel(tint.darkened(0.4) if not id.begins_with("EV") else Color("ffe5a4"), 16, 12))
+	if card.get("rarity", "") == "rare" or id.begins_with("EV"):
+		var pulse := button.create_tween().set_loops()
+		pulse.tween_property(button, "self_modulate", Color(1.15, 1.1, 0.95), 0.6)
+		pulse.tween_property(button, "self_modulate", Color.WHITE, 0.6)
 	return button
 
 
@@ -567,11 +679,24 @@ func _show_cards() -> void:
 	column.add_child(UI.label(titles.get(run.choice_context, "選一張卡"), 28))
 	column.add_child(UI.label("卡片格 %d / %d" % [run.build.order.size(), int(data.tuning.build.slots)], 15, UI.MUTED))
 	var cards := UI.row(column, 14)
+	var index := 0
 	for id: String in run.build.offers:
-		cards.add_child(UI.expand(_card_button(id, func():
-			_sound("click")
+		var button := _card_button(id, func():
+			var evolution := id.begins_with("EV")
 			run.choose_card(id)
-			_after_card())))
+			if evolution: _evolution_moment(id)
+			_after_card())
+		cards.add_child(UI.expand(button))
+		if not instant:
+			button.modulate.a = 0.0
+			button.scale = Vector2(0.1, 1.0)
+			var tween := button.create_tween()
+			tween.tween_interval(0.06 + index * 0.09)
+			tween.tween_callback(func(): audio.play("card", float(index) * 2.0))
+			tween.set_parallel()
+			tween.tween_property(button, "modulate:a", 1.0, 0.12)
+			tween.tween_property(button, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		index += 1
 	var actions := UI.row(column)
 	var reroll: Button = UI.expand(UI.button("刷新（剩 %d）" % run.build.rerolls, func():
 		if run.reroll_cards(): _show_cards(), false, 17, 46))
@@ -580,6 +705,17 @@ func _show_cards() -> void:
 	actions.add_child(UI.expand(UI.button("略過（回復 %d）" % int(data.tuning.build.skip_heal), func():
 		run.skip_card()
 		_after_card(), false, 17, 46)))
+
+
+## Evolution: a short celebration that does not block play.
+func _evolution_moment(id: String) -> void:
+	var evo: Dictionary = data.cards[id]
+	hud.banner("✦ 進化 ✦  %s" % evo.name, "%s ＋ %s" % [data.cards[evo.requires[0]].name, data.cards[evo.requires[1]].name], "prey", 1.8)
+	audio.play("evolve")
+	haptics.play("ult")
+	if current_battle != null:
+		world.fx.ring("level", current_battle.player.pos, 180.0)
+		world.fx.burst("gold", current_battle.player.pos, 40)
 
 
 func _after_card() -> void:
@@ -665,7 +801,7 @@ func _shop_buy(index: int) -> void:
 				_show_shop(), false, 16, 48))
 		column.add_child(UI.button("返回", _show_shop))
 		return
-	if run.shop_buy(index): _sound("click")
+	if run.shop_buy(index): audio.play("pickup", 7.0)
 	_show_shop()
 
 
@@ -689,12 +825,24 @@ func _show_moon() -> void:
 func _show_items() -> void:
 	screen = "item"
 	var column := _open(800)
+	column.add_child(ChestIcon.new())
+	if not instant:
+		audio.play("chest")
+		haptics.play("medium")
 	column.add_child(UI.label("找到寶物了！選一件帶回家", 30))
 	column.add_child(UI.label("收藏會立刻保存。寶物從下一局開始可以裝備。", 15, UI.MUTED))
+	var index := 0
 	for id: String in run.item_choices:
 		var item: Dictionary = data.items[id]
 		var slot: String = "習慣寶物・%s" % data.habits[item.habit].name if item.slot == "habit" else "隨身小物"
-		column.add_child(UI.button("%s（%s）\n%s" % [item.name, slot, item.desc], func(): _claim_item(id), id == run.target_item, 17, 74))
+		var button: Button = UI.button("%s（%s）\n%s" % [item.name, slot, item.desc], func(): _claim_item(id), id == run.target_item, 17, 74)
+		column.add_child(button)
+		if not instant:
+			button.modulate.a = 0.0
+			var tween := button.create_tween()
+			tween.tween_interval(0.55 + index * 0.12)
+			tween.tween_property(button, "modulate:a", 1.0, 0.18)
+		index += 1
 	column.add_child(UI.button("都不要", func():
 		run.skip_item()
 		_sync(), false, 15, 40))
@@ -704,7 +852,9 @@ func _claim_item(id: String) -> void:
 	var before: Dictionary = run.to_dict()
 	if not run.confirm_item(id): return
 	if run.practice or profile.acquire_item(id, run.to_dict()):
-		_sound("prey")
+		audio.play("prey")
+		haptics.play("heavy")
+		hud.banner("收藏：%s" % data.items[id].name, "下一局可以裝備", "prey", 1.6)
 		save_notice = ""
 		_sync()
 		return
@@ -750,7 +900,8 @@ func _pause() -> void:
 func _resume() -> void:
 	_clear()
 	screen = "battle"
-	view.visible = true
+	world.visible = true
+	hud.visible = true
 	_sync()
 
 
@@ -769,7 +920,8 @@ func _confirm_abandon() -> void:
 
 func _finish_run() -> void:
 	screen = "result"
-	view.visible = false
+	world.visible = false
+	hud.visible = false
 	var summary: Dictionary = run.summary()
 	if run.practice:
 		report = {"saved": true, "unlocked": [], "near": []}
@@ -789,13 +941,32 @@ func _show_result(summary: Dictionary) -> void:
 	var region: Dictionary = data.regions[summary.region]
 	var title: String = "練習結束" if summary.practice else ("夜巡成功！" if summary.won else "先回家休息")
 	column.add_child(UI.label(title, 36))
+	if not instant and not summary.practice: music.stinger("win" if summary.won else "lose")
+	for id: String in report.get("unlocked", []):
+		haptics.play("double")
 	if summary.won: column.add_child(UI.label(str(region.win_story), 18, UI.GOLD))
 	var metrics: Dictionary = summary.metrics
 	column.add_child(UI.label("%s · 夜深 %d · %s · 到達第 %d 層 · %d:%02d" % [region.name, int(summary.night), data.habits[summary.habit].title,
 		mini(int(summary.layer), 8), int(summary.time) / 60, int(summary.time) % 60], 17, UI.MUTED))
-	column.add_child(UI.label("擊敗 %d · 獵物 %d · 撲擊 %d（脫困 %d） · 夜影 %d 次 · Lv.%d · 進化 %d" % [int(metrics.get("kills", 0)),
-		int(metrics.get("prey_kills", 0)), int(metrics.get("pounces", 0)), int(metrics.get("escape_pounces", 0)),
-		int(metrics.get("ult_uses", 0)), int(summary.level), int(metrics.get("evolutions", 0))], 16))
+	var stats := UI.row(column, 18)
+	var counters := [["擊敗", int(metrics.get("kills", 0))], ["獵物", int(metrics.get("prey_kills", 0))], ["撲擊", int(metrics.get("pounces", 0))],
+		["脫困", int(metrics.get("escape_pounces", 0))], ["夜影", int(metrics.get("ult_uses", 0))], ["等級", int(summary.level)], ["最高連獵", int(director.best_combo)]]
+	var stat_index := 0
+	for entry: Array in counters:
+		var box := VBoxContainer.new()
+		var number := UI.label("0" if not instant else str(entry[1]), 30, UI.GOLD)
+		box.add_child(number)
+		box.add_child(UI.label(str(entry[0]), 14, UI.MUTED))
+		stats.add_child(box)
+		if not instant:
+			var target: int = int(entry[1])
+			var tween := number.create_tween()
+			tween.tween_interval(0.15 + stat_index * 0.08)
+			tween.tween_method(func(v: float):
+				var shown := int(round(v))
+				if number.text != str(shown): audio.play("tick", minf(12.0, float(shown % 12)))
+				number.text = str(shown), 0.0, float(target), 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		stat_index += 1
 	if not summary.won and not summary.practice and not str(summary.last_hurt).is_empty():
 		column.add_child(UI.label("最後受傷來源：%s" % _enemy_name(str(summary.last_hurt)), 15, UI.DANGER))
 	var cards: Array = summary.cards.map(func(c): return "%s%s" % [data.cards[c.id].name, "" if str(c.id).begins_with("EV") else " Lv.%d" % int(c.level)])
@@ -810,6 +981,15 @@ func _show_result(summary: Dictionary) -> void:
 		for row: Dictionary in report.near:
 			var target_name: String = data.cards[row.unlock].name if data.cards.has(row.unlock) else data.items[row.unlock].name
 			column.add_child(UI.label("%s → %s（%d%%）" % [row.desc, target_name, int(float(row.ratio) * 100.0)], 15, UI.CREAM))
+			var bar := ProgressBar.new()
+			bar.show_percentage = false
+			bar.custom_minimum_size = Vector2(0, 10)
+			bar.max_value = 1.0
+			bar.add_theme_stylebox_override("background", UI.panel(Color("18382c"), 5, 0))
+			bar.add_theme_stylebox_override("fill", UI.panel(UI.GOLD, 5, 0))
+			column.add_child(bar)
+			if instant: bar.value = float(row.ratio)
+			else: bar.create_tween().tween_property(bar, "value", float(row.ratio), 0.8).set_delay(0.6).set_ease(Tween.EASE_OUT)
 	var buttons := UI.row(column)
 	if summary.practice:
 		buttons.add_child(UI.expand(UI.button("再練一次", _show_practice, true)))
@@ -908,37 +1088,61 @@ func _collection_records(column: VBoxContainer) -> void:
 		column.add_child(UI.label("%s → %s（%d%%）" % [row.desc, name, int(float(row.ratio) * 100.0)], 14, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT))
 
 
-func _show_settings() -> void:
-	screen = "settings"
-	var settings: Dictionary = profile.data.settings
-	var column := _open(720)
-	column.add_child(UI.label("設定", 32))
-	var volume_row := UI.row(column)
-	volume_row.add_child(UI.label("音量", 18, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, false))
+func _slider_row(column: VBoxContainer, title: String, key: String, fallback: float) -> void:
+	var row := UI.row(column)
+	var label := UI.label(title, 17, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, false)
+	label.custom_minimum_size.x = 140
+	row.add_child(label)
 	var slider := HSlider.new()
 	slider.min_value = 0.0
 	slider.max_value = 1.0
 	slider.step = 0.1
-	slider.value = float(settings.get("volume", 0.7))
-	slider.custom_minimum_size = Vector2(320, 40)
+	slider.value = float(_settings().get(key, fallback))
+	slider.custom_minimum_size = Vector2(360, 40)
 	slider.value_changed.connect(func(value: float):
-		profile.set_setting("volume", value)
-		_apply_settings())
-	volume_row.add_child(slider)
-	for entry: Array in [["vibration", "震動"], ["shake", "震屏與命中停頓"], ["low_flash", "低閃光"], ["assist", "輔助模式（敵方傷害 ×0.75，不影響收藏）"]]:
+		profile.set_setting(key, value)
+		_apply_settings()
+		if key == "sfx_volume": audio.play("pop", 4.0)
+		if key == "shake_level":
+			haptics.play("light"))
+	row.add_child(slider)
+
+
+func _choice_row(column: VBoxContainer, title: String, key: String, options: Array, fallback: String) -> void:
+	var row := UI.row(column, 8)
+	var label := UI.label(title, 17, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, false)
+	label.custom_minimum_size.x = 140
+	row.add_child(label)
+	for entry: Array in options:
+		var value: String = entry[0]
+		row.add_child(UI.expand(UI.button(str(entry[1]), func():
+			profile.set_setting(key, value)
+			_apply_settings()
+			if key == "haptics": haptics.play("heavy")
+			_show_settings(), str(_settings().get(key, fallback)) == value, 16, 42)))
+
+
+func _show_settings() -> void:
+	screen = "settings"
+	var settings: Dictionary = _settings()
+	var column := _open(820)
+	column.add_child(UI.label("設定", 32))
+	_slider_row(column, "音樂", "music_volume", 0.6)
+	_slider_row(column, "音效", "sfx_volume", 0.8)
+	_choice_row(column, "震動", "haptics", [["off", "關"], ["low", "弱"], ["medium", "中"], ["high", "強"]], "medium")
+	_slider_row(column, "震屏強度", "shake_level", 1.0)
+	_choice_row(column, "特效", "effects", [["low", "低"], ["medium", "中"], ["high", "高"]], "high")
+	_choice_row(column, "傷害數字", "damage_numbers", [["off", "關"], ["heavy", "只顯示重擊"], ["all", "全部"]], "heavy")
+	_choice_row(column, "搖桿大小", "controls", [["small", "小"], ["medium", "中"], ["large", "大"]], "medium")
+	for entry: Array in [["low_flash", "低閃光（減弱全畫面閃光）"], ["reduce_motion", "減少動態（關掉停頓、慢動作與推近）"],
+			["assist", "輔助模式（敵方傷害 ×0.75，不影響收藏）"], ["perf_overlay", "顯示每幀時間（測試效能用）"]]:
 		var key: String = entry[0]
 		var on: bool = settings.get(key, false)
 		column.add_child(UI.button("%s：%s" % [entry[1], "開" if on else "關"], func():
 			profile.set_setting(key, not on)
 			_apply_settings()
-			_show_settings(), on, 17, 46))
-	var size_row := UI.row(column)
-	size_row.add_child(UI.label("搖桿大小", 17, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, false))
-	for entry: Array in [["small", "小"], ["medium", "中"], ["large", "大"]]:
-		size_row.add_child(UI.expand(UI.button(str(entry[1]), func():
-			profile.set_setting("controls", entry[0])
-			_apply_settings()
-			_show_settings(), settings.get("controls", "medium") == entry[0], 17, 44)))
+			_show_settings(), on, 16, 44))
+	if perf_lowered: column.add_child(UI.label("這次遊玩中因為畫面吃力，特效已自動降低一級。", 14, UI.GOLD))
 	if not profile.last_error.is_empty(): column.add_child(UI.label(profile.last_error, 15, UI.DANGER))
 	column.add_child(UI.label("收藏與紀錄存在這台裝置的應用資料中；移除應用程式可能會一起刪除。", 14, UI.MUTED))
 	column.add_child(UI.button("返回", _show_title))
