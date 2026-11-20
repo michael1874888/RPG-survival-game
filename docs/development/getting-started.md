@@ -21,7 +21,15 @@ godot --path game
 BRAMBLE_GODOT_BIN=/path/to/godot ./scripts/test-game.sh
 ```
 
-Mac 若使用預設安裝路徑，可直接執行 `./scripts/test-game.sh`。腳本依序做專案匯入、既有與構築實驗規則檢查及真實場景流程檢查，目前共 286 項；整合流程的自動輸入與無敵僅存在於測試程式，不能用來判定人類勝率或平衡。
+Mac 若使用預設安裝路徑，可直接執行 `./scripts/test-game.sh`。腳本依序做專案匯入、舊版回歸（4,563 項）與 X1 規則、存檔及實際場景流程檢查（522 項）；整合流程的自動輸入與無敵僅存在於測試程式，不能用來判定人類勝率或平衡。
+
+單獨跑一個測試套件（例如 X1 戰鬥）：
+
+```sh
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path game --script res://tests/x1_combat_tests.gd
+```
+
+X1 的數值調整、自動玩家探針、截圖工具與內容表產生方式見 [X1 調參指南](x1-tuning-guide.md)。
 
 ## Android 匯出
 

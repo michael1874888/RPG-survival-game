@@ -4,11 +4,11 @@
 
 暫用工作名稱；正式遊戲名稱尚未決定。Godot 4.7.2 標準版 + GDScript，目前提供 Mac 開發版本及已簽署的 Android ARM64 測試 APK，使用者已在 Android 手機試玩並回饋體感 OK。
 
-目前是 **v0.17 奈奈成長短局**：打怪拾取經驗、局內選擇能力並挑戰守關者。[v0.17 試玩說明](docs/development/nana-v0.17-practice.md)。
+目前是 **v0.30.0 奈奈夜巡（X1 撲擊狩獵）**：爪擊自動、右手拖曳放開撲擊、擊殺充能的夜影解放；三個區域的夜巡地圖、48 張本能卡與 8 組進化、夜深 1–8、30 個解鎖目標與 12 件寶物。[v0.30 試玩說明](docs/development/nana-v0.30-practice.md)。
 
-**新 session 請先讀 [HANDOFF.md](HANDOFF.md)。** v0.17 已實作小範圍受限隨機及局內成長；手機實玩與樂趣驗收待完成。
+**新 session 請先讀 [HANDOFF.md](HANDOFF.md)。** v0.30 依使用者核准的 [X1 重設計提案](docs/design/nana-pounce-redesign-proposal-x1.md) 實作於分支 `feature/nana-x1-pounce-hunt`；手機實玩、效能與樂趣尚待驗收。
 
-最新回饋是 v0.16 的疾追者較有威脅性，需要走位及使用大絕；但整局仍缺少重玩目標、成就感與回饋感。[v0.17 成長短局](docs/development/nana-v0.17-practice.md) 已依確認後的規格實作，待真人試玩。
+v0.20 的分析判斷底層 30 秒戰鬥缺判斷與爽感（尚無 v0.20 真人回饋，屬推論），因此改為大量雜兵＋撲擊判斷＋目標獵物的戰鬥。v0.20 的程式與測試保留，debug 建置首頁可開啟對照。
 
 ## 文件入口
 
@@ -36,21 +36,23 @@
 
 其他平台可直接用 Godot 開啟專案，或執行 `godot --path game`。中文字型與授權已附在原始碼中，首次匯入產生的 `.godot/` 快取不納入版本管理。
 
-| 操作 | Mac | 手機輸入設計（待實機驗收） |
+| 操作 | Mac | 手機（待實機驗收） |
 | --- | --- | --- |
 | 移動 | WASD／方向鍵 | 畫面左半部按住並拖曳 |
-| 瞄準與攻擊 | 滑鼠瞄準、按住左鍵攻擊，放開停止 | 畫面右半部按住並拖曳；超出小死區後連續攻擊 |
-| 奈奈大絕 | 空白鍵或「夜影解放」按鈕 | 點「夜影解放」，右側重新拖曳後繼續攻擊 |
-| 暫停 | P／Esc，或右上按鈕 | 右上按鈕；切換背景時也會暫停 |
-| 靜音切換 | M | 原型尚未提供觸控音量設定；可用裝置音量 |
+| 爪擊 | 自動攻擊身邊的敵人 | 自動攻擊身邊的敵人 |
+| 撲擊 | 滑鼠左鍵朝游標撲出；J／K／Shift 朝移動方向撲出 | 畫面右半部拖曳顯示撲擊線，放開撲出；在 24 px 內放開取消 |
+| 夜影解放 | 空白鍵或「夜影解放」按鈕（能量充滿時） | 點「夜影解放」按鈕 |
+| 暫停 | P／Esc，或右上按鈕 | 右上按鈕；切換背景時也會暫停並保存 |
+| 音量 | M 切換靜音；設定頁可調音量 | 設定頁 |
+| 重新讀取資料檔 | F5（僅 debug 建置） | — |
 
-森林短局由一個開局能力出發，擊殺拾取經驗並於戰鬥中選擇成長；四段末擊敗守關者完成。三連戰仍使用段間發展、加裝或替換，三段全部清除才完成。單場實驗可任選 0–2 個 Lv.1 能力，單場實驗每段最多 60 秒；短局各段上限見試玩說明。數值仍是試玩起點。
+一局：選區域、習性與寶物 → 走 7 層夜巡地圖（狩獵、獵物巢、貓窩、主人房間、月光）→ 打倒守關。數值都在 `game/data/x1/*.json`，調整方法見 [調參指南](docs/development/x1-tuning-guide.md)。
 
 ## 已驗證與尚待驗證
 
 - 已驗證：官方下載 SHA-512、安裝檔 SHA-256、macOS 程式簽章、引擎版本、專案匯入及 Mac 視窗實際啟動。
-- v0.17：既有規則 176 項、構築實驗 55 項、跨段規則 44 項、成長規則 31 項、場景流程 39 項，共 345 項通過。
-- 使用者已提供 v0.16 實玩回饋；v0.17 尚待安裝與真人試玩，設備相容、觸控與效能未確認。APK 資訊見建置收據。
+- v0.30：既有回歸 4,563 項與 X1 新增 522 項（資料、戰鬥、敵人、卡片、局與存檔、實際場景流程）全部通過；Android 包另跑封裝後的規則檢查。數字細節與證據界線見 [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)。
+- 尚未驗證：手機安裝更新、觸控手感、效能與樂趣；自動玩家的結果不代表真人難度。
 
 執行檢查：
 
@@ -62,24 +64,16 @@
 
 ## 專案結構
 
-- `game/scripts/run_model.gd`：戰鬥、成長、敵人、投射物與勝敗規則。
-- `game/scripts/nana_combat.gd`：奈奈的連抓、重咬、影化與大絕冷卻。
-- `game/scripts/nana_encounters.gd`：敵人行為、固定情境與怪潮排程。
-- `game/scripts/nana_experiment.gd`：構築實驗事件表、觀察紀錄與命中停頓。
-- `game/scripts/nana_series.gd`：三連戰與短局的跨段狀態與整輪摘要。
-- `game/scripts/nana_growth_run.gd`：短局經驗成長、受限候選與構築選擇。
-- `game/scripts/combat_geometry.gd`：扇形與圓形碰撞幾何。
-- `game/scripts/touch_controls.gd`：左右手獨立的觸控歸屬與方向。
-- `game/scripts/main.gd`：輸入、畫面、介面與簡單程序音效。
-- `game/tests/`：規則與場景流程檢查。
-- `docs/design/`：已確認方向、原型規格與階段路線。
-- `docs/research/`：先前遊戲研究及引擎選型。
-- `tools/godot-install.json`：引擎來源、儲存位置與雜湊驗證收據。
-- `tools/android-prerequisites.json`：Java 與匯出模板的來源、路徑及驗證收據。
+- `game/x1_main.tscn`、`game/scripts/x1_main.gd`：X1 主場景與畫面流程（目前的主場景）。
+- `game/scripts/x1/core/`：X1 規則（戰鬥、撲擊、敵人湧出、卡片效果、構築、地圖、一局流程、存檔、解鎖），不含畫面。
+- `game/scripts/x1/ai/`：每種敵人的行為。
+- `game/scripts/x1/render/`、`game/scripts/x1/ui/`：戰鬥繪製、合成音效、地圖、觸控輸入與介面樣式。
+- `game/data/x1/*.json`：所有 X1 數值與內容；[內容表](docs/design/nana-x1-content.md) 由 `scripts/x1-content-table.py` 產生。
+- `game/scripts/combat_geometry.gd`：扇形、長條與圓形碰撞幾何（X1 與舊版共用）。
+- `game/scripts/r1_*.gd`、`main.gd`、`run_model.gd`、`nana_*.gd`：v0.20 以前的版本，保留給回歸測試與對照。
+- `game/tests/`：規則與場景流程檢查；`x1_autoplay_probe.gd` 與 `x1_visual.gd` 是開發用探針與截圖工具。
 - `tools/android-build.json`：最新 APK 絕對路徑、SHA-256、簽章與 Manifest 結果。
-- `scripts/export-android.py`：重新核對 SSD、匯出並獨立驗證 APK。
-
-奈奈攻擊數值位於 `nana_combat.gd`，敵人與排程位於 `nana_encounters.gd`，場次規則位於 `run_model.gd`。歷史原型和研究請由文件索引與 Git 歷史查閱。
+- `scripts/export-android.py`、`scripts/verify-packaged-nana.py`：匯出並獨立驗證 APK，及封裝後的規則檢查。
 
 ## 儲存與素材
 
@@ -91,4 +85,4 @@ Android APK 與安裝方式見 [Android 測試版安裝](docs/development/androi
 
 目前開發順序已收斂為 [第一版單一角色與敵人戰鬥設計](docs/design/first-version-combat-plan.md)：第一版主角已選定為寵物黑貓「奈奈」，先完成牠的攻擊模式與機制，再完成敵人種類、特色、攻擊及機制，之後接續其他部分；保留其他角色的擴充空間。
 
-完整設計及後續敵人規劃見 [奈奈與第一版敵人戰鬥設計草案 v1.1](docs/design/nana-combat-design-v1.md)。目前實作範圍見 [v0.10 試玩說明](docs/development/nana-v0.10-practice.md)；研究後的下一步見 [交接文件](HANDOFF.md)。
+目前的設計見 [X1 重設計提案](docs/design/nana-pounce-redesign-proposal-x1.md)與[內容表](docs/design/nana-x1-content.md)；實作範圍見 [v0.30 試玩說明](docs/development/nana-v0.30-practice.md)；下一步見 [交接文件](HANDOFF.md)。

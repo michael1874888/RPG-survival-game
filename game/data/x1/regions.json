@@ -30,7 +30,7 @@
     "targets": ["E03", "E04", "E06", "E07"],
     "elites": ["EL02", "EL01"],
     "boss": "B02",
-    "hp_mult": 1.08, "damage_mult": 1.05,
+    "hp_mult": 1.05, "damage_mult": 1.0,
     "chest_pool": ["H01", "H03", "H05", "U03"]
   },
   "belltower": {
@@ -48,7 +48,7 @@
     "targets": ["E04", "E05", "E07", "E08"],
     "elites": ["EL01", "EL02"],
     "boss": "B03",
-    "hp_mult": 1.16, "damage_mult": 1.1,
+    "hp_mult": 1.1, "damage_mult": 1.05,
     "chest_pool": ["H01", "H03", "H05", "U03"]
   }
 }

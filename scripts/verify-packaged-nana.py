@@ -249,6 +249,46 @@ func _initialize():
 '''
 
 
+CHECK_X1 = '''extends SceneTree
+const Data = preload("res://scripts/x1/core/data.gd")
+const Rng = preload("res://scripts/x1/core/rng_streams.gd")
+const Battle = preload("res://scripts/x1/core/battle.gd")
+const Run = preload("res://scripts/x1/core/run.gd")
+const Profile = preload("res://scripts/x1/core/profile.gd")
+
+func _initialize():
+ var data = Data.shared()
+ if not data.errors.is_empty() or data.card_list.size() != 48 or data.evolutions.size() != 8 or data.regions.size() != 3: quit(1); return
+ var rngs = Rng.new()
+ rngs.setup(5)
+ var b = Battle.new()
+ b.setup({"region": "courtyard", "kind": "hunt", "entries": [{"id": "habit", "effects": data.habits.roam.effects, "level": 1}]}, rngs, null)
+ b.spawning = false
+ var start = b.player.pos
+ var target = b.spawn_enemy("E05", start + Vector2(270, 0), {})
+ target.hp = 900.0
+ b.claw_timer = 99.0
+ b.step(1.0 / 60.0, {"pounce": Vector2.RIGHT})
+ for i in 20: b.step(1.0 / 60.0, {})
+ if absf(b.player.pos.x - start.x - 230.0) > 2.0 or target.hp > 870.0: quit(1); return
+ b.add_meter(100.0)
+ b.step(1.0 / 60.0, {"ult": true})
+ if not b.ult_active(): quit(1); return
+ var run = Run.new()
+ run.begin({"seed": 11, "region": "belltower", "habit": "hunt"})
+ if run.map.rows.size() != 7 or not run.enter(run.available_nodes()[0]) or run.battle == null: quit(1); return
+ for i in 600: run.tick(1.0 / 60.0, {"move": Vector2.RIGHT.rotated(i * 0.02)})
+ var copy = Run.new()
+ if not copy.from_dict(bytes_to_var(var_to_bytes(run.to_dict()))) or copy.battle == null: quit(1); return
+ var path = "user://packaged-x1-test-%d" % Time.get_ticks_usec()
+ var profile = Profile.new(path + ".save", path + ".r1", path + ".old")
+ if not profile.save_active(run.to_dict()) or Profile.new(path + ".save").data.active.is_empty(): quit(1); return
+ for suffix in [".save", ".save.bak", ".save.tmp", ".save.bak.tmp"]: DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))
+ print("PACKAGED X1 RULES: data, pounce, night shadow, map, battle, snapshot and profile passed")
+ quit(0)
+'''
+
+
 def main():
     receipt = json.loads((PROJECT / 'tools/android-build.json').read_text())
     root = Path(subprocess.check_output([
@@ -265,36 +305,33 @@ def main():
         raise SystemExit('APK does not match the recorded SHA-256')
     with tempfile.TemporaryDirectory(prefix='nana-apk-check-') as temp_dir:
         temp = Path(temp_dir)
-        (temp / 'scripts').mkdir()
         (temp / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="APK check"\n')
         (temp / 'check.gd').write_text(CHECK)
         with zipfile.ZipFile(apk) as archive:
-            remap = re.search(r'^path="res://([^"]+)"$', archive.read('assets/r1_main.tscn.remap').decode(), re.M)
+            remap = re.search(r'^path="res://([^"]+)"$', archive.read('assets/x1_main.tscn.remap').decode(), re.M)
             if (not remap or 'assets/' + remap.group(1) not in archive.namelist()
-                    or b'res://r1_main.tscn' not in archive.read('assets/project.binary')):
-                raise RuntimeError('The R1 startup scene or its remap is missing from the APK')
-            for name in ('run_model.gdc', 'run_model.gd.remap',
-                         'nana_experiment.gdc', 'nana_experiment.gd.remap',
-                         'nana_series.gdc', 'nana_series.gd.remap',
-                         'nana_growth_run.gdc', 'nana_growth_run.gd.remap',
-                         'treasure_collection.gdc', 'treasure_collection.gd.remap',
-                         'nana_combat.gdc', 'nana_combat.gd.remap',
-                         'nana_encounters.gdc', 'nana_encounters.gd.remap',
-                         'r1_growth.gdc', 'r1_growth.gd.remap',
-                         'r1_profile.gdc', 'r1_profile.gd.remap',
-                         'r1_waves.gdc', 'r1_waves.gd.remap',
-                         'r1_combat.gdc', 'r1_combat.gd.remap',
-                         'r1_encounters.gdc', 'r1_encounters.gd.remap',
-                         'r1_expedition.gdc', 'r1_expedition.gd.remap',
-                         'combat_geometry.gdc', 'combat_geometry.gd.remap'):
-                (temp / 'scripts' / name).write_bytes(archive.read('assets/scripts/' + name))
-        result = subprocess.run([GODOT, '--headless', '--path', temp, '--script', 'res://check.gd'],
-                                check=True, text=True, capture_output=True)
-        output = result.stdout + result.stderr
-        if 'SCRIPT ERROR' in output or 'PACKAGED NANA RULES:' not in output or ' passed' not in output:
-            raise RuntimeError('Packaged rule check did not complete successfully:\n' + output)
-        print(output.strip())
-
+                    or b'res://x1_main.tscn' not in archive.read('assets/project.binary')):
+                raise RuntimeError('The X1 startup scene or its remap is missing from the APK')
+            copied = 0
+            for entry in archive.namelist():
+                if not (entry.startswith('assets/scripts/') or entry.startswith('assets/data/')):
+                    continue
+                if entry.endswith('/'):
+                    continue
+                target = temp / entry[len('assets/'):]
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(archive.read(entry))
+                copied += 1
+            if copied < 60 or not (temp / 'data/x1/cards.json').exists():
+                raise RuntimeError('Too few compiled scripts or data files in the APK: %d' % copied)
+        (temp / 'check_x1.gd').write_text(CHECK_X1)
+        for script, marker in (('res://check.gd', 'PACKAGED NANA RULES:'), ('res://check_x1.gd', 'PACKAGED X1 RULES:')):
+            result = subprocess.run([GODOT, '--headless', '--path', temp, '--script', script],
+                                    check=True, text=True, capture_output=True, timeout=300)
+            output = result.stdout + result.stderr
+            if 'SCRIPT ERROR' in output or marker not in output or ' passed' not in output:
+                raise RuntimeError('Packaged rule check did not complete successfully:\n' + output)
+            print([line for line in output.splitlines() if marker in line][0])
 
 if __name__ == '__main__':
     main()

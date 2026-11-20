@@ -23,6 +23,7 @@ v0.16 疾追者已有正向威脅感回饋，但整局重玩與成就感不足�
 
 | 版本 | 驗證問題與紀錄 |
 | --- | --- |
+| v0.30 | [奈奈夜巡 X1](development/nana-v0.30-practice.md)：撲擊狩獵、三區域夜巡地圖、本能卡與進化、夜深與解鎖；[提案](design/nana-pounce-redesign-proposal-x1.md)、[內容表](design/nana-x1-content.md)、[調參指南](development/x1-tuning-guide.md)；待真人試玩 |
 | v0.1 | [原型規格](design/prototype-v0.1-spec.md)、[歷史實作與驗證](development/prototype-v0.1-status.md)：手機雙手操作、三分鐘生存、升級與重玩 |
 | v0.2 | [角色對照](design/animal-attacks-poc-v0.2.md)：刺蝟遠距尖刺與小熊近距揮擊 |
 | v0.3 | [構築比較](design/build-comparison-poc-v0.3.md)：散射＋反彈與穿透＋攻速；含固定靶群分析 |
@@ -45,7 +46,7 @@ v0.17 有 345 項規則與場景檢查通過；這與玩家爽感、平衡、設
 
 ## 其他入口
 
-- [重設計提案 X1：撲擊狩獵](design/nana-pounce-redesign-proposal-x1.md)（2026-11-20 已核准，實作中）
+- [重設計提案 X1：撲擊狩獵](design/nana-pounce-redesign-proposal-x1.md)（2026-11-20 已核准，v0.30.0 已實作，待真人試玩）
 - [名詞表](../GLOSSARY.md)
 - [Android 安裝與試玩](development/android-install.md)
 - [手機測試清單](development/mobile-test-checklist.md)

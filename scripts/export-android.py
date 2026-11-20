@@ -14,8 +14,8 @@ import xml.etree.ElementTree as ET
 PROJECT = Path(__file__).resolve().parent.parent
 GODOT = Path('/Applications/Godot.app/Contents/MacOS/Godot')
 CONTROLLER = '/Users/junming/AI-Setup/storage/storagectl.py'
-VERSION = '0.20.0'
-VERSION_CODE = 20
+VERSION = '0.30.0'
+VERSION_CODE = 30
 
 
 def run(args, env=None):
@@ -97,7 +97,7 @@ def main():
     configure_editor(java, sdk, key)
     destination = root / 'builds/android'
     destination.mkdir(parents=True, exist_ok=True)
-    apk = destination / 'bramble-v0.20-debug.apk'
+    apk = destination / 'bramble-v0.30-debug.apk'
 
     preset = '''[preset.0]
 name="Android"
@@ -107,7 +107,7 @@ advanced_options=false
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter="assets/fonts/OFL.txt,assets/fonts/SOURCE.md"
+include_filter="assets/fonts/OFL.txt,assets/fonts/SOURCE.md,data/x1/*.json"
 exclude_filter="tests/*,tools/*"
 export_path=%s
 encrypt_pck=false
@@ -132,6 +132,7 @@ package/name="Bramble"
 package/signed=true
 screen/immersive_mode=true
 permissions/internet=false
+permissions/vibrate=true
 ''' % (text(apk), text(debug_template), text(templates / 'android_release.apk'), VERSION_CODE, text(VERSION))
     (PROJECT / 'game/export_presets.cfg').write_text(preset)
     run([GODOT, '--headless', '--path', PROJECT / 'game', '--editor', '--import', '--quit'], env)
@@ -150,15 +151,20 @@ permissions/internet=false
         if 'assets/assets/fonts/OFL.txt' not in archive.namelist():
             raise RuntimeError('Bundled font license is missing.')
         for script in ('run_model', 'nana_combat', 'nana_encounters', 'nana_experiment', 'nana_series', 'nana_growth_run', 'treasure_collection', 'main',
-                       'r1_main', 'r1_growth', 'r1_profile', 'r1_waves', 'r1_combat', 'r1_encounters', 'r1_expedition'):
+                       'r1_main', 'r1_growth', 'r1_profile', 'r1_waves', 'r1_combat', 'r1_encounters', 'r1_expedition', 'x1_main',
+                       'x1/core/battle', 'x1/core/run', 'x1/core/profile', 'x1/core/data', 'x1/core/effects', 'x1/core/effect_actions',
+                       'x1/core/spawner', 'x1/core/build', 'x1/render/battle_view', 'x1/ai/boss_crow'):
             if 'assets/scripts/' + script + '.gdc' not in archive.namelist():
                 raise RuntimeError('Compiled game script is missing: ' + script)
-        remap_name = 'assets/r1_main.tscn.remap'
+        for table in ('tuning', 'enemies', 'spawns', 'regions', 'cards', 'habits', 'items', 'events', 'shop', 'night_levels', 'unlocks'):
+            if 'assets/data/x1/' + table + '.json' not in archive.namelist():
+                raise RuntimeError('X1 data table is missing: ' + table)
+        remap_name = 'assets/x1_main.tscn.remap'
         if remap_name not in archive.namelist():
-            raise RuntimeError('The first-chapter main scene is missing.')
+            raise RuntimeError('The X1 main scene is missing.')
         scene_remap = re.search(r'^path="res://([^"]+)"$', archive.read(remap_name).decode(), re.M)
         if (not scene_remap or 'assets/' + scene_remap.group(1) not in archive.namelist()
-                or b'res://r1_main.tscn' not in archive.read('assets/project.binary')):
+                or b'res://x1_main.tscn' not in archive.read('assets/project.binary')):
             raise RuntimeError('The exported startup scene or its target is missing.')
     # The vendor apkanalyzer shell launcher splits SDK paths containing spaces.
     # Invoke its official Java entry point with an argument array instead.
@@ -182,7 +188,7 @@ permissions/internet=false
         'permissions': [node.attrib.get(ns + 'name') for node in manifest.findall('uses-permission')],
         'orientations': [node.attrib.get(ns + 'screenOrientation') for node in application.findall('activity')],
     }
-    if manifest_summary['package'] != 'org.bramble.prototype' or manifest_summary['permissions']:
+    if manifest_summary['package'] != 'org.bramble.prototype' or manifest_summary['permissions'] != ['android.permission.VIBRATE']:
         raise RuntimeError('Unexpected package identity or permissions: ' + repr(manifest_summary))
     if manifest_summary['minimum_sdk'] != '24' or manifest_summary['target_sdk'] != '36':
         raise RuntimeError('Unexpected Android SDK targets: ' + repr(manifest_summary))
