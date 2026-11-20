@@ -108,7 +108,11 @@ func flow_tests() -> void:
 	run.map.nodes[den_id].kind = "den"
 	run.enter(den_id)
 	_play_battle(run, bot)
-	check(run.phase == "card" and run.choice_context == "reward", "an elite den offers a card reward first")
+	var leftover := 0
+	while run.phase == "card" and run.choice_context == "level" and leftover < 10:
+		leftover += 1
+		run.choose_card(run.build.offers[0])
+	check(run.phase == "card" and run.choice_context == "reward", "after any leftover level-ups, an elite den offers a card reward")
 	run.choose_card(run.build.offers[0])
 	check(run.phase == "item" and "H03" in run.item_choices, "first chest guarantees 回身鈴鐺")
 	var snapshot_before: Dictionary = run.to_dict()
